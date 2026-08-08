@@ -44,10 +44,6 @@
             <ion-icon name="flame"></ion-icon>
             {{ user.streak || 28 }} Day Streak
           </div>
-          <div class="tag level-tag">
-            <ion-icon name="flash"></ion-icon>
-            Level 12
-          </div>
         </div>
       </div>
     </div>
@@ -170,6 +166,11 @@
         <div class="setting-row">
           <div class="setting-icon red-light-bg"><ion-icon name="help-circle-outline" class="red-text"></ion-icon></div>
           <span>Help & Support</span>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </div>
+        <div class="setting-row" (click)="onLogout()">
+          <div class="setting-icon red-light-bg"><ion-icon name="log-out-outline" class="red-text"></ion-icon></div>
+          <span class="red-text" style="font-weight: 500;">Log Out</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
       </div>

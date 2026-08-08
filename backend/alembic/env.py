@@ -20,7 +20,7 @@ from app.db.base import Base
 import os
 
 config.set_main_option(
-    "sqlalchemy.url", os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
+    "sqlalchemy.url", os.getenv("DATABASE_URL", "postgresql://postgres@localhost:5434/dailyknowledge")
 )
 target_metadata = Base.metadata
 

@@ -1,9 +1,13 @@
+:host {
+  background-color: var(--ion-color-light);
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 80%;
+  height: 60vh;
   color: var(--ion-color-medium);
 
   ion-icon {
@@ -16,6 +20,219 @@
   }
 }
 
-ion-item {
-  --padding-start: 16px;
+.tabs-scroll-container {
+  overflow-x: auto;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tabs-wrapper {
+  display: flex;
+  padding: 0 16px;
+  width: max-content;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding:6px ;
+  color: var(--ion-color-medium);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  .tab-label {
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .tab-badge {
+    background: #f0f0f0;
+    color: var(--ion-color-medium);
+    font-size:9px;
+    font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 50%;
+  }
+
+  &.active {
+    color: var(--ion-color-primary);
+    border-bottom: 2px solid var(--ion-color-primary);
+
+    .tab-badge {
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+.content-container {
+  padding: 10px;
+}
+
+.segment-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+
+  .segment-title {
+    font-size:14px;
+    font-weight: 700;
+    color: #1a1a24;
+  }
+
+  .segment-count {
+    color: var(--ion-color-medium);
+    font-size: 12px;
+  }
+}
+
+.cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  background: white;
+}
+
+.vocab-layout {
+  display: flex;
+  padding: 5px;
+  position: relative;
+  min-height: 100px;
+}
+
+.left-section {
+  flex-shrink: 0;
+  margin-right: 6px;
+
+  .audio-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ion-color-primary);
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+}
+
+.middle-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 24px;
+
+  .header-row {
+    .word-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a24;
+      margin: 0;
+    }
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .custom-badge {
+      font-size:6px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      
+      &.hard {
+        background: rgba(var(--ion-color-danger-rgb), 0.15);
+        color: var(--ion-color-danger);
+      }
+      &.medium {
+        background: rgba(var(--ion-color-warning-rgb), 0.15);
+        color: #b37400; 
+      }
+      &.easy {
+        background: rgba(var(--ion-color-success-rgb), 0.15);
+        color: var(--ion-color-success);
+      }
+    }
+
+    .phonetic {
+      color: var(--ion-color-medium);
+      font-size: 0.9rem;
+    }
+  }
+
+  .meaning-row, .synonyms-row {
+    font-size:12px;
+    line-height: 1.4;
+    
+    .label {
+      font-weight: 700;
+      color: #444;
+      margin-right: 4px;
+    }
+    
+    .value {
+      color: #666;
+    }
+  }
+}
+
+.right-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: absolute;
+  right: 7px;
+  top: 10px;
+  bottom: 6px;
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .bookmark-icon {
+      font-size: 14px;
+    }
+    .options-icon {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      cursor: pointer;
+    }
+  }
+
+  .date-saved {
+    font-size:9px;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+  }
 }

@@ -1,25 +1,38 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from datetime import datetime
 
+class DefinitionItem(BaseModel):
+    part_of_speech: Optional[str] = None
+    definition: Optional[str] = None
+    example: Optional[str] = None
+
 class VocabularyWordBase(BaseModel):
     word: str
-    meaning: str
+    definitions: Optional[List[DefinitionItem]] = []
+    part_of_speech: Optional[List[str]] = []
     pronunciation: Optional[str] = None
     audio_url: Optional[str] = None
-    synonyms: Optional[str] = None
-    antonyms: Optional[str] = None
+    synonyms: Optional[List[str]] = []
+    antonyms: Optional[List[str]] = []
     origin: Optional[str] = None
-    example: Optional[str] = None
     difficulty: Optional[str] = "Medium"
     usage_tips: Optional[str] = None
+    source: Optional[str] = "free_dictionary"
+    
+    # Backwards compatibility
+    meaning: Optional[str] = None
+    example: Optional[str] = None
+    
+    # For user progress in UI
+    bookmarked: Optional[bool] = False
+    learned: Optional[bool] = False
 
 class VocabularyWordCreate(VocabularyWordBase):
     pass
 
 class VocabularyWordUpdate(VocabularyWordBase):
     word: Optional[str] = None
-    meaning: Optional[str] = None
 
 class VocabularyWordInDBBase(VocabularyWordBase):
     id: int
@@ -31,3 +44,8 @@ class VocabularyWordInDBBase(VocabularyWordBase):
 
 class VocabularyWord(VocabularyWordInDBBase):
     pass
+
+class DailyVocabularyResponse(BaseModel):
+    date: str
+    total: int
+    words: List[VocabularyWord]

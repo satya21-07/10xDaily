@@ -4,7 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { VocabularyService } from '../../services/vocabulary.service';
 import { VocabularyWord } from '../../models/vocabulary.model';
 import { addIcons } from 'ionicons';
-import { volumeHighOutline, chevronForward, chevronBack, bookmarkOutline, bookmark, bookOutline, chatbubbleEllipsesOutline, layersOutline, contrastOutline, chevronBackOutline } from 'ionicons/icons';
+import { volumeHighOutline, chevronForwardOutline, chevronBack, bookmarkOutline, bookmark, bookOutline, chatbubbleEllipsesOutline, layersOutline, contrastOutline, chevronBackOutline, shareSocialOutline, checkmarkOutline, chevronDownOutline, thumbsUpOutline, thumbsUp } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
 import { ProgressService } from '../../services/progress.service';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
@@ -26,15 +26,37 @@ export class VocabularyComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   
   words: VocabularyWord[] = [];
-  openAccordions: string[] = [];
+  currentIndex: number = 0;
   savedBookmarks: Bookmark[] = [];
   isLoading = true;
   
-  private viewedWords = new Set<string>();
-  private observer: IntersectionObserver | null = null;
+  private sessionViewedWords = new Set<string>();
+
+  private getTodayDateKey(): string {
+    const today = new Date();
+    return `viewedWords_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+  }
+
+  private getStoredViewedWords(): Set<string> {
+    const key = this.getTodayDateKey();
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        return new Set(JSON.parse(stored));
+      } catch (e) {
+        return new Set();
+      }
+    }
+    return new Set();
+  }
+
+  private saveStoredViewedWords(words: Set<string>) {
+    const key = this.getTodayDateKey();
+    localStorage.setItem(key, JSON.stringify(Array.from(words)));
+  }
 
   constructor() {
-    addIcons({ volumeHighOutline, chevronForward, chevronBack, bookmarkOutline, bookmark, bookOutline, chatbubbleEllipsesOutline, layersOutline, contrastOutline, chevronBackOutline });
+    addIcons({ volumeHighOutline, chevronForwardOutline, chevronBack, bookmarkOutline, bookmark, bookOutline, chatbubbleEllipsesOutline, layersOutline, contrastOutline, chevronBackOutline, shareSocialOutline, checkmarkOutline, chevronDownOutline, thumbsUpOutline, thumbsUp });
   }
 
   ngOnInit() {
@@ -43,17 +65,15 @@ export class VocabularyComponent implements OnInit, OnDestroy {
     this.vocabularyService.getDailyVocabulary().subscribe({
       next: (data) => {
         this.words = data;
-        this.openAccordions = this.words.map((_, i) => i.toString());
+        this.currentIndex = 0;
         this.isLoading = false;
         
-        // Setup tracking after the DOM updates with the loaded words
-        setTimeout(() => {
-          // Fallback: The first two words are always visible on load
-          if (this.words.length > 0) this.viewedWords.add(this.words[0].word);
-          if (this.words.length > 1) this.viewedWords.add(this.words[1].word);
-          
-          this.setupScrollTracking();
-        }, 100);
+        if (this.words.length > 0) {
+          const todayWords = this.getStoredViewedWords();
+          if (!todayWords.has(this.words[0].word)) {
+            this.sessionViewedWords.add(this.words[0].word);
+          }
+        }
       },
       error: () => {
         this.isLoading = false;
@@ -71,39 +91,56 @@ export class VocabularyComponent implements OnInit, OnDestroy {
   }
   
   private syncWords() {
-    if (this.observer) {
-      this.observer.disconnect();
+    if (this.sessionViewedWords.size > 0 && this.authService.isLoggedIn) {
+      this.authService.updateStats({ words_learned_increment: this.sessionViewedWords.size }).subscribe();
+      
+      const todayWords = this.getStoredViewedWords();
+      this.sessionViewedWords.forEach(w => todayWords.add(w));
+      this.saveStoredViewedWords(todayWords);
+      
+      this.sessionViewedWords.clear();
     }
-    
-    if (this.viewedWords.size > 0 && this.authService.isLoggedIn) {
-      this.authService.updateStats({ words_learned_increment: this.viewedWords.size }).subscribe();
-      this.viewedWords.clear();
-    }
-  }
-
-  private setupScrollTracking() {
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
-    
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const word = entry.target.getAttribute('data-word');
-          if (word) {
-            this.viewedWords.add(word);
-          }
-        }
-      });
-    }, { threshold: 0.01 }); // 1% visible triggers it
-
-    // We need to wait for Ionic Web Components to fully hydrate and render
-    setTimeout(() => {
-      const elements = document.querySelectorAll('.word-card-container');
-      elements.forEach(el => this.observer?.observe(el));
-    }, 500);
   }
 
   ionViewWillEnter() {
     this.loadBookmarks();
+  }
+
+  get currentWord(): VocabularyWord | null {
+    if (this.words.length === 0) return null;
+    return this.words[this.currentIndex];
+  }
+
+  get previousWord(): VocabularyWord | null {
+    if (this.currentIndex > 0) {
+      return this.words[this.currentIndex - 1];
+    }
+    return null;
+  }
+
+  get nextWord(): VocabularyWord | null {
+    if (this.currentIndex < this.words.length - 1) {
+      return this.words[this.currentIndex + 1];
+    }
+    return null;
+  }
+
+  next() {
+    if (this.currentIndex < this.words.length - 1) {
+      this.currentIndex++;
+      if (this.currentWord) {
+        const todayWords = this.getStoredViewedWords();
+        if (!todayWords.has(this.currentWord.word)) {
+          this.sessionViewedWords.add(this.currentWord.word);
+        }
+      }
+    }
+  }
+
+  previous() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+    }
   }
 
   loadBookmarks() {
@@ -116,8 +153,8 @@ export class VocabularyComponent implements OnInit, OnDestroy {
     return this.savedBookmarks.some(b => b.title === word.word);
   }
 
-  toggleSaveWord(word: VocabularyWord, event: Event) {
-    event.stopPropagation();
+  toggleSaveWord(word: VocabularyWord, event?: Event) {
+    if (event) event.stopPropagation();
     const existing = this.savedBookmarks.find(b => b.title === word.word);
     
     if (existing && existing.id) {
@@ -135,9 +172,27 @@ export class VocabularyComponent implements OnInit, OnDestroy {
       });
     }
   }
+  
+  toggleLearned(word: VocabularyWord) {
+    word.learned = !word.learned;
+  }
+  
+  shareWord() {
+    if (this.currentWord) {
+      if (navigator.share) {
+        navigator.share({
+          title: this.currentWord.word,
+          text: `Check out today's vocabulary word: ${this.currentWord.word} - ${this.currentWord.definitions?.[0]?.definition}`,
+          url: window.location.href,
+        }).catch(console.error);
+      } else {
+        console.log("Web Share API not supported. Sharing:", this.currentWord.word);
+      }
+    }
+  }
 
-  playAudio(word: VocabularyWord, event: Event) {
-    event.stopPropagation();
+  playAudio(word: VocabularyWord, event?: Event) {
+    if (event) event.stopPropagation();
     
     if (word.audio_url) {
        const audio = new Audio(word.audio_url);
@@ -154,7 +209,7 @@ export class VocabularyComponent implements OnInit, OnDestroy {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
-      utterance.rate = 0.85; // Slightly slower for clearer enunciation
+      utterance.rate = 0.85; 
       window.speechSynthesis.speak(utterance);
     } else {
       console.warn("Text-to-speech not supported in this browser.");

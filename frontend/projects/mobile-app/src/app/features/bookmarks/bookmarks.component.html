@@ -1,49 +1,106 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Saved Items</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title style="font-weight: 700; font-size: 1.5rem; color: #1a1a24; padding-left: 8px;">Saved Items</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="dark">
+        <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+      </ion-button>
+      <ion-button color="dark">
+        <ion-icon slot="icon-only" name="options-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content color="light">
+  <div class="tabs-scroll-container">
+    <div class="tabs-wrapper">
+      <div 
+        *ngFor="let topic of topics" 
+        class="tab-item" 
+        [class.active]="activeSegment === topic"
+        (click)="activeSegment = topic">
+        <ion-icon [name]="getTabIcon(topic)"></ion-icon>
+        <span class="tab-label">{{ getTabLabel(topic) }}</span>
+        <span class="tab-badge">{{ groupedBookmarks[topic].length || 0 }}</span>
+      </div>
+    </div>
+  </div>
+
   <div class="empty-state" *ngIf="topics.length === 0">
     <ion-icon name="bookmark-outline"></ion-icon>
     <p>You haven't saved anything yet.</p>
   </div>
 
-  <ion-accordion-group *ngIf="topics.length > 0">
-    <ion-accordion *ngFor="let topic of topics" [value]="topic">
-      <ion-item slot="header" color="light">
-        <ion-label style="text-transform: capitalize; font-weight: bold;">{{ topic }}</ion-label>
-        <ion-badge slot="end" color="primary">{{ groupedBookmarks[topic].length }}</ion-badge>
-      </ion-item>
-      
-      <div class="ion-padding" slot="content">
-        <ion-list style="background: transparent;">
-          <ion-card *ngFor="let item of groupedBookmarks[topic]" class="ion-margin-bottom" style="margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px;">
-            <ion-card-header>
+  <div *ngIf="topics.length > 0 && activeSegment" class="content-container">
+    <div class="segment-header">
+      <span class="segment-title">{{ getTabLabel(activeSegment) }}</span>
+      <span class="segment-count">{{ getSavedText(activeSegment, groupedBookmarks[activeSegment].length || 0) }}</span>
+    </div>
+
+    <div class="cards-list">
+      <ion-card *ngFor="let item of groupedBookmarks[activeSegment]" class="custom-card">
+        <!-- Vocabulary specific layout -->
+        <ng-container *ngIf="item.content_type === 'vocabulary' && item.parsed_data; else defaultLayout">
+          <div class="vocab-layout">
+            <div class="left-section">
+               <div class="audio-circle" (click)="playAudio(item.parsed_data.audio_url, item.parsed_data.word, $event)">
+                 <ion-icon name="volume-high-outline"></ion-icon>
+               </div>
+            </div>
+            
+            <div class="middle-section">
+              <div class="header-row" style="display: flex; gap:6px">
+                <h2 class="word-title">{{ item.parsed_data.word || item.title }}</h2>
+                <div class="meta-row" *ngIf="item.parsed_data.difficulty || item.parsed_data.phonetic">
+                <span *ngIf="item.parsed_data.difficulty" class="custom-badge" [ngClass]="item.parsed_data.difficulty.toLowerCase()">
+                  {{ item.parsed_data.difficulty | uppercase }}
+                </span>
+                <span class="phonetic" *ngIf="item.parsed_data.phonetic">{{ item.parsed_data.phonetic }}</span>
+              </div>
+              </div>
+
+              
+              <div class="meaning-row">
+                <span class="label">Meaning:</span>
+                <span class="value">{{ item.parsed_data.meaning || item.parsed_data.definitions?.[0]?.definition }}</span>
+              </div>
+              
+              <div class="synonyms-row" *ngIf="getSynonyms(item)">
+                <span class="label">Synonyms:</span>
+                <span class="value">{{ getSynonyms(item) }}</span>
+              </div>
+            </div>
+            
+            <div class="right-section">
+              <div class="action-buttons">
+                <ion-icon name="bookmark" color="primary" class="bookmark-icon"></ion-icon>
+                <ion-icon name="ellipsis-vertical" class="options-icon" (click)="presentOptions(item.id, $event)"></ion-icon>
+              </div>
+              <div class="date-saved" *ngIf="item.created_at">
+                Saved on {{ formatDate(item.created_at) }}
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Default Layout for other types -->
+        <ng-template #defaultLayout>
+           <ion-card-header>
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                   <ion-card-title style="font-size: 1.1rem; font-weight: 600;">{{ item.title }}</ion-card-title>
                   <ion-card-subtitle *ngIf="item.parsed_data?.difficulty || item.parsed_data?.source" style="margin-top: 4px;">{{ item.parsed_data?.difficulty || item.parsed_data?.source }}</ion-card-subtitle>
                 </div>
-                <ion-button fill="clear" color="danger" (click)="deleteBookmark(item.id, $event)" style="margin-top: -8px; margin-right: -8px;">
-                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                <ion-button fill="clear" color="dark" (click)="presentOptions(item.id, $event)" style="margin-top: -8px; margin-right: -8px;">
+                  <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
                 </ion-button>
               </div>
             </ion-card-header>
             
             <ion-card-content style="padding-top: 0;">
-              <!-- Fallback -->
               <p *ngIf="!item.parsed_data && item.url">{{ item.url }}</p>
 
-              <!-- Vocabulary -->
-              <div *ngIf="item.content_type === 'vocabulary' && item.parsed_data">
-                <p style="margin-bottom: 8px;"><strong>Meaning:</strong> {{ item.parsed_data.meaning }}</p>
-                <p *ngIf="item.parsed_data.example" style="margin-bottom: 8px; font-style: italic; color: var(--ion-color-medium);">"{{ item.parsed_data.example }}"</p>
-                <p *ngIf="item.parsed_data.synonyms" style="margin-bottom: 8px;"><strong>Synonyms:</strong> {{ item.parsed_data.synonyms }}</p>
-              </div>
-
-              <!-- News -->
               <div *ngIf="item.content_type === 'news' && item.parsed_data">
                 <p *ngIf="item.parsed_data.ai_summary"><strong>AI Summary:</strong> {{ item.parsed_data.ai_summary }}</p>
                 <p *ngIf="!item.parsed_data.ai_summary && item.parsed_data.summary">{{ item.parsed_data.summary }}</p>
@@ -54,7 +111,6 @@
                 </div>
               </div>
 
-              <!-- Coding -->
               <div *ngIf="item.content_type === 'coding' && item.parsed_data">
                 <p style="margin-bottom: 8px;">{{ item.parsed_data.description }}</p>
                 <div *ngIf="item.parsed_data.hint" style="background: var(--ion-color-light); padding: 8px 12px; border-radius: 8px; margin-top: 8px;">
@@ -62,14 +118,12 @@
                 </div>
               </div>
 
-              <!-- Health/Spiritual/Finance -->
               <div *ngIf="['health', 'spiritual', 'finance'].includes(item.content_type) && item.parsed_data">
                 <p>{{ item.parsed_data.explanation }}</p>
               </div>
             </ion-card-content>
-          </ion-card>
-        </ion-list>
-      </div>
-    </ion-accordion>
-  </ion-accordion-group>
+        </ng-template>
+      </ion-card>
+    </div>
+  </div>
 </ion-content>

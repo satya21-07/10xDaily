@@ -1,92 +1,147 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar transparent>
+<ion-header class="ion-no-border vocabulary-header">
+  <ion-toolbar class="transparent-toolbar">
     <ion-buttons slot="start">
-      <ion-button routerLink="/home">
-        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      <ion-button routerLink="/home" class="back-btn">
+        <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+        <span class="btn-text">Back to Vocabulary</span>
       </ion-button>
     </ion-buttons>
-    <ion-title>Vocabulary</ion-title>
-    <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon slot="icon-only" name="bookmark-outline"></ion-icon>
+    <ion-buttons slot="end" *ngIf="currentWord">
+      <ion-button (click)="toggleSaveWord(currentWord)" class="header-action-btn">
+        <ion-icon slot="start" [name]="isSaved(currentWord) ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+        <span class="btn-text">Save</span>
+      </ion-button>
+      <ion-button (click)="shareWord()" class="header-action-btn">
+        <ion-icon slot="start" name="share-social-outline"></ion-icon>
+        <span class="btn-text">Share</span>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <div class="header-section">
-    <h2>Today's Words</h2>
-    <p>Master these 10 advanced words to enhance your communication.</p>
-  </div>
-
-  <!-- Loader -->
+<ion-content class="vocabulary-content">
   <app-loader *ngIf="isLoading" message="Fetching vocabulary..."></app-loader>
 
-  <ion-accordion-group *ngIf="!isLoading" [multiple]="true" [value]="openAccordions">
-    <ion-accordion *ngFor="let word of words; let i = index" [value]="i.toString()" class="word-card-container" [attr.data-word]="word.word">
-      
-      <!-- Accordion Header -->
-      <ion-item slot="header" color="none" lines="none">
-        <ion-label>
-          <div class="word-header">
-            <div class="word-title-group">
-              <h2>{{ word.word }}</h2>
-              <ion-button fill="clear" (click)="playAudio(word, $event)" class="pronounce-icon-btn">
-                <ion-icon name="volume-high-outline" slot="icon-only"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" (click)="toggleSaveWord(word, $event)" class="save-icon-btn">
-                <ion-icon [name]="isSaved(word) ? 'bookmark' : 'bookmark-outline'" slot="icon-only" [color]="isSaved(word) ? 'primary' : 'medium'"></ion-icon>
-              </ion-button>
-            </div>
-            <span class="difficulty-tag" [ngClass]="word.difficulty?.toLowerCase()">{{ word.difficulty }}</span>
-          </div>
-          <p *ngIf="word.pronunciation" class="pronunciation">{{ word.pronunciation }}</p>
-        </ion-label>
-      </ion-item>
-
-      <!-- Accordion Content -->
-      <div class="accordion-content" slot="content">
-        
-
-
-        <div class="content-block">
-          <h3>
-            <ion-icon name="book-outline"></ion-icon>
-            Meaning
-          </h3>
-          <p>{{ word.meaning }}</p>
+  <div class="vocabulary-container" *ngIf="!isLoading && currentWord">
+    <!-- Main Word Card -->
+    <div class="card word-card">
+      <div class="word-card-top">
+        <div class="word-title-group">
+          <h1>{{ currentWord.word }}</h1>
+          <ion-button fill="clear" (click)="playAudio(currentWord)" class="pronounce-icon-btn">
+            <ion-icon name="volume-high-outline" slot="icon-only"></ion-icon>
+          </ion-button>
         </div>
-
-        <div class="content-block" *ngIf="word.example">
-          <h3>
-            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-            Example
-          </h3>
-          <p class="example-text">"{{ word.example }}"</p>
-        </div>
-
-        <div class="content-block" *ngIf="word.synonyms">
-          <h3>
-            <ion-icon name="layers-outline"></ion-icon>
-            Synonyms
-          </h3>
-          <p>{{ word.synonyms }}</p>
-        </div>
-
-        <div class="content-block" *ngIf="word.antonyms">
-          <h3>
-            <ion-icon name="contrast-outline"></ion-icon>
-            Antonyms
-          </h3>
-          <p>{{ word.antonyms }}</p>
-        </div>
-
-        <p class="origin-text" *ngIf="word.origin">
-          <strong>Origin:</strong> {{ word.origin }}
-        </p>
+        <span class="difficulty-tag" [ngClass]="currentWord.difficulty?.toLowerCase()">{{ currentWord.difficulty | uppercase }}</span>
       </div>
+      <p class="pronunciation" *ngIf="currentWord.pronunciation">{{ currentWord.pronunciation }}</p>
+      
+      <div class="word-card-bottom">
+        <div class="pos-tags" *ngIf="currentWord.part_of_speech">
+          <span class="pos-tag" *ngFor="let pos of currentWord.part_of_speech">{{ pos }}</span>
+        </div>
+        <!-- <button class="learned-dropdown" (click)="toggleLearned(currentWord)" [class.active]="currentWord.learned">
+          <ion-icon name="checkmark-outline" *ngIf="currentWord.learned"></ion-icon>
+          <span>Learned</span>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </button> -->
+      </div>
+    </div>
 
-    </ion-accordion>
-  </ion-accordion-group>
+    <!-- Definitions Card -->
+    <div class="card definitions-card" *ngIf="currentWord.definitions && currentWord.definitions.length > 0">
+      <div class="card-header">
+        <h2>DEFINITIONS</h2>
+        <!-- <div class="card-actions header-actions">
+          <ion-button fill="clear" class="icon-btn"><ion-icon name="thumbs-up-outline" slot="icon-only"></ion-icon></ion-button>
+          <ion-button fill="clear" class="icon-btn"><ion-icon name="bookmark-outline" slot="icon-only"></ion-icon></ion-button>
+        </div> -->
+      </div>
+      
+      <div class="definition-list">
+        <div class="definition-item" *ngFor="let def of currentWord.definitions; let i = index">
+          <div class="def-number">{{ i + 1 }}</div>
+          <div class="def-content">
+            <div class="def-top">
+              <span class="def-pos" *ngIf="def.part_of_speech">{{ def.part_of_speech }}</span>
+            </div>
+            <p class="def-text">{{ def.definition }}</p>
+            <div class="example-box" *ngIf="def.example">
+              <div class="example-title">
+                <div class="quote-icon-container">
+                    <span class="quote-icon">“</span>
+                </div>
+                <h3>Example</h3>
+              </div>
+              <p>“{{ def.example }}”</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Synonyms & Antonyms Card -->
+    <div class="card synonyms-antonyms-card" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) || (currentWord.antonyms && currentWord.antonyms.length > 0)">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="swap-icon">
+            <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        SYNONYMS & ANTONYMS
+      </h2>
+      
+      <div class="sa-grid">
+        <!-- Synonyms -->
+        <div class="sa-column synonyms" [class.full-width]="!currentWord.antonyms || currentWord.antonyms.length === 0">
+          <h3><span class="dot green"></span> Synonyms</h3>
+          <div class="pill-container" *ngIf="currentWord.synonyms && currentWord.synonyms.length > 0">
+            <span class="pill green" *ngFor="let syn of currentWord.synonyms">{{ syn }}</span>
+          </div>
+          <a href="#" class="view-all green" *ngIf="currentWord.synonyms && currentWord.synonyms.length > 0" (click)="$event.preventDefault()">View all synonyms <ion-icon name="arrow-forward-outline"></ion-icon></a>
+        </div>
+        
+        <!-- Divider for desktop -->
+        <div class="divider" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) && (currentWord.antonyms && currentWord.antonyms.length > 0)"></div>
+
+        <!-- Antonyms -->
+        <div class="sa-column antonyms" *ngIf="currentWord.antonyms && currentWord.antonyms.length > 0">
+          <h3><span class="dot red"></span> Antonyms</h3>
+          <div class="pill-container">
+            <span class="pill red" *ngFor="let ant of currentWord.antonyms">{{ ant }}</span>
+          </div>
+          <a href="#" class="view-all red" (click)="$event.preventDefault()">View all antonyms <ion-icon name="arrow-forward-outline"></ion-icon></a>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </ion-content>
+
+<!-- Pagination Footer -->
+<ion-footer class="ion-no-border" *ngIf="!isLoading && words.length > 0">
+  <div class="footer-wrapper">
+    <div class="pagination-container">
+      <button class="nav-btn prev-btn" (click)="previous()" [disabled]="currentIndex === 0" [class.invisible]="currentIndex === 0">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+        <div class="btn-text">
+          <span class="direction">Previous</span>
+          <span class="word-name" *ngIf="previousWord">{{ previousWord.word | lowercase }}</span>
+        </div>
+      </button>
+      
+      <div class="dots-indicator">
+        <span class="status-text">{{ currentIndex + 1 }} of {{ words.length }}</span>
+        <div class="dots">
+          <span class="dot" *ngFor="let w of words; let i = index" [class.active]="i === currentIndex"></span>
+        </div>
+      </div>
+      
+      <button class="nav-btn next-btn" (click)="next()" [disabled]="currentIndex === words.length - 1" [class.invisible]="currentIndex === words.length - 1">
+        <div class="btn-text">
+          <span class="direction">Next</span>
+          <span class="word-name" *ngIf="nextWord">{{ nextWord.word | lowercase }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+</ion-footer>

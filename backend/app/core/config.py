@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
-    DATABASE_URL: str = "sqlite:///./sql_app.db"
+    DATABASE_URL: str = "postgresql://postgres@localhost:5434/dailyknowledge"
     REDIS_URL: str = "redis://localhost:6379/0"
     GEMINI_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None

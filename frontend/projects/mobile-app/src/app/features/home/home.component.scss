@@ -53,7 +53,7 @@ ion-content {
 }
 
 .home-container {
-  padding: 16px 20px;
+  padding: 6px 14px 20px 14px;
 }
 
 /* Welcome Header */
@@ -61,12 +61,12 @@ ion-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   
   .greeting-content {
     h1 {
       margin: 0 0 4px;
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--text-main);
       
@@ -77,7 +77,7 @@ ion-content {
     
     .date {
       margin: 0;
-      font-size: 14px;
+      font-size: 11px;
       color: var(--text-muted);
       font-weight: 500;
     }
@@ -89,13 +89,13 @@ ion-content {
     gap: 4px;
     background: var(--orange-light);
     color: var(--orange-main);
-    padding: 6px 12px;
+    padding: 3px 6px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 10px;
     font-weight: 700;
     
     ion-icon {
-      font-size: 16px;
+      font-size: 13px;
     }
   }
 }
@@ -104,34 +104,34 @@ ion-content {
 .quote-card {
   background: var(--card-bg);
   border-radius: 20px;
-  padding: 20px;
+  padding: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-  margin-bottom: 32px;
+  margin-bottom: 10px;
   position: relative;
   
   .quote-header {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     
     .icon-circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 12px;
+      margin-right: 4px;
       background: var(--purple-light);
       
       ion-icon {
-        font-size: 18px;
+        font-size: 12px;
         color: var(--purple-main);
       }
     }
     
     .quote-title {
-      font-size: 16px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-main);
       flex: 1;
@@ -180,19 +180,19 @@ ion-content {
 
 /* Quiz Banner */
 .quiz-banner {
-  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
-  border-radius: 20px;
-  padding: 16px 20px;
+  background: linear-gradient(135deg, #739aad 0%, #605d8b 100%);
+  border-radius: 6px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 10px;
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
   color: white;
   
   .quiz-icon-wrapper {
-    width: 48px;
-    height: 48px;
+    width: 24px;
+    height: 24px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 14px;
     display: flex;
@@ -210,14 +210,14 @@ ion-content {
     
     h3 {
       margin: 0 0 4px;
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 800;
       color: white;
     }
     
     p {
       margin: 0;
-      font-size: 13px;
+      font-size: 10px;
       color: rgba(255, 255, 255, 0.85);
       font-weight: 500;
     }
@@ -225,7 +225,7 @@ ion-content {
   
   .quiz-play-btn {
     ion-icon {
-      font-size: 36px;
+      font-size: 24px;
       color: white;
     }
   }
@@ -243,7 +243,7 @@ ion-content {
   
   h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-main);
   }
@@ -259,20 +259,20 @@ ion-content {
     align-items: center;
     background: var(--card-bg);
     border-radius: 16px;
-    padding: 16px;
+    padding: 8px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.02);
     
     .topic-icon {
-      width: 44px;
-      height: 44px;
+      width: 24px;
+      height: 24px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 16px;
+      margin-right: 10px;
       
       ion-icon {
-        font-size: 22px;
+        font-size: 14px;
       }
       
       &.green-light-bg { background: var(--green-light); color: var(--green-main); }
@@ -288,14 +288,14 @@ ion-content {
       
       h3 {
         margin: 0 0 4px;
-        font-size: 16px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--text-main);
       }
       
       p {
         margin: 0;
-        font-size: 13px;
+        font-size: 10px;
         color: var(--text-muted);
         font-weight: 500;
       }
@@ -303,7 +303,7 @@ ion-content {
     
     .chevron {
       color: #94A3B8;
-      font-size: 20px;
+      font-size: 15px;
     }
     
     &:active {

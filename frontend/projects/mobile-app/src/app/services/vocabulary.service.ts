@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-import { VocabularyWord } from '../models/vocabulary.model';
+import { catchError, tap, map } from 'rxjs/operators';
+import { VocabularyWord, DailyVocabularyResponse } from '../models/vocabulary.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -22,7 +22,8 @@ export class VocabularyService {
       return of(this.cachedDailyWords);
     }
     
-    return this.http.get<VocabularyWord[]>(`${this.apiUrl}/daily`).pipe(
+    return this.http.get<DailyVocabularyResponse>(`${this.apiUrl}/daily`).pipe(
+      map(response => response.words),
       tap(words => {
         this.cachedDailyWords = words;
         this.cacheDate = today;
@@ -43,7 +44,7 @@ export class VocabularyService {
         pronunciation: 'ih-FEM-er-uhl',
         example: 'Fashions are ephemeral.',
         difficulty: 'Medium',
-        synonyms: 'fleeting, passing, short-lived',
+        synonyms: ['fleeting', 'passing', 'short-lived'],
         origin: 'From Greek ephēmeros, from epi- + hēmera "day"'
       },
       {
@@ -53,7 +54,7 @@ export class VocabularyService {
         pronunciation: 'yoo-BIK-wi-tuhs',
         example: 'His ubiquitous influence was felt by all the family.',
         difficulty: 'Hard',
-        synonyms: 'omnipresent, everywhere, all-over',
+        synonyms: ['omnipresent', 'everywhere', 'all-over'],
         origin: 'From Latin ubique "everywhere"'
       }
     ];

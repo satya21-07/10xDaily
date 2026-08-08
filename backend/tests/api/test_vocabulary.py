@@ -23,7 +23,14 @@ def override_get_db():
     finally:
         db.close()
 
+from app.api import deps
+from app.models.core_models import User
+
+def override_get_current_user():
+    return User(id=1, email="test@test.com", full_name="Test User")
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[deps.get_current_user] = override_get_current_user
 
 client = TestClient(app)
 
@@ -63,5 +70,5 @@ def test_get_daily_vocabulary():
     response = client.get("/api/v1/vocabulary/daily")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) > 0
-    assert data[0]["word"] == "DailyWord"
+    assert "words" in data
+    assert len(data["words"]) == 10
