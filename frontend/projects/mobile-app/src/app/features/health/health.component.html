@@ -1,0 +1,82 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Health Mastery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <app-loader *ngIf="isLoading" message="Fetching daily health tips..."></app-loader>
+
+  <div *ngIf="!isLoading && lesson" class="content-container">
+    
+    <div class="header-section">
+      <div class="badge">
+        <ion-icon name="fitness-outline"></ion-icon>
+        <span>Daily Curriculum</span>
+      </div>
+      <h1 class="topic-title">{{ lesson.topic }}</h1>
+    </div>
+
+    <!-- Diet Tip -->
+    <div class="card highlight-card">
+      <div class="card-header">
+        <div class="icon-container primary">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </div>
+        <h2>Diet Tip</h2>
+      </div>
+      <p class="explanation">{{ lesson.diet_tip }}</p>
+    </div>
+
+    <!-- Workout of the Day -->
+    <h2 class="section-title">Workout of the Day</h2>
+    <div class="card highlight-card success">
+      <div class="card-header">
+        <div class="icon-container success">
+          <ion-icon name="barbell-outline"></ion-icon>
+        </div>
+        <div>
+          <h2>{{ lesson.workout_of_the_day.name }}</h2>
+          <span class="duration-badge">{{ lesson.workout_of_the_day.duration }}</span>
+        </div>
+      </div>
+      <ul class="workout-list">
+        <li *ngFor="let exercise of lesson.workout_of_the_day.exercises">
+          <div class="bullet"></div>
+          {{ exercise }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Health Facts -->
+    <h2 class="section-title">Health Facts</h2>
+    <div class="facts-list">
+      <div *ngFor="let fact of lesson.health_facts; let i = index" class="card fact-card" [class.expanded]="expandedFactIndex === i">
+        <div class="fact-header" (click)="toggleFact(i)">
+          <div class="fact-title-group">
+            <div class="number-badge">{{ i + 1 }}</div>
+            <h3>{{ fact.title }}</h3>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <ion-button fill="clear" size="small" (click)="toggleSaveFact(fact, $event)">
+              <ion-icon slot="icon-only" [name]="isSaved(fact) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(fact) ? 'primary' : 'medium'"></ion-icon>
+            </ion-button>
+            <ion-icon [name]="expandedFactIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+        </div>
+        
+        <div class="fact-body" *ngIf="expandedFactIndex === i">
+          <p>{{ fact.explanation }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

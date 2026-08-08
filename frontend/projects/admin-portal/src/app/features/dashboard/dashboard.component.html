@@ -1,0 +1,61 @@
+<div class="dashboard-container">
+  <div class="header">
+    <h1>Overview</h1>
+    <p>Welcome back to the 10xDaily Admin Portal.</p>
+  </div>
+
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon users">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>Total Users</h3>
+          <h2>{{ stats.users | number }}</h2>
+          <span class="trend positive">+12% this week</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon active">
+          <mat-icon>local_fire_department</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>Active Today</h3>
+          <h2>{{ stats.activeToday | number }}</h2>
+          <span class="trend positive">+5% from yesterday</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-icon content">
+          <mat-icon>library_books</mat-icon>
+        </div>
+        <div class="stat-info">
+          <h3>Content Modules</h3>
+          <h2>{{ stats.totalContent | number }}</h2>
+          <span class="trend neutral">Up to date</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="recent-activity">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Recent Activity</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="empty-state">
+          <mat-icon>insights</mat-icon>
+          <p>No recent activity to display.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

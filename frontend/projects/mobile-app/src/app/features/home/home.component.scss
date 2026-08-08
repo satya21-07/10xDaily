@@ -1,0 +1,315 @@
+:host {
+  --page-bg: #FCFCFD;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --card-bg: #FFFFFF;
+  --purple-main: #7C3AED;
+  --purple-light: #F5F3FF;
+  --green-main: #10B981;
+  --green-light: #ECFDF5;
+  --orange-main: #F59E0B;
+  --orange-light: #FFFBEB;
+  --blue-main: #3B82F6;
+  --blue-light: #EFF6FF;
+  --red-main: #EF4444;
+  --red-light: #FEF2F2;
+  --teal-main: #14B8A6;
+  --teal-light: #F0FDFA;
+}
+
+ion-content {
+  --background: var(--page-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Header */
+.app-brand {
+  display: flex;
+  align-items: center;
+  img {
+    height: 32px;
+    width: auto;
+  }
+}
+
+.header-icon {
+  color: var(--text-main);
+  position: relative;
+  
+  ion-icon {
+    font-size: 24px;
+  }
+  
+  .notification-dot {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--red-main);
+    border-radius: 50%;
+    border: 2px solid var(--page-bg);
+  }
+}
+
+.home-container {
+  padding: 16px 20px;
+}
+
+/* Welcome Header */
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  .greeting-content {
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      
+      .highlight {
+        color: var(--purple-main);
+      }
+    }
+    
+    .date {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+  
+  .streak-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--orange-light);
+    color: var(--orange-main);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+/* Quote Card */
+.quote-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  margin-bottom: 32px;
+  position: relative;
+  
+  .quote-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    
+    .icon-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      background: var(--purple-light);
+      
+      ion-icon {
+        font-size: 18px;
+        color: var(--purple-main);
+      }
+    }
+    
+    .quote-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      flex: 1;
+    }
+    
+    .refresh-btn {
+      margin: 0;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      color: var(--text-muted);
+      
+      ion-icon {
+        font-size: 20px;
+        transition: transform 0.5s ease;
+      }
+      
+      .spin {
+        animation: spin 1s infinite linear;
+      }
+    }
+  }
+  
+  .quote-body {
+    .quote-text {
+      margin: 0 0 12px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-main);
+      font-style: italic;
+      font-weight: 500;
+    }
+    
+    .quote-author {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: right;
+    }
+  }
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Quiz Banner */
+.quiz-banner {
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+  color: white;
+  
+  .quiz-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    ion-icon {
+      font-size: 28px;
+      color: white;
+    }
+  }
+  
+  .quiz-banner-content {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 500;
+    }
+  }
+  
+  .quiz-play-btn {
+    ion-icon {
+      font-size: 36px;
+      color: white;
+    }
+  }
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.95;
+    transition: all 0.2s;
+  }
+}
+
+/* Explore Topics */
+.section-header {
+  margin-bottom: 16px;
+  
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+}
+
+.topics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  .topic-card {
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+    
+    .topic-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      
+      ion-icon {
+        font-size: 22px;
+      }
+      
+      &.green-light-bg { background: var(--green-light); color: var(--green-main); }
+      &.blue-light-bg { background: var(--blue-light); color: var(--blue-main); }
+      &.purple-light-bg { background: var(--purple-light); color: var(--purple-main); }
+      &.orange-light-bg { background: var(--orange-light); color: var(--orange-main); }
+      &.red-light-bg { background: var(--red-light); color: var(--red-main); }
+      &.teal-light-bg { background: var(--teal-light); color: var(--teal-main); }
+    }
+    
+    .topic-info {
+      flex: 1;
+      
+      h3 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      
+      p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+    }
+    
+    .chevron {
+      color: #94A3B8;
+      font-size: 20px;
+    }
+    
+    &:active {
+      transform: scale(0.98);
+      background: #FAFAFA;
+      transition: all 0.2s;
+    }
+  }
+}

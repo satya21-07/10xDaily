@@ -1,0 +1,134 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>
+      <div class="app-brand">
+        <img src="assets/logo.svg" alt="10xDaily Logo" />
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="header-icon">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span class="notification-dot"></span>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="home-container">
+    <!-- Welcome Header -->
+    <div class="welcome-header">
+      <div class="greeting-content">
+        <h1>Hello, <span class="highlight">{{ getFirstName((authService.currentUser$ | async)?.name) }}</span> 👋</h1>
+        <p class="date">{{ currentDate | date:'EEEE, MMMM d' }}</p>
+      </div>
+      <div class="streak-pill">
+        <ion-icon name="flame"></ion-icon>
+        {{ (authService.currentUser$ | async)?.streak || 0 }} Day Streak
+      </div>
+    </div>
+
+    <!-- Quote Card -->
+    <div class="quote-card" (click)="fetchNewQuote()">
+      <div class="quote-header">
+        <div class="icon-circle purple-light-bg"><ion-icon name="chatbox-ellipses-outline" class="purple-text"></ion-icon></div>
+        <span class="quote-title">Quote of the Day</span>
+        <ion-button fill="clear" size="small" class="refresh-btn" (click)="fetchNewQuote(); $event.stopPropagation()">
+          <ion-icon slot="icon-only" name="refresh-outline" [class.spin]="isLoadingQuote"></ion-icon>
+        </ion-button>
+      </div>
+      <div *ngIf="isLoadingQuote" class="quote-skeleton">
+        <ion-skeleton-text animated style="width: 100%; height: 20px; border-radius: 4px; margin-bottom: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 70%; height: 20px; border-radius: 4px; margin-bottom: 12px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 30%; height: 16px; border-radius: 4px; float: right;"></ion-skeleton-text>
+        <div style="clear: both;"></div>
+      </div>
+      <div *ngIf="!isLoadingQuote" class="quote-body">
+        <p class="quote-text">"{{ quoteOfTheDay.text }}"</p>
+        <p class="quote-author">- {{ quoteOfTheDay.author }}</p>
+      </div>
+    </div>
+
+    <!-- Daily Quiz Card -->
+    <div class="quiz-banner" routerLink="/quiz">
+      <div class="quiz-icon-wrapper">
+        <ion-icon name="help-circle-outline"></ion-icon>
+      </div>
+      <div class="quiz-banner-content">
+        <h3>Daily Knowledge Quiz</h3>
+        <p>10 questions across all topics</p>
+      </div>
+      <div class="quiz-play-btn">
+        <ion-icon name="play-circle-outline"></ion-icon>
+      </div>
+    </div>
+
+    <!-- Explore Topics -->
+    <div class="section-header">
+      <h2>Explore Topics</h2>
+    </div>
+
+    <div class="topics-grid">
+      <!-- Vocabulary -->
+      <div class="topic-card" routerLink="/vocabulary">
+        <div class="topic-icon green-light-bg"><ion-icon name="book-outline" class="green-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Vocabulary</h3>
+          <p>10 New Words</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- News -->
+      <div class="topic-card" routerLink="/news">
+        <div class="topic-icon blue-light-bg"><ion-icon name="newspaper-outline" class="blue-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Daily News</h3>
+          <p>India & World</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Coding -->
+      <div class="topic-card" routerLink="/coding">
+        <div class="topic-icon purple-light-bg"><ion-icon name="code-slash-outline" class="purple-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Coding</h3>
+          <p>DSA Mastery</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Finance -->
+      <div class="topic-card" routerLink="/finance">
+        <div class="topic-icon orange-light-bg"><ion-icon name="wallet-outline" class="orange-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Finance</h3>
+          <p>Markets & Tips</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Health -->
+      <div class="topic-card" routerLink="/health">
+        <div class="topic-icon red-light-bg"><ion-icon name="fitness-outline" class="red-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Health</h3>
+          <p>Daily Fitness</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Spiritual -->
+      <div class="topic-card" routerLink="/spiritual">
+        <div class="topic-icon teal-light-bg"><ion-icon name="medkit-outline" class="teal-text"></ion-icon></div>
+        <div class="topic-info">
+          <h3>Spiritual</h3>
+          <p>Mindfulness</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+    </div>
+    <div style="height: 40px;"></div>
+  </div>
+</ion-content>

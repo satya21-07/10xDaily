@@ -1,0 +1,173 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+
+    <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <linearGradient id="dailyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+
+    <linearGradient id="bulbGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+
+  </defs>
+
+  <!-- ========================= -->
+  <!-- ICON -->
+  <!-- ========================= -->
+
+  <!-- Number 1 -->
+  <path
+    d="M45 38
+       L78 18
+       L78 120
+       L52 120
+       L52 48
+       L34 60
+       Z"
+    fill="#0F172A"/>
+
+  <!-- Zero -->
+  <circle
+      cx="132"
+      cy="70"
+      r="42"
+      stroke="#0F172A"
+      stroke-width="14"
+      fill="white"/>
+
+  <!-- Graduation Cap -->
+
+  <polygon
+      points="95,18 132,6 169,18 132,31"
+      fill="#0F172A"/>
+
+  <polygon
+      points="105,18 159,18 154,36 110,36"
+      fill="#1E293B"/>
+
+  <line
+      x1="168"
+      y1="18"
+      x2="168"
+      y2="48"
+      stroke="#F59E0B"
+      stroke-width="3"/>
+
+  <circle
+      cx="168"
+      cy="52"
+      r="3"
+      fill="#F59E0B"/>
+
+  <!-- Light Bulb -->
+
+  <circle
+      cx="132"
+      cy="70"
+      r="17"
+      fill="url(#bulbGradient)"/>
+
+  <rect
+      x="127"
+      y="84"
+      width="10"
+      height="9"
+      rx="2"
+      fill="#0F172A"/>
+
+  <rect
+      x="124"
+      y="93"
+      width="16"
+      height="4"
+      rx="2"
+      fill="#0F172A"/>
+
+  <!-- Book -->
+
+  <path
+      d="
+      M25 128
+      Q78 108 132 128
+      Q186 108 239 128
+      L239 144
+      Q186 124 132 146
+      Q78 124 25 144
+      Z"
+      fill="url(#bookGradient)"/>
+
+  <line
+      x1="132"
+      y1="126"
+      x2="132"
+      y2="146"
+      stroke="white"
+      stroke-width="2"/>
+
+  <path
+      d="M132 128
+         Q98 116 60 124"
+      stroke="white"
+      stroke-width="2"
+      fill="none"
+      opacity=".7"/>
+
+  <path
+      d="M132 128
+         Q166 116 204 124"
+      stroke="white"
+      stroke-width="2"
+      fill="none"
+      opacity=".7"/>
+
+  <!-- ========================= -->
+  <!-- TEXT -->
+  <!-- ========================= -->
+
+  <text
+      x="280"
+      y="82"
+      font-family="Inter, Poppins, Segoe UI, sans-serif"
+      font-size="60"
+      font-weight="800"
+      fill="#0F172A">
+      10x
+  </text>
+
+  <text
+      x="405"
+      y="82"
+      font-family="Inter, Poppins, Segoe UI, sans-serif"
+      font-size="60"
+      font-weight="800"
+      fill="url(#dailyGradient)">
+      Daily
+  </text>
+
+  <text
+      x="282"
+      y="118"
+      font-family="Inter, Poppins, Segoe UI, sans-serif"
+      font-size="18"
+      letter-spacing="2"
+      fill="#64748B">
+      Learn • Practice • Grow
+  </text>
+
+  <rect
+      x="282"
+      y="132"
+      width="140"
+      height="5"
+      rx="3"
+      fill="#3B82F6"/>
+
+</svg>

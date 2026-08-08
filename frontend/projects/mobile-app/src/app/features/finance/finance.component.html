@@ -1,0 +1,75 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Finance Mastery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading State -->
+  <app-loader *ngIf="isLoading" message="Analyzing market trends..."></app-loader>
+
+  <div *ngIf="!isLoading && lesson" class="content-container">
+    
+    <div class="header-section">
+      <div class="badge">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span>Daily Curriculum</span>
+      </div>
+      <h1 class="topic-title">{{ lesson.topic }}</h1>
+    </div>
+
+    <!-- Daily Tip -->
+    <div class="card highlight-card">
+      <div class="card-header">
+        <div class="icon-container primary">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <h2>Tip of the Day</h2>
+      </div>
+      <p class="explanation">{{ lesson.daily_tip }}</p>
+    </div>
+
+    <!-- Concepts -->
+    <h2 class="section-title">Core Concepts</h2>
+    <div class="concepts-list">
+      <div *ngFor="let concept of lesson.concepts; let i = index" class="card concept-card" [class.expanded]="expandedConceptIndex === i">
+        <div class="concept-header" (click)="toggleConcept(i)">
+          <div class="concept-title-group">
+            <div class="number-badge">{{ i + 1 }}</div>
+            <h3>{{ concept.title }}</h3>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <ion-button fill="clear" size="small" (click)="toggleSaveConcept(concept, $event)">
+              <ion-icon slot="icon-only" [name]="isSaved(concept) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(concept) ? 'primary' : 'medium'"></ion-icon>
+            </ion-button>
+            <ion-icon [name]="expandedConceptIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+        </div>
+        
+        <div class="concept-body" *ngIf="expandedConceptIndex === i">
+          <p>{{ concept.explanation }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Item -->
+    <h2 class="section-title">Action Item</h2>
+    <div class="card highlight-card success">
+      <div class="card-header">
+        <div class="icon-container success">
+          <ion-icon name="trending-up-outline"></ion-icon>
+        </div>
+        <h2>Do This Today</h2>
+      </div>
+      <p class="explanation">{{ lesson.action_item }}</p>
+    </div>
+
+  </div>
+</ion-content>

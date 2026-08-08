@@ -1,0 +1,39 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #sidenav mode="side" opened class="sidenav" [fixedInViewport]="true">
+    <div class="sidenav-header">
+      <div class="logo-container">
+        <h2>10xDaily</h2>
+        <span class="badge">ADMIN</span>
+      </div>
+    </div>
+    
+    <mat-nav-list>
+      <a mat-list-item *ngFor="let item of menuItems" 
+         [routerLink]="item.path" 
+         routerLinkActive="active-route"
+         [class.disabled]="item.label.includes('Coming Soon')">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <div matListItemTitle>{{ item.label }}</div>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="top-toolbar">
+      <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="spacer"></span>
+      <button mat-icon-button>
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <button mat-icon-button class="profile-btn">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

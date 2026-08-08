@@ -1,0 +1,350 @@
+:host {
+  --page-bg: #FCFCFD;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --card-bg: #FFFFFF;
+  --purple-main: #7C3AED;
+  --purple-light: #F5F3FF;
+  --green-main: #10B981;
+  --green-light: #ECFDF5;
+  --red-main: #EF4444;
+  --red-light: #FEF2F2;
+  --border-color: #E2E8F0;
+}
+
+ion-content {
+  --background: var(--page-bg);
+  --padding-bottom: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+ion-toolbar {
+  --background: var(--page-bg);
+}
+
+.quiz-container {
+  padding: 16px 16px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.loader-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  
+  ion-spinner {
+    color: var(--purple-main);
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  
+  .q-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  
+  .topic-badge {
+    background: var(--purple-light);
+    color: var(--purple-main);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  
+  .progress-bar {
+    height: 100%;
+    background: var(--purple-main);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+}
+
+.question-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  margin-bottom: 16px;
+  
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.4;
+  }
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.option-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #F1F5F9;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    margin-right: 12px;
+  }
+  
+  .option-text {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-main);
+  }
+  
+  .status-icon {
+    font-size: 24px;
+  }
+  
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  &.correct {
+    border-color: var(--green-main);
+    background: var(--green-light);
+    
+    .option-letter {
+      background: var(--green-main);
+      color: white;
+    }
+    
+    .status-icon {
+      color: var(--green-main);
+    }
+  }
+  
+  &.incorrect {
+    border-color: var(--red-main);
+    background: var(--red-light);
+    
+    .option-letter {
+      background: var(--red-main);
+      color: white;
+    }
+    
+    .status-icon {
+      color: var(--red-main);
+    }
+  }
+}
+
+.feedback-card {
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  
+  h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+  
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  &.correct-feedback {
+    background: var(--green-light);
+    h4 { color: var(--green-main); }
+    p { color: #065F46; }
+  }
+  
+  &.incorrect-feedback {
+    background: var(--red-light);
+    h4 { color: var(--red-main); }
+    p { color: #991B1B; }
+  }
+}
+
+.primary-btn {
+  flex: 1;
+  background: var(--purple-main);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+  
+  &.outline {
+    background: transparent;
+    border: 2px solid var(--purple-main);
+    color: var(--purple-main);
+  }
+  
+  &:disabled {
+    background: #E2E8F0;
+    color: #94A3B8;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.secondary-btn {
+  background: #F1F5F9;
+  color: var(--text-main);
+  border: none;
+  border-radius: 10px;
+  height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  
+  &:active {
+    background: #E2E8F0;
+  }
+}
+
+.mt-4 { margin-top: 16px; }
+
+/* Results State */
+.results-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 40px;
+  
+  .trophy-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--purple-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    
+    ion-icon {
+      font-size: 40px;
+      color: var(--purple-main);
+    }
+  }
+  
+  h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  
+  .score-text {
+    margin: 0 0 16px;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+  
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 4px solid var(--purple-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
+    
+    .score-number {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--purple-main);
+      line-height: 1;
+    }
+    
+    .score-total {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+  }
+  
+  .results-msg {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+}

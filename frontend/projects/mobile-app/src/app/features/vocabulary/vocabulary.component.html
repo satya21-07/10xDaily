@@ -1,0 +1,92 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar transparent>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home">
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Vocabulary</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="icon-only" name="bookmark-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="header-section">
+    <h2>Today's Words</h2>
+    <p>Master these 10 advanced words to enhance your communication.</p>
+  </div>
+
+  <!-- Loader -->
+  <app-loader *ngIf="isLoading" message="Fetching vocabulary..."></app-loader>
+
+  <ion-accordion-group *ngIf="!isLoading" [multiple]="true" [value]="openAccordions">
+    <ion-accordion *ngFor="let word of words; let i = index" [value]="i.toString()" class="word-card-container" [attr.data-word]="word.word">
+      
+      <!-- Accordion Header -->
+      <ion-item slot="header" color="none" lines="none">
+        <ion-label>
+          <div class="word-header">
+            <div class="word-title-group">
+              <h2>{{ word.word }}</h2>
+              <ion-button fill="clear" (click)="playAudio(word, $event)" class="pronounce-icon-btn">
+                <ion-icon name="volume-high-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" (click)="toggleSaveWord(word, $event)" class="save-icon-btn">
+                <ion-icon [name]="isSaved(word) ? 'bookmark' : 'bookmark-outline'" slot="icon-only" [color]="isSaved(word) ? 'primary' : 'medium'"></ion-icon>
+              </ion-button>
+            </div>
+            <span class="difficulty-tag" [ngClass]="word.difficulty?.toLowerCase()">{{ word.difficulty }}</span>
+          </div>
+          <p *ngIf="word.pronunciation" class="pronunciation">{{ word.pronunciation }}</p>
+        </ion-label>
+      </ion-item>
+
+      <!-- Accordion Content -->
+      <div class="accordion-content" slot="content">
+        
+
+
+        <div class="content-block">
+          <h3>
+            <ion-icon name="book-outline"></ion-icon>
+            Meaning
+          </h3>
+          <p>{{ word.meaning }}</p>
+        </div>
+
+        <div class="content-block" *ngIf="word.example">
+          <h3>
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            Example
+          </h3>
+          <p class="example-text">"{{ word.example }}"</p>
+        </div>
+
+        <div class="content-block" *ngIf="word.synonyms">
+          <h3>
+            <ion-icon name="layers-outline"></ion-icon>
+            Synonyms
+          </h3>
+          <p>{{ word.synonyms }}</p>
+        </div>
+
+        <div class="content-block" *ngIf="word.antonyms">
+          <h3>
+            <ion-icon name="contrast-outline"></ion-icon>
+            Antonyms
+          </h3>
+          <p>{{ word.antonyms }}</p>
+        </div>
+
+        <p class="origin-text" *ngIf="word.origin">
+          <strong>Origin:</strong> {{ word.origin }}
+        </p>
+      </div>
+
+    </ion-accordion>
+  </ion-accordion-group>
+</ion-content>

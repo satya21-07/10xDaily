@@ -1,0 +1,100 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Daily Quiz</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="quiz-container">
+    
+    <!-- Loader -->
+    <div *ngIf="isLoading" class="loader-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Generating your daily quiz...</p>
+    </div>
+
+    <!-- Active Quiz -->
+    <div *ngIf="!isLoading && !isFinished && questions.length > 0" class="quiz-active-state">
+      <div class="progress-header">
+        <span class="q-count">
+          <span *ngIf="isReviewing" style="color: var(--purple-main); font-weight: 800;">Reviewing </span>
+          Question {{ currentIndex + 1 }} of {{ questions.length }}
+        </span>
+        <span class="topic-badge">{{ questions[currentIndex].topic }}</span>
+      </div>
+      
+      <div class="progress-bar-bg">
+        <div class="progress-bar" [style.width]="((currentIndex + 1) / questions.length) * 100 + '%'"></div>
+      </div>
+
+      <div class="question-card">
+        <h2>{{ questions[currentIndex].question }}</h2>
+      </div>
+
+      <div class="options-list">
+        <div class="option-card" 
+             *ngFor="let option of questions[currentIndex].options; let i = index"
+             [ngClass]="getOptionClass(i)"
+             (click)="selectOption(i)">
+          <div class="option-letter">{{ ['A', 'B', 'C', 'D'][i] }}</div>
+          <div class="option-text">{{ option }}</div>
+          <ion-icon class="status-icon" name="checkmark-circle-outline" *ngIf="getOptionClass(i) === 'correct'"></ion-icon>
+          <ion-icon class="status-icon" name="close-circle-outline" *ngIf="getOptionClass(i) === 'incorrect'"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Feedback Area (Only shown after answer) -->
+      <div class="feedback-card" *ngIf="isAnswerSubmitted" [ngClass]="selectedOptionIndex === questions[currentIndex].correct_index ? 'correct-feedback' : 'incorrect-feedback'">
+        <h4>
+          <ion-icon [name]="selectedOptionIndex === questions[currentIndex].correct_index ? 'checkmark-circle-outline' : 'close-circle-outline'"></ion-icon>
+          {{ selectedOptionIndex === questions[currentIndex].correct_index ? 'Correct!' : 'Incorrect' }}
+        </h4>
+        <p>{{ questions[currentIndex].explanation }}</p>
+      </div>
+
+      <div class="nav-buttons mt-4">
+        <button class="secondary-btn" *ngIf="currentIndex > 0" (click)="previousQuestion()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Previous
+        </button>
+        <button class="primary-btn" [disabled]="!isAnswerSubmitted && !isReviewing" (click)="nextQuestion()">
+          {{ currentIndex < questions.length - 1 ? 'Next' : 'View Results' }}
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Spacer to guarantee scrolling to the bottom -->
+      <div style="height: 20px; width: 100%;"></div>
+
+    </div>
+
+    <!-- Results Screen -->
+    <div *ngIf="!isLoading && isFinished" class="results-state">
+      <div class="trophy-icon">
+        <ion-icon name="trophy-outline"></ion-icon>
+      </div>
+      <h2>Quiz Complete!</h2>
+      <p class="score-text">You scored</p>
+      <div class="score-circle">
+        <span class="score-number">{{ score }}</span>
+        <span class="score-total">/ {{ questions.length }}</span>
+      </div>
+      <p class="results-msg" *ngIf="score === questions.length">Perfect score! Excellent job! 🎉</p>
+      <p class="results-msg" *ngIf="score >= questions.length / 2 && score < questions.length">Great effort! Keep learning! 💪</p>
+      <p class="results-msg" *ngIf="score < questions.length / 2">Keep practicing, you'll get there! 🧠</p>
+
+      <button class="primary-btn mt-4 outline" (click)="startReview()">
+        <ion-icon name="list-outline"></ion-icon> Review Answers
+      </button>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && questions.length === 0" class="error-state">
+      <p>Failed to load quiz. Please try again.</p>
+      <button class="primary-btn outline" (click)="loadQuiz()">
+        <ion-icon name="refresh-outline"></ion-icon> Retry
+      </button>
+    </div>
+
+  </div>
+</ion-content>

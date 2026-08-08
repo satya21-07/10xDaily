@@ -1,0 +1,37 @@
+<ion-content>
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="brand-logo">
+        <img src="assets/logo.svg" alt="10xDaily Logo" />
+      </div>
+      <h1>Join 10xDaily</h1>
+      <p>Create an account to start your journey</p>
+    </div>
+
+    <div class="auth-form">
+      <div class="input-group">
+        <ion-icon name="person-outline"></ion-icon>
+        <input type="text" name="name" placeholder="Full Name" [(ngModel)]="registerName" />
+      </div>
+
+      <div class="input-group">
+        <ion-icon name="mail-outline"></ion-icon>
+        <input type="email" name="email" placeholder="Email Address" [(ngModel)]="registerEmail" />
+      </div>
+      
+      <div class="input-group">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input type="password" name="password" placeholder="Password" [(ngModel)]="registerPassword" />
+      </div>
+
+      <button class="primary-btn" (click)="onRegister()" [disabled]="!registerEmail || !registerPassword || !registerName || isRegistering">
+        <span *ngIf="!isRegistering">Sign Up</span>
+        <ion-spinner *ngIf="isRegistering" name="crescent"></ion-spinner>
+      </button>
+
+      <div class="auth-footer" style="text-align: center; margin-top: 20px; font-size: 14px; color: var(--ion-color-medium);">
+        Already have an account? <a (click)="goToLogin()" style="color: var(--ion-color-primary); cursor: pointer; font-weight: bold;">Log In</a>
+      </div>
+    </div>
+  </div>
+</ion-content>

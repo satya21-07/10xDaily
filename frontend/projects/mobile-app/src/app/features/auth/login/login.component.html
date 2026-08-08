@@ -1,0 +1,67 @@
+<ion-content>
+  <!-- Full Screen Loader Overlay -->
+  <div class="loader-overlay" *ngIf="isLoggingIn">
+    <div class="loader-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Logging in...</p>
+    </div>
+  </div>
+
+  <!-- Top Background Decoration -->
+  <div class="top-bg"></div>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="brand-logo">
+        <img src="assets/logo.svg" alt="10xDaily Logo" />
+      </div>
+      <h1>Welcome back!</h1>
+      <p>Log in to continue your learning journey<br>and achieve your goals.</p>
+    </div>
+
+    <div class="auth-form">
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-wrapper">
+          <ion-icon name="mail-outline"></ion-icon>
+          <input type="email" name="email" placeholder="Enter your email" [(ngModel)]="loginEmail" />
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <input [type]="showPassword ? 'text' : 'password'" name="password" placeholder="Enter your password" [(ngModel)]="loginPassword" />
+          <ion-icon class="toggle-password" [name]="showPassword ? 'eye-outline' : 'eye-off-outline'" (click)="togglePassword()"></ion-icon>
+        </div>
+      </div>
+
+      <div class="forgot-password">
+        <a (click)="goToForgotPassword()">Forgot password?</a>
+      </div>
+
+      <button class="primary-btn" (click)="onLogin()" [disabled]="!loginEmail || !loginPassword || isLoggingIn">
+        <span>Log in</span>
+      </button>
+
+      <div class="divider">
+        <span>or continue with</span>
+      </div>
+
+      <div class="social-btn-wrapper">
+        <div id="google-btn-container"></div>
+      </div>
+    </div>
+
+    <div class="auth-footer">
+      <p class="signup-text">
+        Don't have an account? <a (click)="goToRegister()">Sign up</a>
+      </p>
+      <p class="secure-text">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        Your data is safe and secure
+      </p>
+    </div>
+  </div>
+</ion-content>

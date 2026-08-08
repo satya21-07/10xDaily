@@ -1,0 +1,29 @@
+<div class="tabs-container">
+  <!-- Main Content Area -->
+  <div class="tabs-content">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="custom-tab-bar">
+    <a class="tab-button" routerLink="/home" routerLinkActive="active-tab">
+      <ion-icon name="home"></ion-icon>
+      <span>Today</span>
+    </a>
+
+    <a class="tab-button" routerLink="/quiz" routerLinkActive="active-tab">
+      <ion-icon name="help-circle"></ion-icon>
+      <span>Quiz</span>
+    </a>
+
+    <a class="tab-button" routerLink="/bookmarks" routerLinkActive="active-tab">
+      <ion-icon name="bookmark"></ion-icon>
+      <span>Library</span>
+    </a>
+
+    <a class="tab-button" routerLink="/profile" routerLinkActive="active-tab">
+      <ion-icon name="person"></ion-icon>
+      <span>Profile</span>
+    </a>
+  </div>
+</div>

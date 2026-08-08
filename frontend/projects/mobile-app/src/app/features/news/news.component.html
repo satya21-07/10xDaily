@@ -1,0 +1,67 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Today's Top News</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="icon-only" name="bookmark-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)">
+      <ion-segment-button value="india">
+        <ion-label>India</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="world">
+        <ion-label>World</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="loadNews($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <app-loader *ngIf="isLoading" message="Fetching latest insights..."></app-loader>
+
+  <div *ngIf="!isLoading" class="news-feed">
+    <div class="news-card card" *ngFor="let article of articles">
+      <div class="image-container" *ngIf="article.image_url" [style.background-image]="'url(' + article.image_url + ')'"></div>
+      
+      <div class="content-container">
+        <div class="meta">
+          <span class="source">{{ article.source }}</span>
+          <span class="dot">•</span>
+          <span class="date">{{ article.published_at | date:'shortTime' }}</span>
+        </div>
+
+        <h2 class="title">{{ article.title }}</h2>
+        
+        <div class="ai-summary" *ngIf="article.ai_summary">
+          <div class="ai-badge">✨ AI Summary</div>
+          <p>{{ article.ai_summary }}</p>
+        </div>
+
+        <p class="summary" *ngIf="!article.ai_summary">{{ article.summary }}</p>
+
+        <div class="actions">
+          <ion-button fill="clear" color="medium" size="small">
+            <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="medium" size="small" (click)="toggleSaveArticle(article, $event)">
+            <ion-icon slot="icon-only" [name]="isSaved(article) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(article) ? 'primary' : 'medium'"></ion-icon>
+          </ion-button>
+          <a [href]="article.url" target="_blank" rel="noopener noreferrer" class="read-more-button">
+            Read Full
+            <ion-icon name="open-outline"></ion-icon>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

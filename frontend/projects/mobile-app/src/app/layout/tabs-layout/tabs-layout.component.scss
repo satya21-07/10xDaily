@@ -1,0 +1,54 @@
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.tabs-content {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+}
+
+.custom-tab-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+
+.tab-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8e8e93;
+  text-decoration: none;
+  font-size: 10px;
+  flex: 1;
+  height: 100%;
+  
+  ion-icon {
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+}
+
+.active-tab {
+  color: var(--ion-color-primary, #007aff);
+}
+
+@media (prefers-color-scheme: dark) {
+  .custom-tab-bar {
+    background: rgba(28, 28, 30, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}

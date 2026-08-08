@@ -1,0 +1,90 @@
+<div class="content-container">
+  <div class="header">
+    <h1>Content Manager</h1>
+    <p>Manage daily modules and lessons.</p>
+    <button mat-raised-button color="primary">
+      <mat-icon>add</mat-icon>
+      Create New
+    </button>
+  </div>
+
+  <mat-card>
+    <mat-tab-group animationDuration="0ms">
+      
+      <!-- Vocabulary Tab -->
+      <mat-tab label="Vocabulary">
+        <div class="tab-content">
+          <table mat-table [dataSource]="vocabWords" class="full-width">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef> ID </th>
+              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="word">
+              <th mat-header-cell *matHeaderCellDef> Word </th>
+              <td mat-cell *matCellDef="let element"> <strong>{{element.word}}</strong> </td>
+            </ng-container>
+
+            <ng-container matColumnDef="difficulty">
+              <th mat-header-cell *matHeaderCellDef> Difficulty </th>
+              <td mat-cell *matCellDef="let element"> 
+                <span class="badge" [ngClass]="element.difficulty?.toLowerCase()">{{element.difficulty}}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef> Actions </th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="primary"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="vocabColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: vocabColumns;"></tr>
+          </table>
+          <div *ngIf="vocabWords.length === 0" class="empty-state">
+            No vocabulary words found. Run the seed script.
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- News Tab -->
+      <mat-tab label="AI News">
+        <div class="tab-content">
+          <table mat-table [dataSource]="newsArticles" class="full-width">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef> ID </th>
+              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef> Title </th>
+              <td mat-cell *matCellDef="let element"> {{element.title}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef> Category </th>
+              <td mat-cell *matCellDef="let element"> {{element.category}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef> Actions </th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button color="primary"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="newsColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: newsColumns;"></tr>
+          </table>
+          <div *ngIf="newsArticles.length === 0" class="empty-state">
+            No news articles found.
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+</div>

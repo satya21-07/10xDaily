@@ -1,0 +1,105 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>AI Coding Mastery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <app-loader *ngIf="isLoading" message="Compiling coding concepts..."></app-loader>
+
+  <div *ngIf="!isLoading && lesson" class="lesson-container">
+    
+    <!-- Topic Header -->
+    <div class="topic-header card">
+      <div class="tag">Topic of the Day</div>
+      <h2>{{ lesson.topic }}</h2>
+      <p>Master these core concepts with AI-generated questions to level up your interview skills.</p>
+    </div>
+
+    <!-- Concepts Section -->
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="bulb-outline" color="primary"></ion-icon>
+        <h3>Core Concepts</h3>
+      </div>
+      
+      <div class="accordion-list">
+        <div class="accordion-item" 
+             *ngFor="let concept of lesson.concepts; let i = index"
+             [class.expanded]="expandedConceptIndex === i">
+          
+          <div class="accordion-header" (click)="toggleConcept(i)">
+            <span class="number">{{ i + 1 }}</span>
+            <span class="title">{{ concept.title }}</span>
+            <ion-icon [name]="expandedConceptIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+          
+          <div class="accordion-content" *ngIf="expandedConceptIndex === i">
+            <p>{{ concept.explanation }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions Section -->
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="code-slash-outline" color="success"></ion-icon>
+        <h3>Daily Challenges</h3>
+      </div>
+      
+      <div class="question-list">
+        <div class="question-card" *ngFor="let q of lesson.questions; let i = index">
+          <div class="q-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h4>{{ q.title }}</h4>
+              <ion-button fill="clear" size="small" (click)="toggleSaveQuestion(q, $event)" class="save-icon-btn" style="margin: 0; padding: 0;">
+                <ion-icon slot="icon-only" [name]="isSaved(q) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(q) ? 'primary' : 'medium'"></ion-icon>
+              </ion-button>
+            </div>
+            <span class="difficulty-badge" [ngClass]="q.difficulty.toLowerCase()">
+              {{ q.difficulty }}
+            </span>
+          </div>
+          <p class="q-desc">{{ q.description }}</p>
+          
+          <div class="hint-section" [class.expanded]="expandedQuestionIndex === i">
+            <ion-button fill="clear" size="small" (click)="toggleQuestion(i)">
+              <ion-icon slot="start" name="flash-outline"></ion-icon>
+              {{ expandedQuestionIndex === i ? 'Hide Hint' : 'Show Hint' }}
+            </ion-button>
+            <div class="hint-content" *ngIf="expandedQuestionIndex === i">
+              {{ q.hint }}
+            </div>
+          </div>
+          
+          <div class="solution-section" *ngIf="q.solution_java && q.solution_python" [class.expanded]="expandedSolutionIndex === i">
+            <ion-button fill="clear" size="small" class="solution-btn" (click)="toggleSolution(i)">
+              <ion-icon slot="start" name="code-slash-outline"></ion-icon>
+              {{ expandedSolutionIndex === i ? 'Hide Solution' : 'Show Solution' }}
+            </ion-button>
+            
+            <div class="solution-content" *ngIf="expandedSolutionIndex === i">
+              <div class="solution-tabs">
+                <button class="tab-btn" [class.active]="activeSolutionTab[i] === 'java'" (click)="setSolutionTab(i, 'java')">Java</button>
+                <button class="tab-btn" [class.active]="activeSolutionTab[i] === 'python'" (click)="setSolutionTab(i, 'python')">Python</button>
+              </div>
+              
+              <div class="code-block">
+                <pre><code [class.language-java]="activeSolutionTab[i] === 'java'" [class.language-python]="activeSolutionTab[i] === 'python'">{{ activeSolutionTab[i] === 'java' ? q.solution_java : q.solution_python }}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

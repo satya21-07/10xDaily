@@ -1,0 +1,68 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
+    <ion-title>Spiritual Mastery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <app-loader *ngIf="isLoading" message="Gathering spiritual wisdom..."></app-loader>
+
+  <div *ngIf="!isLoading && lesson" class="content-container">
+    
+    <div class="header-section">
+      <div class="badge">
+        <ion-icon name="medkit-outline"></ion-icon>
+        <span>Daily Curriculum</span>
+      </div>
+      <h1 class="topic-title">{{ lesson.topic }}</h1>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-block">
+      <p class="quote-text">"{{ lesson.quote }}"</p>
+    </div>
+
+    <!-- Ancient Learnings -->
+    <h2 class="section-title">Ancient Wisdom</h2>
+    <div class="learnings-list">
+      <div *ngFor="let learning of lesson.learnings; let i = index" class="card learning-card" [class.expanded]="expandedLearningIndex === i">
+        <div class="learning-header" (click)="toggleLearning(i)">
+          <div class="learning-title-group">
+            <div class="source-badge">{{ learning.source }}</div>
+            <h3>{{ learning.title }}</h3>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <ion-button fill="clear" size="small" (click)="toggleSaveLearning(learning, $event)">
+              <ion-icon slot="icon-only" [name]="isSaved(learning) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(learning) ? 'primary' : 'medium'"></ion-icon>
+            </ion-button>
+            <ion-icon [name]="expandedLearningIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+        </div>
+        
+        <div class="learning-body" *ngIf="expandedLearningIndex === i">
+          <p>{{ learning.explanation }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journal Prompt -->
+    <h2 class="section-title">Journal Prompt</h2>
+    <div class="card highlight-card secondary">
+      <div class="card-header">
+        <div class="icon-container secondary">
+          <ion-icon name="book-outline"></ion-icon>
+        </div>
+        <h2>Deep Reflection</h2>
+      </div>
+      <p class="explanation">{{ lesson.journal_prompt }}</p>
+    </div>
+
+  </div>
+</ion-content>

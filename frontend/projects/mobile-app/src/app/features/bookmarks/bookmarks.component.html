@@ -1,0 +1,75 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Saved Items</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="empty-state" *ngIf="topics.length === 0">
+    <ion-icon name="bookmark-outline"></ion-icon>
+    <p>You haven't saved anything yet.</p>
+  </div>
+
+  <ion-accordion-group *ngIf="topics.length > 0">
+    <ion-accordion *ngFor="let topic of topics" [value]="topic">
+      <ion-item slot="header" color="light">
+        <ion-label style="text-transform: capitalize; font-weight: bold;">{{ topic }}</ion-label>
+        <ion-badge slot="end" color="primary">{{ groupedBookmarks[topic].length }}</ion-badge>
+      </ion-item>
+      
+      <div class="ion-padding" slot="content">
+        <ion-list style="background: transparent;">
+          <ion-card *ngFor="let item of groupedBookmarks[topic]" class="ion-margin-bottom" style="margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px;">
+            <ion-card-header>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <ion-card-title style="font-size: 1.1rem; font-weight: 600;">{{ item.title }}</ion-card-title>
+                  <ion-card-subtitle *ngIf="item.parsed_data?.difficulty || item.parsed_data?.source" style="margin-top: 4px;">{{ item.parsed_data?.difficulty || item.parsed_data?.source }}</ion-card-subtitle>
+                </div>
+                <ion-button fill="clear" color="danger" (click)="deleteBookmark(item.id, $event)" style="margin-top: -8px; margin-right: -8px;">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-card-header>
+            
+            <ion-card-content style="padding-top: 0;">
+              <!-- Fallback -->
+              <p *ngIf="!item.parsed_data && item.url">{{ item.url }}</p>
+
+              <!-- Vocabulary -->
+              <div *ngIf="item.content_type === 'vocabulary' && item.parsed_data">
+                <p style="margin-bottom: 8px;"><strong>Meaning:</strong> {{ item.parsed_data.meaning }}</p>
+                <p *ngIf="item.parsed_data.example" style="margin-bottom: 8px; font-style: italic; color: var(--ion-color-medium);">"{{ item.parsed_data.example }}"</p>
+                <p *ngIf="item.parsed_data.synonyms" style="margin-bottom: 8px;"><strong>Synonyms:</strong> {{ item.parsed_data.synonyms }}</p>
+              </div>
+
+              <!-- News -->
+              <div *ngIf="item.content_type === 'news' && item.parsed_data">
+                <p *ngIf="item.parsed_data.ai_summary"><strong>AI Summary:</strong> {{ item.parsed_data.ai_summary }}</p>
+                <p *ngIf="!item.parsed_data.ai_summary && item.parsed_data.summary">{{ item.parsed_data.summary }}</p>
+                <div style="margin-top: 12px;">
+                  <ion-button [href]="item.parsed_data.url" target="_blank" fill="outline" size="small" shape="round">
+                    Read Full Article
+                  </ion-button>
+                </div>
+              </div>
+
+              <!-- Coding -->
+              <div *ngIf="item.content_type === 'coding' && item.parsed_data">
+                <p style="margin-bottom: 8px;">{{ item.parsed_data.description }}</p>
+                <div *ngIf="item.parsed_data.hint" style="background: var(--ion-color-light); padding: 8px 12px; border-radius: 8px; margin-top: 8px;">
+                  <strong style="color: var(--ion-color-medium);">Hint:</strong> {{ item.parsed_data.hint }}
+                </div>
+              </div>
+
+              <!-- Health/Spiritual/Finance -->
+              <div *ngIf="['health', 'spiritual', 'finance'].includes(item.content_type) && item.parsed_data">
+                <p>{{ item.parsed_data.explanation }}</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-list>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</ion-content>
