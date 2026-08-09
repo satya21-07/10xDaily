@@ -6,10 +6,13 @@ class CodingProblemBase(BaseModel):
     title: str
     description: str
     difficulty: Optional[str] = "Medium"
+    pattern: Optional[str] = None
+    tags: Optional[str] = None
     time_complexity: Optional[str] = None
     space_complexity: Optional[str] = None
     hint: Optional[str] = None
-    ai_explanation: Optional[str] = None
+    approach: Optional[str] = None
+    explanation: Optional[str] = None
     java_solution: Optional[str] = None
     python_solution: Optional[str] = None
     cpp_solution: Optional[str] = None

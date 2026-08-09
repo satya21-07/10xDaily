@@ -3,7 +3,12 @@
     <ion-buttons slot="start">
       <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
     </ion-buttons>
-    <ion-title>Health Mastery</ion-title>
+    <ion-title>Health</ion-title>
+    <ion-buttons slot="end">
+    <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="search-outline"></ion-icon></ion-button>
+    <ion-button fill="clear" color="dark" routerLink="/bookmarks"><ion-icon slot="icon-only" name="bookmark-outline"></ion-icon></ion-button>
+    <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
+  </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -15,66 +20,151 @@
   <app-loader *ngIf="isLoading" message="Fetching daily health tips..."></app-loader>
 
   <div *ngIf="!isLoading && lesson" class="content-container">
-    
-    <div class="header-section">
-      <div class="badge">
-        <ion-icon name="fitness-outline"></ion-icon>
-        <span>Daily Curriculum</span>
-      </div>
-      <h1 class="topic-title">{{ lesson.topic }}</h1>
-    </div>
 
-    <!-- Diet Tip -->
-    <div class="card highlight-card">
-      <div class="card-header">
-        <div class="icon-container primary">
-          <ion-icon name="restaurant-outline"></ion-icon>
-        </div>
-        <h2>Diet Tip</h2>
-      </div>
-      <p class="explanation">{{ lesson.diet_tip }}</p>
-    </div>
-
-    <!-- Workout of the Day -->
-    <h2 class="section-title">Workout of the Day</h2>
-    <div class="card highlight-card success">
-      <div class="card-header">
-        <div class="icon-container success">
-          <ion-icon name="barbell-outline"></ion-icon>
-        </div>
-        <div>
-          <h2>{{ lesson.workout_of_the_day.name }}</h2>
-          <span class="duration-badge">{{ lesson.workout_of_the_day.duration }}</span>
+    <!-- ===== HERO CARD ===== -->
+    <div class="hero-card">
+      <div class="hero-content">
+        <span class="hero-label">TODAY'S TOPIC</span>
+        <h1 class="hero-title">{{ lesson.topic }}</h1>
+        <p class="hero-desc">{{ lesson.learning_objective }}</p>
+        <div class="completed-div">
+          <button class="mark-btn" (click)="markCompleted()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            Mark as Completed
+          </button>
         </div>
       </div>
-      <ul class="workout-list">
-        <li *ngFor="let exercise of lesson.workout_of_the_day.exercises">
-          <div class="bullet"></div>
-          {{ exercise }}
-        </li>
-      </ul>
     </div>
 
-    <!-- Health Facts -->
-    <h2 class="section-title">Health Facts</h2>
-    <div class="facts-list">
-      <div *ngFor="let fact of lesson.health_facts; let i = index" class="card fact-card" [class.expanded]="expandedFactIndex === i">
-        <div class="fact-header" (click)="toggleFact(i)">
-          <div class="fact-title-group">
-            <div class="number-badge">{{ i + 1 }}</div>
-            <h3>{{ fact.title }}</h3>
+    <!-- ===== WHAT TO KNOW ===== -->
+    <h2 class="section-heading">What to Know</h2>
+    <div class="facts-grid">
+      <div *ngFor="let fact of lesson.health_facts; let i = index" class="fact-card">
+        <div class="fact-icon-row">
+          <div class="fact-icon" [ngClass]="'icon-' + (i % 4)">
+            <ion-icon [name]="factIcons[i % factIcons.length]"></ion-icon>
           </div>
-          <div style="display: flex; align-items: center;">
-            <ion-button fill="clear" size="small" (click)="toggleSaveFact(fact, $event)">
-              <ion-icon slot="icon-only" [name]="isSaved(fact) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(fact) ? 'primary' : 'medium'"></ion-icon>
-            </ion-button>
-            <ion-icon [name]="expandedFactIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          <ion-button fill="clear" size="small" class="bookmark-btn" (click)="toggleSaveFact(fact, $event)">
+            <ion-icon slot="icon-only" [name]="isSaved(fact) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(fact) ? 'primary' : 'medium'"></ion-icon>
+          </ion-button>
+        </div>
+        <h3>{{ fact.title }}</h3>
+        <p class="fact-explanation">{{ fact.explanation }}</p>
+        <ul class="key-points" *ngIf="fact.key_points && fact.key_points.length > 0">
+          <li *ngFor="let point of fact.key_points">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ point }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== TODAY'S ACTIVITY ===== -->
+    <h2 class="section-heading">Today's Activity</h2>
+    <div class="activity-card">
+      <div class="activity-layout">
+        <!-- Left: Activity info -->
+        <div class="activity-info">
+          <div class="activity-info-sub">
+            <div class="activity-icon-wrap">
+              <ion-icon name="body-outline"></ion-icon>
+            </div>
+            <div class="activity-meta-parent">
+              <h3>{{ lesson.daily_activity.name }}</h3>
+              <span class="activity-meta">{{ lesson.daily_activity.duration }} &middot; {{ lesson.daily_activity.level }}</span>
+            </div>
+          </div>
+          <p class="activity-desc" *ngIf="lesson.daily_activity.exercises.length > 0">A gentle routine to support your body and today's health focus.</p>
+        </div>
+        <!-- Right: Exercise list -->
+        <div class="exercise-list">
+          <div class="exercise-row" *ngFor="let exercise of lesson.daily_activity.exercises; let j = index" (click)="toggleExercise(j)">
+            <div class="exercise-left">
+              <span class="exercise-num">{{ j + 1 }}</span>
+              <span class="exercise-name">{{ exercise.name }}</span>
+              <span class="exercise-dur">{{ exercise.duration }}</span>
+            </div>
+            <ion-icon [name]="expandedExerciseIndex === j ? 'chevron-up-outline' : 'chevron-down-outline'" class="chevron-icon"></ion-icon>
+          </div>
+          <div class="exercise-expanded" *ngIf="expandedExerciseIndex !== null && lesson.daily_activity.exercises[expandedExerciseIndex]">
+            <p>{{ lesson.daily_activity.exercises[expandedExerciseIndex].instructions }}</p>
+            <div class="safety-note" *ngIf="lesson.daily_activity.exercises[expandedExerciseIndex].safety_note">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ lesson.daily_activity.exercises[expandedExerciseIndex].safety_note }}</span>
+            </div>
           </div>
         </div>
-        
-        <div class="fact-body" *ngIf="expandedFactIndex === i">
-          <p>{{ fact.explanation }}</p>
+      </div>
+      <!-- Safety banner -->
+      <div class="safety-banner">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <span>Move gently and stop if you feel any pain or discomfort.</span>
+      </div>
+    </div>
+
+    <!-- ===== NUTRITION TIP & TODAY'S HABIT (side by side) ===== -->
+    <div class="bottom-grid">
+      <div class="bottom-card nutrition-card">
+        <div class="bottom-card-header">
+          <div class="bottom-icon green-icon">
+            <ion-icon name="leaf-outline"></ion-icon>
+          </div>
+          <span class="bottom-label">Nutrition Tip</span>
         </div>
+        <h3>{{ lesson.nutrition_tip.title }}</h3>
+        <p>{{ lesson.nutrition_tip.description }}</p>
+        <!-- Featured Foods -->
+        <div class="featured-foods" *ngIf="lesson.nutrition_tip.featured_foods && lesson.nutrition_tip.featured_foods.length > 0">
+          <div class="food-item" *ngFor="let food of lesson.nutrition_tip.featured_foods">
+            <h4>{{ food.name }}</h4>
+            <div class="macros">
+              <div class="macro"><span class="value">{{ food.calories }}</span><span class="label">Cal</span></div>
+              <div class="macro"><span class="value">{{ food.protein }}</span><span class="label">Protein</span></div>
+              <div class="macro"><span class="value">{{ food.carbs }}</span><span class="label">Carbs</span></div>
+              <div class="macro"><span class="value">{{ food.fat }}</span><span class="label">Fat</span></div>
+              <div class="macro"><span class="value">{{ food.fiber }}</span><span class="label">Fiber</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-card habit-card">
+        <div class="bottom-card-header">
+          <div class="bottom-icon green-icon">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <span class="bottom-label">Today's Habit</span>
+        </div>
+        <div class="habit-check-row">
+          <div class="checkbox-box"></div>
+          <h3 style = "margin:0px">{{ lesson.daily_habit.title }}</h3>
+        </div>
+        <p>{{ lesson.daily_habit.description }}</p>
+      </div>
+    </div>
+
+    <!-- ===== SOURCE & DISCLAIMER (side by side) ===== -->
+    <div class="bottom-grid footer-grid">
+      <!-- <div class="bottom-card source-card" *ngIf="lesson.source">
+        <div class="bottom-card-header">
+          <div class="bottom-icon grey-icon">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <span class="bottom-label">Source</span>
+        </div>
+        <h4>{{ lesson.source.name }}</h4>
+        <a *ngIf="lesson.source.url" [href]="lesson.source.url" target="_blank" class="source-link">
+          {{ lesson.source.url }} <ion-icon name="open-outline"></ion-icon>
+        </a>
+        <p class="retrieved" *ngIf="lesson.source.retrieved_at">Retrieved on {{ lesson.source.retrieved_at | date:'dd MMM yyyy' }}</p>
+      </div> -->
+      <div class="bottom-card disclaimer-card">
+        <div class="bottom-card-header">
+          <div class="bottom-icon grey-icon">
+            <ion-icon name="information-circle-outline"></ion-icon>
+          </div>
+          <span class="bottom-label">Disclaimer</span>
+        </div>
+        <p>{{ lesson.disclaimer }}</p>
       </div>
     </div>
 

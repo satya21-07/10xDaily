@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
     GOOGLE_CLIENT_ID: Optional[str] = None
+    USDA_API_KEY: Optional[str] = None
 
     class Config:
         case_sensitive = True

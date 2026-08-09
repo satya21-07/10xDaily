@@ -10,41 +10,67 @@ logger = logging.getLogger(__name__)
 
 # Fallback mock data in case API key is missing or API fails
 FALLBACK_DATA = {
-    "topic": "Arrays & Two Pointers",
+    "topic": "Sliding Window",
+    "learning_objective": "Understand how the sliding window technique can reduce repeated traversal of contiguous elements.",
     "concepts": [
         {
-            "title": "Arrays",
-            "explanation": "An array is a collection of items stored at contiguous memory locations. The idea is to store multiple items of the same type together."
+            "title": "What is a Sliding Window?",
+            "explanation": "A sliding window is a sublist that runs over an underlying collection. That is, if you have an array like [a b c d e f], a window of size 3 would be [a b c], then [b c d], then [c d e], and so on.",
+            "key_points": [
+                "It avoids redundant work in nested loops.",
+                "Typically used for contiguous subarrays or substrings.",
+                "Can be fixed size or dynamically resizing."
+            ],
+            "example": "Finding the maximum sum of any contiguous subarray of size k."
         },
         {
-            "title": "Two Pointers Technique",
-            "explanation": "Two pointers is really an easy and effective technique that is typically used for searching pairs in a sorted array."
+            "title": "Fixed vs Dynamic Window",
+            "explanation": "Windows can be fixed in size, moving one element at a time, or dynamic, where the window grows and shrinks based on certain conditions.",
+            "key_points": [
+                "Fixed windows are useful for 'subarray of size k' problems.",
+                "Dynamic windows are useful for 'smallest/largest subarray meeting a condition' problems.",
+                "Both maintain a running state (sum, count, etc.)."
+            ],
+            "example": "Dynamic window: Find the smallest subarray with a sum >= S."
         },
         {
-            "title": "Time Complexity",
-            "explanation": "Accessing an element is O(1). Searching an element is O(N). Using two pointers can often reduce nested loops from O(N^2) to O(N)."
+            "title": "When to use it?",
+            "explanation": "The technique is best applied to problems involving contiguous sequences (arrays or strings) where you need to find an optimal subarray or calculate a running metric.",
+            "key_points": [
+                "Look for keywords like 'contiguous', 'subarray', 'substring'.",
+                "Often optimizes an O(N^2) brute force solution to O(N).",
+                "Requires processing elements in order."
+            ],
+            "example": "Longest substring without repeating characters."
         },
         {
-            "title": "Space Complexity",
-            "explanation": "Arrays take O(N) space. The two pointer technique itself only uses O(1) auxiliary space."
+            "title": "Common Mistakes & Optimization",
+            "explanation": "A common mistake is off-by-one errors when adjusting window boundaries or updating the running state before/after moving pointers.",
+            "key_points": [
+                "Ensure the element leaving the window is removed from the state.",
+                "Ensure the element entering the window is added to the state.",
+                "Be careful with loop conditions (e.g., right < n)."
+            ],
+            "example": "Forgetting to subtract nums[left] before left++."
         }
     ],
     "questions": [
         {
-            "title": "Two Sum",
-            "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+            "id": "q1-sw",
+            "title": "Maximum Subarray Average",
+            "description": "Given an array of integers nums and an integer k, find the contiguous subarray of length k that has the maximum average value and return this value.",
             "difficulty": "Easy",
-            "hint": "Can you use a Hash Map to store the elements you have seen so far to do this in O(N) time?",
-            "solution_java": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[] {};\n    }\n}",
-            "solution_python": "class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        seen = {}\n        for i, num in enumerate(nums):\n            complement = target - num\n            if complement in seen:\n                return [seen[complement], i]\n            seen[num] = i\n        return []"
-        },
-        {
-            "title": "Container With Most Water",
-            "description": "You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]). Find two lines that together with the x-axis form a container, such that the container contains the most water.",
-            "difficulty": "Medium",
-            "hint": "Start with the maximum width container and go to a shorter width container if there is a vertical line longer than the current containers shorter line.",
-            "solution_java": "class Solution {\n    public int maxArea(int[] height) {\n        int maxarea = 0;\n        int left = 0; \n        int right = height.length - 1;\n        while (left < right) {\n            int width = right - left;\n            maxarea = Math.max(maxarea, Math.min(height[left], height[right]) * width);\n            if (height[left] <= height[right]) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        return maxarea;\n    }\n}",
-            "solution_python": "class Solution:\n    def maxArea(self, height: List[int]) -> int:\n        max_area = 0\n        left, right = 0, len(height) - 1\n        while left < right:\n            width = right - left\n            max_area = max(max_area, min(height[left], height[right]) * width)\n            if height[left] <= height[right]:\n                left += 1\n            else:\n                right -= 1\n        return max_area"
+            "pattern": "Sliding Window",
+            "tags": ["Array", "Sliding Window"],
+            "hint": "Calculate the sum of the first k elements. Then, slide the window by subtracting the element going out and adding the element coming in.",
+            "approach": "We can maintain a running sum of the current window of size k. As the window slides to the right, we update the sum in O(1) time.",
+            "explanation": "This approach avoids recalculating the sum from scratch for every window, reducing the time complexity from O(N*K) to O(N).",
+            "time_complexity": "O(N)",
+            "space_complexity": "O(1)",
+            "solution_java": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        long sum = 0;\n        for (int i = 0; i < k; i++) sum += nums[i];\n        long maxSum = sum;\n        for (int i = k; i < nums.length; i++) {\n            sum += nums[i] - nums[i - k];\n            maxSum = Math.max(maxSum, sum);\n        }\n        return (double) maxSum / k;\n    }\n}",
+            "solution_python": "class Solution:\n    def findMaxAverage(self, nums: List[int], k: int) -> float:\n        curr_sum = sum(nums[:k])\n        max_sum = curr_sum\n        for i in range(k, len(nums)):\n            curr_sum += nums[i] - nums[i - k]\n            max_sum = max(max_sum, curr_sum)\n        return max_sum / k",
+            "solution_javascript": "var findMaxAverage = function(nums, k) {\n    let sum = 0;\n    for(let i=0; i<k; i++) sum += nums[i];\n    let maxSum = sum;\n    for(let i=k; i<nums.length; i++) {\n        sum += nums[i] - nums[i-k];\n        maxSum = Math.max(maxSum, sum);\n    }\n    return maxSum / k;\n};",
+            "solution_cpp": "class Solution {\npublic:\n    double findMaxAverage(vector<int>& nums, int k) {\n        long long sum = 0;\n        for(int i = 0; i < k; i++) sum += nums[i];\n        long long maxSum = sum;\n        for(int i = k; i < nums.size(); i++) {\n            sum += nums[i] - nums[i-k];\n            maxSum = max(maxSum, sum);\n        }\n        return (double)maxSum / k;\n    }\n};"
         }
     ]
 }
@@ -68,40 +94,59 @@ def generate_daily_coding_lesson() -> dict:
     topics = [
         "Dynamic Programming", "Graph Theory", "Hash Maps & Sets", 
         "Binary Search Trees", "Sliding Window", "Tries", 
-        "Greedy Algorithms", "Backtracking", "Linked Lists", "Bit Manipulation"
+        "Greedy Algorithms", "Backtracking", "Linked Lists", "Bit Manipulation",
+        "Two Pointers", "Stacks & Queues", "Heaps", "Intervals"
     ]
     topic_seed = topics[day_of_year % len(topics)]
 
     prompt = f"""
     You are an expert Data Structures and Algorithms instructor.
-    Generate a daily coding lesson focused on the topic: {topic_seed}.
+    Generate an original, daily coding lesson focused on the topic: {topic_seed}.
     
+    CRITICAL REQUIREMENTS:
+    1. Do NOT reproduce or closely paraphrase existing LeetCode problem statements. Generate original interview-style problems.
+    2. Generate exactly 4 concepts that progressively teach the topic.
+    3. Generate exactly 5 coding questions with this difficulty distribution:
+       - Q1: Easy
+       - Q2: Easy
+       - Q3: Medium
+       - Q4: Medium
+       - Q5: Hard
+    4. Do not generate five questions that test exactly the same technique. Questions should cover meaningful variations of the day's topic/pattern.
+    5. Provide valid solutions in Java, Python, JavaScript, and C++ as raw strings without markdown code fences.
+
     You MUST respond with ONLY a valid JSON object matching this exact structure:
     {{
       "topic": "{topic_seed}",
+      "learning_objective": "Clear statement of what the user should understand...",
       "concepts": [
-        {{ "title": "Concept 1", "explanation": "Detailed explanation..." }},
-        {{ "title": "Concept 2", "explanation": "Detailed explanation..." }},
-        {{ "title": "Concept 3", "explanation": "Detailed explanation..." }},
-        {{ "title": "Concept 4", "explanation": "Detailed explanation..." }}
+        {{
+          "title": "Concept 1",
+          "explanation": "Detailed but easy-to-understand explanation...",
+          "key_points": ["Point 1", "Point 2", "Point 3"],
+          "example": "A small practical example..."
+        }},
+        ... 3 more concepts
       ],
       "questions": [
         {{
-          "title": "Famous Leetcode Style Question 1",
-          "description": "Full problem description...",
-          "difficulty": "Easy/Medium/Hard",
+          "id": "unique-question-id",
+          "title": "Original Problem Title",
+          "description": "Full original problem description...",
+          "difficulty": "Easy",
+          "pattern": "{topic_seed}",
+          "tags": ["{topic_seed}", "Array"],
           "hint": "A helpful hint without giving away the full code.",
-          "solution_java": "The optimal solution in Java as a raw string without markdown blocks",
-          "solution_python": "The optimal solution in Python as a raw string without markdown blocks"
+          "approach": "Explanation of the algorithm before showing code...",
+          "explanation": "Explanation teaching WHY the solution works...",
+          "time_complexity": "O(N)",
+          "space_complexity": "O(1)",
+          "solution_java": "class Solution {{ ... }}",
+          "solution_python": "class Solution: ...",
+          "solution_javascript": "var solve = function(...) {{ ... }};",
+          "solution_cpp": "class Solution {{ ... }};"
         }},
-        {{
-          "title": "Famous Leetcode Style Question 2",
-          "description": "Full problem description...",
-          "difficulty": "Medium/Hard",
-          "hint": "A helpful hint without giving away the full code.",
-          "solution_java": "The optimal solution in Java as a raw string without markdown blocks",
-          "solution_python": "The optimal solution in Python as a raw string without markdown blocks"
-        }}
+        ... 4 more questions
       ]
     }}
     

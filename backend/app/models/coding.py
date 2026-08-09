@@ -7,10 +7,13 @@ class CodingProblem(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     difficulty = Column(String(50)) # Easy, Medium, Hard
+    pattern = Column(String(100))
+    tags = Column(String(255))
     time_complexity = Column(String(100))
     space_complexity = Column(String(100))
     hint = Column(Text)
-    ai_explanation = Column(Text)
+    approach = Column(Text)
+    explanation = Column(Text)
     
     # Code templates/solutions
     java_solution = Column(Text)

@@ -5,6 +5,7 @@ from app.schemas.user import User, UserCreate
 from app.models.core_models import User as UserModel
 from app.api import deps
 from app.core.security import get_password_hash
+from app.api.v1.endpoints.auth import update_user_streak
 
 router = APIRouter()
 
@@ -50,6 +51,7 @@ def read_user_me(
     current_user: UserModel = Depends(deps.get_current_user)
 ) -> Any:
     """Get current user."""
+    update_user_streak(db, current_user)
     return current_user
 
 from app.schemas.user import UserStatsUpdate

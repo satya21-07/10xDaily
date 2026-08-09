@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base_class import Base
@@ -56,7 +56,7 @@ class Bookmark(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(255), nullable=False)
-    url = Column(String(255))
+    url = Column(Text)
     content_type = Column(String(50)) # e.g. 'news', 'vocabulary', 'coding'
     reference_id = Column(String(100)) # ID of the actual content
     folder = Column(String(100), default="General")
@@ -84,3 +84,39 @@ class UserProgress(Base):
     last_activity_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="progress")
+
+class SpiritualSource(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    source_name = Column(String(100), nullable=False) # e.g., 'Bhagavad Gita'
+    section = Column(String(100)) # e.g., 'Sundara Kanda'
+    chapter = Column(Integer)
+    verse = Column(Integer)
+    character = Column(String(100)) # e.g., 'Hanuman'
+    topic = Column(String(100), nullable=False) # e.g., 'Karma'
+    original_text = Column(Text)
+    translation = Column(Text, nullable=False)
+    source_reference = Column(String(255), nullable=False) # e.g., 'Bhagavad Gita 2.47'
+    source_url = Column(String(255))
+    translation_name = Column(String(255))
+    language = Column(String(50), default="English")
+    license_or_rights_note = Column(String(255))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    lessons = relationship("DailySpiritualLesson", back_populates="source_passage")
+
+class DailySpiritualLesson(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    lesson_date = Column(String(10), unique=True, index=True, nullable=False) # YYYY-MM-DD
+    topic = Column(String(100), nullable=False)
+    source_id = Column(Integer, ForeignKey("spiritual_source.id", ondelete="CASCADE"), nullable=False)
+    
+    # Store the generated content as JSON string or Text
+    reflection = Column(Text, nullable=False)
+    today_practice = Column(Text, nullable=False)
+    journal_prompt = Column(Text, nullable=False)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    source_passage = relationship("SpiritualSource", back_populates="lessons")

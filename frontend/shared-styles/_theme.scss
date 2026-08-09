@@ -30,7 +30,14 @@
   --10x-transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --10x-transition-smooth: 0.3s ease-in-out;
 }
-
+:root {
+  --ion-color-medium: #000000;
+  --ion-color-medium-rgb: 0, 0, 0;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #000000;
+  --ion-color-medium-tint: #1a1a1a;
+}
 /* Dark Mode Overrides */
 @media (prefers-color-scheme: dark) {
   :root {

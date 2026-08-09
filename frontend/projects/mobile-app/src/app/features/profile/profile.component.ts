@@ -2,11 +2,12 @@ import { Component, OnInit, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService, UserProfile } from '../../services/auth.service';
 import { ProgressService } from '../../services/progress.service';
 import { ThemeService } from '../../services/theme.service';
 import { addIcons } from 'ionicons';
+import { ToastController } from '@ionic/angular';
 import { 
   logOutOutline, settingsOutline, notificationsOutline, moonOutline,
   flame, gridOutline, bulbOutline, checkmarkCircle, pencilOutline, logoGoogle,
@@ -19,7 +20,7 @@ import {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule],
+  imports: [CommonModule, IonicModule, FormsModule, RouterModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
@@ -27,6 +28,7 @@ export class ProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
+  private toastController = inject(ToastController);
   public progressService = inject(ProgressService);
   public themeService = inject(ThemeService);
   
@@ -78,6 +80,17 @@ export class ProfileComponent implements OnInit {
       this.router.navigate(['/login']);
     });
   }
+  
+  async showFeatureNotAvailable(featureName: string) {
+    const toast = await this.toastController.create({
+      message: `${featureName} is coming soon!`,
+      duration: 2000,
+      position: 'bottom',
+      color: 'dark'
+    });
+    await toast.present();
+  }
+
   toggleTheme() {
     this.themeService.setDark(this.darkModeEnabled);
   }

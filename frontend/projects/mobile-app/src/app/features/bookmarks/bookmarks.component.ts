@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { IonicModule, ActionSheetController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
+import { NewsService } from '../../services/news.service';
 import { addIcons } from 'ionicons';
-import { bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline } from 'ionicons/icons';
+import { bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-bookmarks',
@@ -30,9 +31,10 @@ export class BookmarksComponent implements OnInit {
 
   constructor(
     private bookmarkService: BookmarkService,
+    private newsService: NewsService,
     private actionSheetCtrl: ActionSheetController
   ) {
-    addIcons({ bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline });
+    addIcons({ bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline });
   }
 
   ngOnInit() {
@@ -44,12 +46,49 @@ export class BookmarksComponent implements OnInit {
   }
 
   loadBookmarks() {
+    // We now have two sources: BookmarkService for general bookmarks, NewsService for SavedNews
+    let generalBookmarks: Bookmark[] = [];
+    let savedNewsBookmarks: any[] = [];
+    
+    let completedRequests = 0;
+    const checkCompletion = () => {
+      completedRequests++;
+      if (completedRequests === 2) {
+        this.bookmarks = [...generalBookmarks, ...savedNewsBookmarks];
+        this.groupBookmarks();
+      }
+    };
+
     this.bookmarkService.getBookmarks().subscribe({
       next: (data) => {
-        this.bookmarks = data;
-        this.groupBookmarks();
+        generalBookmarks = data;
+        checkCompletion();
       },
-      error: (err) => console.error('Error fetching bookmarks:', err)
+      error: (err) => {
+        console.error('Error fetching bookmarks:', err);
+        checkCompletion();
+      }
+    });
+
+    this.newsService.getSavedNews().subscribe({
+      next: (data) => {
+        // Transform SavedNewsResponse into Bookmark-like format for grouping
+        savedNewsBookmarks = data.map(news => ({
+          id: news.id,
+          title: news.title,
+          url: news.url,
+          content_type: 'news',
+          created_at: news.saved_at,
+          parsed_data: news, // Pass the whole object as parsed_data
+          is_saved_news_record: true,
+          article_id: news.article_id
+        }));
+        checkCompletion();
+      },
+      error: (err) => {
+        console.error('Error fetching saved news:', err);
+        checkCompletion();
+      }
     });
   }
 
@@ -60,10 +99,12 @@ export class BookmarksComponent implements OnInit {
       if (!this.groupedBookmarks[type]) {
         this.groupedBookmarks[type] = [];
       }
-      try {
-        b.parsed_data = b.details ? JSON.parse(b.details) : null;
-      } catch (e) {
-        b.parsed_data = null;
+      if (!b.is_saved_news_record) {
+        try {
+          b.parsed_data = b.details ? JSON.parse(b.details) : null;
+        } catch (e) {
+          b.parsed_data = null;
+        }
       }
       this.groupedBookmarks[type].push(b);
     });
@@ -102,19 +143,20 @@ export class BookmarksComponent implements OnInit {
     return Array.isArray(synonyms) ? synonyms.slice(0, 4).join(', ') : '';
   }
 
-  async presentOptions(id: number | undefined, event: Event) {
+  async presentOptions(item: any, event: Event) {
     event.stopPropagation();
-    if (!id) return;
+    if (!item || !item.id) return;
     
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Options',
+      cssClass: 'compact-action-sheet',
       buttons: [
         {
           text: 'Remove from Saved Items',
           role: 'destructive',
           icon: 'trash-outline',
           handler: () => {
-            this.deleteBookmark(id);
+            this.deleteBookmark(item);
           }
         },
         {
@@ -126,10 +168,17 @@ export class BookmarksComponent implements OnInit {
     await actionSheet.present();
   }
 
-  deleteBookmark(id: number) {
-    this.bookmarkService.deleteBookmark(id).subscribe(() => {
-      this.loadBookmarks();
-    });
+  deleteBookmark(item: any) {
+    if (item.is_saved_news_record) {
+      this.newsService.unsaveArticle(item.article_id, item.url).subscribe({
+        next: () => this.loadBookmarks(),
+        error: (err) => console.error('Error removing saved news:', err)
+      });
+    } else {
+      this.bookmarkService.deleteBookmark(item.id).subscribe(() => {
+        this.loadBookmarks();
+      });
+    }
   }
 
   formatDate(dateString?: string): string {

@@ -1,0 +1,29 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80%;
+  text-align: center;
+  color: var(--ion-color-medium);
+
+  .large-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    color: var(--ion-color-primary);
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary, #9b59b6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  h2 {
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+}

@@ -3,7 +3,12 @@
     <ion-buttons slot="start">
       <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
     </ion-buttons>
-    <ion-title>AI Coding Mastery</ion-title>
+    <ion-title>Coding</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="search-outline"></ion-icon></ion-button>
+      <ion-button fill="clear" color="dark" routerLink="/bookmarks"><ion-icon slot="icon-only" name="bookmark-outline"></ion-icon></ion-button>
+      <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -20,7 +25,8 @@
     <div class="topic-header card">
       <div class="tag">Topic of the Day</div>
       <h2>{{ lesson.topic }}</h2>
-      <p>Master these core concepts with AI-generated questions to level up your interview skills.</p>
+      <p class="objective">{{ lesson.learning_objective }}</p>
+      <!-- <p class="subtitle">Master these core concepts with AI-generated questions to level up your interview skills.</p> -->
     </div>
 
     <!-- Concepts Section -->
@@ -43,6 +49,14 @@
           
           <div class="accordion-content" *ngIf="expandedConceptIndex === i">
             <p>{{ concept.explanation }}</p>
+            <div class="key-points" *ngIf="concept.key_points && concept.key_points.length > 0">
+              <ul>
+                <li *ngFor="let point of concept.key_points">{{ point }}</li>
+              </ul>
+            </div>
+            <div class="example-box" *ngIf="concept.example">
+              <strong>Example:</strong> {{ concept.example }}
+            </div>
           </div>
         </div>
       </div>
@@ -64,9 +78,16 @@
                 <ion-icon slot="icon-only" [name]="isSaved(q) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(q) ? 'primary' : 'medium'"></ion-icon>
               </ion-button>
             </div>
-            <span class="difficulty-badge" [ngClass]="q.difficulty.toLowerCase()">
-              {{ q.difficulty }}
-            </span>
+            <div class="header-badges">
+              <span class="difficulty-badge" [ngClass]="q.difficulty.toLowerCase()">
+                {{ q.difficulty }}
+              </span>
+              <span class="tag-chip" *ngIf="q.pattern">{{ q.pattern }}</span>
+            </div>
+          </div>
+          <div class="complexity-row" *ngIf="q.time_complexity || q.space_complexity">
+            <span class="complexity-badge" *ngIf="q.time_complexity">⏱ {{ q.time_complexity }}</span>
+            <span class="complexity-badge" *ngIf="q.space_complexity">💾 {{ q.space_complexity }}</span>
           </div>
           <p class="q-desc">{{ q.description }}</p>
           
@@ -79,8 +100,23 @@
               {{ q.hint }}
             </div>
           </div>
+
+          <div class="approach-section" *ngIf="q.approach && q.explanation" [class.expanded]="expandedApproachIndex === i">
+            <ion-button fill="clear" size="small" (click)="toggleApproach(i)">
+              <ion-icon slot="start" name="bulb-outline"></ion-icon>
+              {{ expandedApproachIndex === i ? 'Hide Approach' : 'Show Approach' }}
+            </ion-button>
+            <div class="approach-content" *ngIf="expandedApproachIndex === i">
+              <div class="approach-box">
+                <strong>Approach:</strong> {{ q.approach }}
+              </div>
+              <div class="explanation-box">
+                <strong>Why it works:</strong> {{ q.explanation }}
+              </div>
+            </div>
+          </div>
           
-          <div class="solution-section" *ngIf="q.solution_java && q.solution_python" [class.expanded]="expandedSolutionIndex === i">
+          <div class="solution-section" *ngIf="q.solution_java || q.solution_python || q.solution_javascript || q.solution_cpp" [class.expanded]="expandedSolutionIndex === i">
             <ion-button fill="clear" size="small" class="solution-btn" (click)="toggleSolution(i)">
               <ion-icon slot="start" name="code-slash-outline"></ion-icon>
               {{ expandedSolutionIndex === i ? 'Hide Solution' : 'Show Solution' }}
@@ -88,12 +124,23 @@
             
             <div class="solution-content" *ngIf="expandedSolutionIndex === i">
               <div class="solution-tabs">
-                <button class="tab-btn" [class.active]="activeSolutionTab[i] === 'java'" (click)="setSolutionTab(i, 'java')">Java</button>
-                <button class="tab-btn" [class.active]="activeSolutionTab[i] === 'python'" (click)="setSolutionTab(i, 'python')">Python</button>
+                <button *ngIf="q.solution_java" class="tab-btn" [class.active]="activeSolutionTab[i] === 'java'" (click)="setSolutionTab(i, 'java')">Java</button>
+                <button *ngIf="q.solution_python" class="tab-btn" [class.active]="activeSolutionTab[i] === 'python'" (click)="setSolutionTab(i, 'python')">Python</button>
+                <button *ngIf="q.solution_javascript" class="tab-btn" [class.active]="activeSolutionTab[i] === 'javascript'" (click)="setSolutionTab(i, 'javascript')">JS</button>
+                <button *ngIf="q.solution_cpp" class="tab-btn" [class.active]="activeSolutionTab[i] === 'cpp'" (click)="setSolutionTab(i, 'cpp')">C++</button>
               </div>
               
               <div class="code-block">
-                <pre><code [class.language-java]="activeSolutionTab[i] === 'java'" [class.language-python]="activeSolutionTab[i] === 'python'">{{ activeSolutionTab[i] === 'java' ? q.solution_java : q.solution_python }}</code></pre>
+                <pre><code 
+                  [class.language-java]="activeSolutionTab[i] === 'java'" 
+                  [class.language-python]="activeSolutionTab[i] === 'python'"
+                  [class.language-javascript]="activeSolutionTab[i] === 'javascript'"
+                  [class.language-cpp]="activeSolutionTab[i] === 'cpp'"
+                  >{{ 
+                  activeSolutionTab[i] === 'java' ? q.solution_java : 
+                  (activeSolutionTab[i] === 'python' ? q.solution_python : 
+                  (activeSolutionTab[i] === 'javascript' ? q.solution_javascript : q.solution_cpp)) 
+                }}</code></pre>
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import zoneinfo
 from datetime import timedelta, datetime, timezone
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,12 +14,23 @@ router = APIRouter()
 
 def update_user_streak(db: Session, user: User) -> int:
     now = datetime.now(timezone.utc)
+    ist_tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+    now_ist = now.astimezone(ist_tz)
+    
     if not user.last_login_at:
         user.current_streak = 1
     else:
-        now_date = now.date()
-        last_date = user.last_login_at.date()
+        if user.last_login_at.tzinfo is None:
+            last_login_utc = user.last_login_at.replace(tzinfo=timezone.utc)
+        else:
+            last_login_utc = user.last_login_at
+            
+        last_login_ist = last_login_utc.astimezone(ist_tz)
+        
+        now_date = now_ist.date()
+        last_date = last_login_ist.date()
         delta = (now_date - last_date).days
+        
         if delta == 1:
             user.current_streak += 1
         elif delta > 1:

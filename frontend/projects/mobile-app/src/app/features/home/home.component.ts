@@ -37,21 +37,21 @@ export class HomeComponent implements OnInit {
   
   fetchNewQuote(event?: any) {
     this.isLoadingQuote = true;
-    // this.quoteService.getRandomQuote().subscribe({
-    //   next: (quote) => {
-    //     this.quoteOfTheDay = quote;
-    //     this.isLoadingQuote = false;
-    //     if (event) {
-    //       event.target.complete();
-    //     }
-    //   },
-    //   error: () => {
-    //     this.isLoadingQuote = false;
-    //     if (event) {
-    //       event.target.complete();
-    //     }
-    //   }
-    // });
+    this.quoteService.getRandomQuote().subscribe({
+      next: (quote) => {
+        this.quoteOfTheDay = quote;
+        this.isLoadingQuote = false;
+        if (event) {
+          event.target.complete();
+        }
+      },
+      error: () => {
+        this.isLoadingQuote = false;
+        if (event) {
+          event.target.complete();
+        }
+      }
+    });
   }
 
   getFirstName(name?: string): string {

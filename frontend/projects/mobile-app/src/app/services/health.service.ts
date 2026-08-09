@@ -7,19 +7,61 @@ import { environment } from '../../environments/environment';
 export interface HealthFact {
   title: string;
   explanation: string;
+  key_points: string[];
 }
 
-export interface Workout {
+export interface DailyExercise {
   name: string;
   duration: string;
-  exercises: string[];
+  instructions: string;
+  safety_note?: string;
+}
+
+export interface DailyActivity {
+  name: string;
+  duration: string;
+  level: string;
+  exercises: DailyExercise[];
+}
+
+export interface FeaturedFood {
+  name: string;
+  calories: string;
+  protein: string;
+  carbs: string;
+  fat: string;
+  fiber: string;
+}
+
+export interface NutritionTip {
+  title: string;
+  description: string;
+  featured_foods?: FeaturedFood[];
+}
+
+export interface DailyHabit {
+  title: string;
+  description: string;
+}
+
+export interface HealthSource {
+  name: string;
+  url: string;
+  type: string;
+  retrieved_at: string;
 }
 
 export interface HealthLesson {
+  id?: number;
+  lesson_date?: string;
   topic: string;
-  workout_of_the_day: Workout;
+  learning_objective: string;
   health_facts: HealthFact[];
-  diet_tip: string;
+  daily_activity: DailyActivity;
+  nutrition_tip: NutritionTip;
+  daily_habit: DailyHabit;
+  source: HealthSource;
+  disclaimer: string;
 }
 
 @Injectable({
@@ -54,18 +96,52 @@ export class HealthService {
   private getOfflineMockData(): HealthLesson {
     return {
       topic: "Offline Fallback: Hydration",
-      workout_of_the_day: {
-        name: "Stretching",
-        duration: "5 mins",
-        exercises: ["Stretch 1", "Stretch 2"]
-      },
+      learning_objective: "Understand the importance of hydration.",
       health_facts: [
         {
-          title: "Water",
-          explanation: "Drink water."
+          title: "Water and energy",
+          explanation: "Dehydration can significantly reduce your energy levels.",
+          key_points: ["Drink water", "Stay hydrated"]
         }
       ],
-      diet_tip: "Drink a glass of water right when you wake up."
+      daily_activity: {
+        name: "Stretching",
+        duration: "5 mins",
+        level: "Beginner",
+        exercises: [
+          {
+            name: "Neck rolls",
+            duration: "1 min",
+            instructions: "Roll your neck slowly.",
+            safety_note: "Stop if you feel pain."
+          }
+        ]
+      },
+      nutrition_tip: {
+        title: "Drink a glass of water right when you wake up.",
+        description: "It helps kickstart your metabolism, flushes out toxins that have accumulated overnight, and gives your brain the hydration it needs to stay focused.",
+        featured_foods: [
+          {
+            name: "Water",
+            calories: "0 kcal",
+            protein: "0g",
+            carbs: "0g",
+            fat: "0g",
+            fiber: "0g"
+          }
+        ]
+      },
+      daily_habit: {
+        title: "Carry a water bottle",
+        description: "Keep it with you all day."
+      },
+      source: {
+        name: "10xDaily General Wellness",
+        url: "",
+        type: "fallback",
+        retrieved_at: ""
+      },
+      disclaimer: "This content is for general educational purposes and is not medical advice."
     };
   }
 }

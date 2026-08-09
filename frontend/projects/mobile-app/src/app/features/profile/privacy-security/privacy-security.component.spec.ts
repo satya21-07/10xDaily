@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SpiritualComponent } from './spiritual.component';
+import { PrivacySecurityComponent } from './privacy-security.component';
 
-describe('SpiritualComponent', () => {
-  let component: SpiritualComponent;
-  let fixture: ComponentFixture<SpiritualComponent>;
+describe('PrivacySecurityComponent', () => {
+  let component: PrivacySecurityComponent;
+  let fixture: ComponentFixture<PrivacySecurityComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SpiritualComponent]
+      imports: [PrivacySecurityComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(SpiritualComponent);
+    fixture = TestBed.createComponent(PrivacySecurityComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

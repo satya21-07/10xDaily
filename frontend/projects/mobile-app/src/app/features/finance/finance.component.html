@@ -1,55 +1,72 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button routerLink="/home" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+      <ion-button routerLink="/home" fill="clear" color="dark">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
     </ion-buttons>
-    <ion-title>Finance Mastery</ion-title>
+    <ion-title>Finance</ion-title>
+    <ion-buttons slot="end">
+    <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="search-outline"></ion-icon></ion-button>
+    <ion-button fill="clear" color="dark" routerLink="/bookmarks"><ion-icon slot="icon-only" name="bookmark-outline"></ion-icon></ion-button>
+    <ion-button fill="clear" color="dark"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
+  </ion-buttons>
+    <!-- <ion-buttons slot="end" class="country-buttons">
+      <ion-icon name="globe-outline" color="medium" class="globe-icon"></ion-icon>
+      <ion-select [(ngModel)]="countryCode" (ionChange)="onCountryChange()" interface="popover" class="country-select" [interfaceOptions]="{ size: 'cover' }">
+        <ion-select-option value="IN">India</ion-select-option>
+        <ion-select-option value="US">U.S.A.</ion-select-option>
+        <ion-select-option value="GB">U.K.</ion-select-option>
+      </ion-select>
+    </ion-buttons> -->
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)">
+  <ion-refresher slot="fixed" (ionRefresh)="loadLesson($event)" *ngIf="activeSegment === 'lesson'">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Segment Selector -->
+  <div class="segment-container">
+    <ion-segment [(ngModel)]="activeSegment" mode="ios">
+      <ion-segment-button value="lesson">
+        <ion-label>Daily Curriculum</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="calculators">
+        <ion-label>Calculators</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
   <!-- Loading State -->
-  <app-loader *ngIf="isLoading" message="Analyzing market trends..."></app-loader>
+  <app-loader *ngIf="isLoading && activeSegment === 'lesson'" message="Loading financial curriculum..."></app-loader>
 
-  <div *ngIf="!isLoading && lesson" class="content-container">
-    
-    <div class="header-section">
-      <div class="badge">
-        <ion-icon name="wallet-outline"></ion-icon>
-        <span>Daily Curriculum</span>
-      </div>
+  <div *ngIf="!isLoading && lesson && activeSegment === 'lesson'" class="content-container">
+    <!-- Editorial Header -->
+    <div class="editorial-header">
+      <div class="date-badge">TODAY'S TOPIC</div>
       <h1 class="topic-title">{{ lesson.topic }}</h1>
+      <p class="why-it-matters">{{ lesson.why_it_matters }}</p>
     </div>
 
-    <!-- Daily Tip -->
-    <div class="card highlight-card">
-      <div class="card-header">
-        <div class="icon-container primary">
-          <ion-icon name="cash-outline"></ion-icon>
-        </div>
-        <h2>Tip of the Day</h2>
-      </div>
-      <p class="explanation">{{ lesson.daily_tip }}</p>
+    <!-- Core Concepts -->
+    <div class="section-divider">
+      <span>Concepts</span>
     </div>
 
-    <!-- Concepts -->
-    <h2 class="section-title">Core Concepts</h2>
     <div class="concepts-list">
-      <div *ngFor="let concept of lesson.concepts; let i = index" class="card concept-card" [class.expanded]="expandedConceptIndex === i">
+      <div *ngFor="let concept of lesson.concepts; let i = index" class="concept-card" [class.expanded]="expandedConceptIndex === i">
         <div class="concept-header" (click)="toggleConcept(i)">
           <div class="concept-title-group">
-            <div class="number-badge">{{ i + 1 }}</div>
+            <span class="concept-number">0{{ i + 1 }}</span>
             <h3>{{ concept.title }}</h3>
           </div>
-          <div style="display: flex; align-items: center;">
-            <ion-button fill="clear" size="small" (click)="toggleSaveConcept(concept, $event)">
+          <div class="concept-actions">
+            <ion-button fill="clear" size="small" class="bookmark-btn" (click)="toggleSaveConcept(concept, $event)">
               <ion-icon slot="icon-only" [name]="isSaved(concept) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(concept) ? 'primary' : 'medium'"></ion-icon>
             </ion-button>
-            <ion-icon [name]="expandedConceptIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            <ion-icon [name]="expandedConceptIndex === i ? 'chevron-up-outline' : 'chevron-down-outline'" class="chevron"></ion-icon>
           </div>
         </div>
         
@@ -59,17 +76,572 @@
       </div>
     </div>
 
-    <!-- Action Item -->
-    <h2 class="section-title">Action Item</h2>
-    <div class="card highlight-card success">
-      <div class="card-header">
-        <div class="icon-container success">
-          <ion-icon name="trending-up-outline"></ion-icon>
-        </div>
-        <h2>Do This Today</h2>
-      </div>
-      <p class="explanation">{{ lesson.action_item }}</p>
+    <!-- Concrete Example -->
+    <div class="section-divider">
+      <span>Practical Example</span>
     </div>
 
+    <div class="editorial-card example-card">
+      <h3 class="card-title">{{ lesson.example.title }}</h3>
+      <p class="card-explanation">{{ lesson.example.explanation }}</p>
+    </div>
+
+    <!-- Common Mistake -->
+    <div class="section-divider">
+      <span>Common Pitfall</span>
+    </div>
+
+    <div class="editorial-card pitfall-card">
+      <div class="card-header-icon">
+        <ion-icon name="warning-outline" color="danger"></ion-icon>
+        <h3>Common Mistake</h3>
+      </div>
+      <p class="card-explanation">{{ lesson.common_mistake }}</p>
+    </div>
+
+    <!-- Today's Action Item -->
+    <div class="section-divider">
+      <span>Today's Task</span>
+    </div>
+
+    <div class="editorial-card action-card">
+      <div class="card-header-icon">
+        <ion-icon name="trending-up-outline" color="primary"></ion-icon>
+        <h3>{{ lesson.action_item.title }}</h3>
+      </div>
+      <p class="card-explanation">{{ lesson.action_item.description }}</p>
+      
+      <div class="action-btn-container">
+        <ion-button expand="block" fill="outline" color="dark" class="action-btn" (click)="navigateToCalculatorForTopic()">
+          <ion-icon slot="start" name="calculator-outline"></ion-icon>
+          Open Target Calculator
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Self Reflection -->
+    <div class="section-divider">
+      <span>Self Reflection</span>
+    </div>
+
+    <div class="editorial-card reflection-card">
+      <div class="card-header-icon">
+        <ion-icon name="time-outline" color="medium"></ion-icon>
+        <h3>Reflect On This</h3>
+      </div>
+      <p class="card-explanation italic">"{{ lesson.reflection }}"</p>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer-container">
+      <p>{{ lesson.disclaimer }}</p>
+    </div>
+  </div>
+
+  <!-- Calculator Segment -->
+  <div *ngIf="activeSegment === 'calculators'" class="content-container calculator-container">
+    <div class="editorial-header">
+      <div class="date-badge">TOOLS</div>
+      <h1 class="topic-title">Financial Calculators</h1>
+      <p class="why-it-matters">Run deterministic calculations on your financial projections. These numbers are purely mathematical illustrations.</p>
+    </div>
+
+    <!-- Calculator Selector Dropdown -->
+    <div class="calculator-selector">
+      <ion-label class="select-label">Select Tool</ion-label>
+      <div class="select-wrapper">
+        <ion-select [(ngModel)]="selectedCalculator" (ionChange)="calculateCurrent()" interface="popover" class="premium-select">
+          <ion-select-option value="sip">SIP Calculator</ion-select-option>
+          <ion-select-option value="emi">EMI Calculator</ion-select-option>
+          <ion-select-option value="compound-interest">Compound Interest</ion-select-option>
+          <ion-select-option value="loan-interest">Loan Interest</ion-select-option>
+          <ion-select-option value="inflation">Inflation Calculator</ion-select-option>
+          <ion-select-option value="future-value">Future Value</ion-select-option>
+          <ion-select-option value="retirement-corpus">Retirement Corpus</ion-select-option>
+          <ion-select-option value="emergency-fund">Emergency Fund</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- Calculator Form Fields -->
+    <div class="calculator-card">
+      <!-- SIP -->
+      <div *ngIf="selectedCalculator === 'sip'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Monthly Investment</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="sipAmount" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Expected Annual Return (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="sipReturn" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Tenure (Years)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="sipYears" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMI -->
+      <div *ngIf="selectedCalculator === 'emi'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Loan Principal</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="emiPrincipal" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Annual Interest Rate (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="emiInterest" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Tenure (Months)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="emiMonths" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Mths</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compound Interest -->
+      <div *ngIf="selectedCalculator === 'compound-interest'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Principal Amount</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="ciPrincipal" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Annual Interest Rate (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="ciRate" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Tenure (Years)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="ciYears" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Compounding Frequency</ion-label>
+          <div class="select-wrapper">
+            <ion-select [(ngModel)]="ciFreq" (ionChange)="calculateCurrent()" interface="popover" class="premium-select">
+              <ion-select-option [value]="12">Monthly</ion-select-option>
+              <ion-select-option [value]="4">Quarterly</ion-select-option>
+              <ion-select-option [value]="2">Semi-Annually</ion-select-option>
+              <ion-select-option [value]="1">Annually</ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan Interest -->
+      <div *ngIf="selectedCalculator === 'loan-interest'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Loan Principal</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="loanPrincipal" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Annual Interest Rate (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="loanRate" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Tenure (Years)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="loanYears" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Compounding Frequency</ion-label>
+          <div class="select-wrapper">
+            <ion-select [(ngModel)]="loanFreq" (ionChange)="calculateCurrent()" interface="popover" class="premium-select">
+              <ion-select-option [value]="12">Monthly (Standard)</ion-select-option>
+              <ion-select-option [value]="1">Annually</ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inflation -->
+      <div *ngIf="selectedCalculator === 'inflation'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Current Expense/Amount</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="infAmount" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Assumed Inflation Rate (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="infRate" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Period (Years)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="infYears" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Future Value -->
+      <div *ngIf="selectedCalculator === 'future-value'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Present Value (Lump Sum)</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="fvPresent" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Annual Rate of Return (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="fvRate" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Duration (Years)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="fvYears" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Retirement Corpus -->
+      <div *ngIf="selectedCalculator === 'retirement-corpus'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Current Age</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="retCurrentAge" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Retirement Age</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="retRetireAge" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Life Expectancy</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="retLifeExpectancy" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Yrs</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Current Monthly Expenses</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="retExpenses" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Expected Annual Inflation (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="retInflation" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Post-Retirement Return (%)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="retPostReturn" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Fund -->
+      <div *ngIf="selectedCalculator === 'emergency-fund'" class="form-grid">
+        <div class="form-field">
+          <ion-label>Monthly Essential Expenses</ion-label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">{{ currencySymbol }}</span>
+            <input type="number" [(ngModel)]="emExpenses" (ngModelChange)="calculateCurrent()" />
+          </div>
+        </div>
+        <div class="form-field">
+          <ion-label>Target Tenure (Months)</ion-label>
+          <div class="input-wrapper">
+            <input type="number" [(ngModel)]="emMonths" (ngModelChange)="calculateCurrent()" />
+            <span class="suffix">Mths</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="calculate-btn-row">
+        <ion-button expand="block" fill="solid" color="dark" (click)="calculateCurrent()" [disabled]="isCalculating">
+          {{ isCalculating ? 'Calculating...' : 'Calculate' }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div *ngIf="isCalculating" class="results-skeleton">
+      <ion-skeleton-text animated style="width: 50%; height: 20px; border-radius: 4px; margin-bottom: 12px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px; margin-bottom: 8px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text>
+    </div>
+
+    <div *ngIf="!isCalculating" class="results-container">
+      <!-- SIP Results -->
+      <div *ngIf="selectedCalculator === 'sip' && sipResult" class="results-card">
+        <h3 class="results-header">SIP Estimate</h3>
+        <div class="result-row">
+          <span>Monthly Investment</span>
+          <strong>{{ sipResult.monthly_investment | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Total Invested</span>
+          <strong>{{ sipResult.estimated_investment | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Estimated Returns</span>
+          <strong>{{ sipResult.estimated_returns | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Estimated Total Value</span>
+          <strong>{{ sipResult.estimated_total_value | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Annual Rate of Return: <strong>{{ sipResult.assumptions.annual_return }}%</strong></p>
+          <p>Tenure: <strong>{{ sipResult.assumptions.years }} years</strong></p>
+          <p class="illustration-note">This is an illustration, not a guaranteed return.</p>
+        </div>
+      </div>
+
+      <!-- EMI Results -->
+      <div *ngIf="selectedCalculator === 'emi' && emiResult" class="results-card">
+        <h3 class="results-header">EMI Estimate</h3>
+        <div class="result-row highlight">
+          <span>Monthly EMI</span>
+          <strong>{{ emiResult.monthly_emi | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Principal Amount</span>
+          <strong>{{ emiResult.principal | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Total Interest Payable</span>
+          <strong>{{ emiResult.total_interest_paid | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Total Payment</span>
+          <strong>{{ emiResult.total_payment | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Interest Rate: <strong>{{ emiResult.assumptions.annual_interest_rate }}% per annum</strong></p>
+          <p>Tenure: <strong>{{ emiResult.assumptions.tenure_months }} months</strong></p>
+          <p class="illustration-note">Calculations are based on reducing balance method.</p>
+        </div>
+      </div>
+
+      <!-- Compound Interest Results -->
+      <div *ngIf="selectedCalculator === 'compound-interest' && ciResult" class="results-card">
+        <h3 class="results-header">Interest Projections</h3>
+        <div class="result-row">
+          <span>Principal Deposited</span>
+          <strong>{{ ciResult.principal | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Interest Earned</span>
+          <strong>{{ ciResult.interest_earned | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Future Value</span>
+          <strong>{{ ciResult.future_value | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Annual Rate: <strong>{{ ciResult.assumptions.annual_rate }}%</strong></p>
+          <p>Years: <strong>{{ ciResult.assumptions.years }}</strong></p>
+          <p>Compounded: <strong>{{ ciResult.assumptions.compounding_frequency_per_year === 12 ? 'Monthly' : ciResult.assumptions.compounding_frequency_per_year === 4 ? 'Quarterly' : 'Annually' }}</strong></p>
+          <p class="illustration-note">This is an illustration, not a guaranteed return.</p>
+        </div>
+      </div>
+
+      <!-- Loan Interest Results -->
+      <div *ngIf="selectedCalculator === 'loan-interest' && loanResult" class="results-card">
+        <h3 class="results-header">Loan Interest Comparison</h3>
+        <div class="result-row">
+          <span>Principal Loan</span>
+          <strong>{{ loanResult.principal | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Simple Interest (Total)</span>
+          <strong>{{ loanResult.simple_interest | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Compound Interest (Total)</span>
+          <strong>{{ loanResult.compound_interest | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Interest Rate: <strong>{{ loanResult.assumptions.annual_interest_rate }}% per annum</strong></p>
+          <p>Tenure: <strong>{{ loanResult.assumptions.tenure_years }} years</strong></p>
+          <p class="illustration-note">This illustrates the financial impact of simple vs compound loans.</p>
+        </div>
+      </div>
+
+      <!-- Inflation Results -->
+      <div *ngIf="selectedCalculator === 'inflation' && infResult" class="results-card">
+        <h3 class="results-header">Inflation Projections</h3>
+        <div class="result-row">
+          <span>Current Expense/Value</span>
+          <strong>{{ infResult.current_amount | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Future Cost of Same Item</span>
+          <strong>{{ infResult.future_cost | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row warning-text">
+          <span>Reduced Purchasing Power</span>
+          <strong>{{ infResult.reduced_purchasing_power | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Assumed Inflation Rate: <strong>{{ infResult.assumptions.inflation_rate }}% per year</strong></p>
+          <p>Duration: <strong>{{ infResult.assumptions.years }} years</strong></p>
+          <p class="illustration-note">Demonstrates how purchasing power erodes if assets are not growing faster than inflation.</p>
+        </div>
+      </div>
+
+      <!-- Future Value Results -->
+      <div *ngIf="selectedCalculator === 'future-value' && fvResult" class="results-card">
+        <h3 class="results-header">Future Value Estimate</h3>
+        <div class="result-row">
+          <span>Present Lump Sum</span>
+          <strong>{{ fvResult.present_value | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Gains / Interest</span>
+          <strong>{{ fvResult.interest_earned | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Future Value</span>
+          <strong>{{ fvResult.future_value | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Annual Expected Return: <strong>{{ fvResult.assumptions.annual_rate }}%</strong></p>
+          <p>Tenure: <strong>{{ fvResult.assumptions.years }} years</strong></p>
+          <p class="illustration-note">This is an illustration, not a guaranteed return.</p>
+        </div>
+      </div>
+
+      <!-- Retirement Corpus Results -->
+      <div *ngIf="selectedCalculator === 'retirement-corpus' && retResult" class="results-card">
+        <h3 class="results-header">Retirement Requirements</h3>
+        <div class="result-row">
+          <span>Current Monthly Expenses</span>
+          <strong>{{ retResult.current_monthly_expenses | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>Inflated Monthly Expenses at Retirement</span>
+          <strong>{{ retResult.inflated_monthly_expenses_at_retirement | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Target Retirement Corpus</span>
+          <strong>{{ retResult.retirement_corpus | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Assumptions</span>
+          </div>
+          <p>Retirement Age: <strong>{{ retResult.assumptions.retirement_age }} years</strong> (Current: {{ retResult.assumptions.current_age }})</p>
+          <p>Life Expectancy: <strong>{{ retResult.assumptions.life_expectancy }} years</strong></p>
+          <p>Inflation: <strong>{{ retResult.assumptions.annual_inflation }}%</strong> | Post-Retirement Return: <strong>{{ retResult.assumptions.post_retirement_return }}%</strong></p>
+          <p class="illustration-note">This is a simplified projection based on annuity equations with real post-retirement return adjustments.</p>
+        </div>
+      </div>
+
+      <!-- Emergency Fund Results -->
+      <div *ngIf="selectedCalculator === 'emergency-fund' && emResult" class="results-card">
+        <h3 class="results-header">Emergency Fund Targets</h3>
+        <div class="result-row">
+          <span>Monthly Expenses</span>
+          <strong>{{ emResult.monthly_expenses | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>3 Months (Basic Cover)</span>
+          <strong>{{ emResult.three_month_target | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row">
+          <span>6 Months (Safe Cover)</span>
+          <strong>{{ emResult.six_month_target | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="result-row highlight">
+          <span>Custom Cover ({{ emResult.assumptions.custom_months }} Months)</span>
+          <strong>{{ emResult.custom_target | currency:countryCode:'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+
+        <div class="assumption-box">
+          <div class="box-header">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>Guidelines</span>
+          </div>
+          <p>Emergency funds should be parked in safe, liquid accounts (e.g. sweep-in fixed deposits, liquid savings accounts) that can be accessed instantly.</p>
+          <p class="illustration-note">Do not invest emergency funds in highly volatile equity assets.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </ion-content>

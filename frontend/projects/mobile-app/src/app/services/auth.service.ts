@@ -150,6 +150,7 @@ export class AuthService {
         if (current) {
           const newProfile = {
             ...current,
+            streak: updatedUser.current_streak,
             words_learned: updatedUser.words_learned,
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,

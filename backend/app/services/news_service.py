@@ -1,20 +1,37 @@
 import httpx
 import logging
 import xml.etree.ElementTree as ET
+import hashlib
+import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from app.models.news import NewsArticle
 
 logger = logging.getLogger(__name__)
 
 RSS_URLS = {
+    "for you": "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",
     "india": "https://news.google.com/rss/headlines/section/topic/NATION?hl=en-IN&gl=IN&ceid=IN:en",
-    "world": "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-IN&gl=IN&ceid=IN:en"
+    "world": "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-IN&gl=IN&ceid=IN:en",
+    "business": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-IN&gl=IN&ceid=IN:en",
+    "technology": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-IN&gl=IN&ceid=IN:en",
+    "science": "https://news.google.com/rss/headlines/section/topic/SCIENCE?hl=en-IN&gl=IN&ceid=IN:en",
+    "health": "https://news.google.com/rss/headlines/section/topic/HEALTH?hl=en-IN&gl=IN&ceid=IN:en",
+    "sports": "https://news.google.com/rss/headlines/section/topic/SPORTS?hl=en-IN&gl=IN&ceid=IN:en",
+    "entertainment": "https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=en-IN&gl=IN&ceid=IN:en"
 }
+
+def extract_image_url(html_content: str) -> str | None:
+    if not html_content:
+        return None
+    match = re.search(r'<img[^>]+src="([^">]+)"', html_content)
+    if match:
+        return match.group(1)
+    return None
 
 def fetch_rss_news(category: str, limit: int = 10) -> list[dict]:
     """Fetch and parse RSS feed for the given category."""
-    url = RSS_URLS.get(category.lower(), RSS_URLS["world"])
+    cat_key = category.lower()
+    url = RSS_URLS.get(cat_key, RSS_URLS["world"])
     
     try:
         response = httpx.get(url, timeout=15.0, follow_redirects=True)
@@ -29,6 +46,7 @@ def fetch_rss_news(category: str, limit: int = 10) -> list[dict]:
             link = item.findtext("link", "")
             pub_date_str = item.findtext("pubDate", "")
             source_text = item.findtext("source", "Google News")
+            description_html = item.findtext("description", "")
             
             # The title usually contains the source at the end " - Source Name"
             # Let's clean up the title if possible
@@ -44,15 +62,24 @@ def fetch_rss_news(category: str, limit: int = 10) -> list[dict]:
             except Exception:
                 published_at = datetime.now(timezone.utc)
 
+            # Generate stable ID from link
+            article_id = hashlib.md5(link.encode('utf-8')).hexdigest()
+            image_url = extract_image_url(description_html)
+            if not image_url:
+                image_url = f"https://picsum.photos/seed/{article_id}/800/400"
+
             article_data = {
+                "id": article_id,
                 "title": title,
-                "summary": "Read the full article for more details.", # RSS doesn't give good summaries
+                "summary": title, # Use title as summary for cleaner UI
                 "source": source_text,
                 "url": link,
-                "image_url": None, # Standard RSS doesn't consistently provide images
-                "category": category.capitalize(),
+                "image_url": image_url,
+                "category": category,
                 "published_at": published_at.isoformat(),
-                "ai_summary": None
+                "ai_summary": None,
+                "language": "en",
+                "is_saved": False
             }
             articles.append(article_data)
             
@@ -63,16 +90,7 @@ def fetch_rss_news(category: str, limit: int = 10) -> list[dict]:
 
 def get_or_fetch_daily_news(category: str, limit: int = 10) -> list[dict]:
     """
-    Main entrypoint. Fetches the news. We don't necessarily save this to DB 
-    since news is highly ephemeral. We just fetch and return. Caching is handled at the API level.
+    Main entrypoint. Fetches the news.
     """
-    # Simply fetch from RSS directly (caching will prevent spamming Google)
     articles_data = fetch_rss_news(category, limit)
-    
-    # We assign mock IDs so the frontend loop has keys if needed, 
-    # but the frontend schema expects NewsArticle.
-    # In Pydantic v2, we can just return dicts and it validates to the schema.
-    for i, article in enumerate(articles_data):
-        article["id"] = i + 1
-        
     return articles_data

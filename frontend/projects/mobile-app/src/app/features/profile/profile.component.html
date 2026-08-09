@@ -1,18 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title class="header-title">Profile</ion-title>
-    <ion-buttons slot="end">
-      <ion-button class="header-icon">
-        <ion-icon name="settings-outline"></ion-icon>
-      </ion-button>
-      <ion-button class="header-icon">
-        <ion-icon name="notifications-outline"></ion-icon>
-        <span class="notification-dot"></span>
-      </ion-button>
-    </ion-buttons>
+    <ion-title>Profile</ion-title>
   </ion-toolbar>
 </ion-header>
-
 <ion-content>
   <div *ngIf="user" class="profile-container">
     
@@ -31,7 +21,7 @@
         <div class="name-row">
           <h2>{{ user.name }}</h2>
           <ion-icon name="checkmark-circle" class="verified-badge"></ion-icon>
-          <ion-icon name="chevron-forward-outline" class="chevron-right"></ion-icon>
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron-right"></ion-icon> -->
         </div>
         <p class="bio">Keep learning, keep growing. 🌱</p>
         <p class="email">
@@ -77,13 +67,12 @@
     </div>
 
     <!-- Learning Progress -->
-    <div class="section-container">
+    <!-- <div class="section-container">
       <div class="section-header">
         <h3>Learning Progress</h3>
         <a class="view-all">View Analytics <ion-icon name="chevron-forward-outline"></ion-icon></a>
       </div>
       <div class="progress-list">
-        <!-- Vocab -->
         <div class="progress-item">
           <div class="item-icon green-bg"><ion-icon name="book"></ion-icon></div>
           <div class="item-content">
@@ -94,7 +83,6 @@
           </div>
           <span class="score">7 / 10</span>
         </div>
-        <!-- News -->
         <div class="progress-item">
           <div class="item-icon blue-bg"><ion-icon name="newspaper-outline"></ion-icon></div>
           <div class="item-content">
@@ -105,7 +93,6 @@
           </div>
           <span class="score">6 / 10</span>
         </div>
-        <!-- Quizzes -->
         <div class="progress-item">
           <div class="item-icon orange-bg"><ion-icon name="locate"></ion-icon></div>
           <div class="item-content">
@@ -116,7 +103,6 @@
           </div>
           <span class="score">3 / 5</span>
         </div>
-        <!-- Quotes -->
         <div class="progress-item">
           <div class="item-icon purple-bg"><ion-icon name="chatbox-ellipses-outline"></ion-icon></div>
           <div class="item-content">
@@ -128,7 +114,7 @@
           <span class="score">8 / 10</span>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Account Settings -->
     <div class="section-container">
@@ -136,12 +122,12 @@
         <h3>Account</h3>
       </div>
       <div class="settings-list">
-        <div class="setting-row">
+        <div class="setting-row" routerLink="/profile/personal-information">
           <div class="setting-icon purple-light-bg"><ion-icon name="person-outline" class="purple-text"></ion-icon></div>
           <span>Personal Information</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
-        <div class="setting-row">
+        <div class="setting-row" routerLink="/profile/privacy-security">
           <div class="setting-icon green-light-bg"><ion-icon name="shield-checkmark-outline" class="green-text"></ion-icon></div>
           <span>Privacy & Security</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
@@ -163,7 +149,7 @@
           <div class="badge">English</div>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
-        <div class="setting-row">
+        <div class="setting-row" routerLink="/profile/help-support">
           <div class="setting-icon red-light-bg"><ion-icon name="help-circle-outline" class="red-text"></ion-icon></div>
           <span>Help & Support</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>

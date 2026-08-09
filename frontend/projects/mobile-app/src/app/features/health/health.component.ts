@@ -2,9 +2,14 @@ import { Component, OnInit, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { HealthService, HealthLesson } from '../../services/health.service';
+import { HealthService, HealthLesson, HealthFact } from '../../services/health.service';
 import { addIcons } from 'ionicons';
-import { arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark } from 'ionicons/icons';
+import {
+  arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
+  chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
+  leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
+  documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline
+} from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
@@ -21,14 +26,21 @@ export class HealthComponent implements OnInit {
   private healthService = inject(HealthService);
   private progressService = inject(ProgressService);
   private bookmarkService = inject(BookmarkService);
-  
+
   lesson?: HealthLesson;
   savedBookmarks: Bookmark[] = [];
   isLoading = true;
-  expandedFactIndex: number | null = 0;
+  expandedExerciseIndex: number | null = null;
+
+  factIcons = ['pulse-outline', 'time-outline', 'heart-outline', 'nutrition-outline'];
 
   constructor() {
-    addIcons({ arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark });
+    addIcons({
+      arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
+      chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
+      leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
+      documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline
+    });
   }
 
   ngOnInit() {
@@ -47,14 +59,14 @@ export class HealthComponent implements OnInit {
     });
   }
 
-  isSaved(fact: any): boolean {
+  isSaved(fact: HealthFact): boolean {
     return this.savedBookmarks.some(b => b.title === fact.title);
   }
 
-  toggleSaveFact(fact: any, event: Event) {
+  toggleSaveFact(fact: HealthFact, event: Event) {
     event.stopPropagation();
     const existing = this.savedBookmarks.find(b => b.title === fact.title);
-    
+
     if (existing && existing.id) {
       this.bookmarkService.deleteBookmark(existing.id).subscribe(() => {
         this.loadBookmarks();
@@ -63,7 +75,7 @@ export class HealthComponent implements OnInit {
       this.bookmarkService.saveBookmark({
         title: fact.title,
         content_type: 'health',
-        url: fact.description,
+        url: fact.explanation,
         details: JSON.stringify(fact)
       }).subscribe(() => {
         this.loadBookmarks();
@@ -77,20 +89,20 @@ export class HealthComponent implements OnInit {
       next: (data) => {
         this.lesson = data;
         this.isLoading = false;
-        if (event) {
-          event.target.complete();
-        }
+        if (event) { event.target.complete(); }
       },
       error: () => {
         this.isLoading = false;
-        if (event) {
-          event.target.complete();
-        }
+        if (event) { event.target.complete(); }
       }
     });
   }
 
-  toggleFact(index: number) {
-    this.expandedFactIndex = this.expandedFactIndex === index ? -1 : index;
+  toggleExercise(index: number) {
+    this.expandedExerciseIndex = this.expandedExerciseIndex === index ? null : index;
+  }
+
+  markCompleted() {
+    this.progressService.markVisited('health');
   }
 }

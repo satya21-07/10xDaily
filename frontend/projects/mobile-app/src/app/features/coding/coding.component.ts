@@ -28,7 +28,8 @@ export class CodingComponent implements OnInit {
   expandedConceptIndex = 0;
   expandedQuestionIndex = -1;
   expandedSolutionIndex = -1;
-  activeSolutionTab: { [key: number]: 'java' | 'python' } = {};
+  expandedApproachIndex = -1;
+  activeSolutionTab: { [key: number]: 'java' | 'python' | 'javascript' | 'cpp' } = {};
 
   constructor() {
     addIcons({ arrowBack, bulbOutline, codeSlashOutline, flashOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark });
@@ -118,7 +119,11 @@ export class CodingComponent implements OnInit {
     this.expandedSolutionIndex = this.expandedSolutionIndex === index ? -1 : index;
   }
 
-  setSolutionTab(index: number, tab: 'java' | 'python') {
+  toggleApproach(index: number) {
+    this.expandedApproachIndex = this.expandedApproachIndex === index ? -1 : index;
+  }
+
+  setSolutionTab(index: number, tab: 'java' | 'python' | 'javascript' | 'cpp') {
     this.activeSolutionTab[index] = tab;
   }
 }

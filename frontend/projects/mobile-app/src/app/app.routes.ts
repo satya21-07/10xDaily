@@ -25,6 +25,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
       {
+        path: 'profile/personal-information',
+        loadComponent: () => import('./features/profile/personal-information/personal-information.component').then(m => m.PersonalInformationComponent)
+      },
+      {
+        path: 'profile/privacy-security',
+        loadComponent: () => import('./features/profile/privacy-security/privacy-security.component').then(m => m.PrivacySecurityComponent)
+      },
+      {
+        path: 'profile/help-support',
+        loadComponent: () => import('./features/profile/help-support/help-support.component').then(m => m.HelpSupportComponent)
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full'
