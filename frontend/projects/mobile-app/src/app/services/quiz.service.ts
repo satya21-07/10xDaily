@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface QuizQuestion {
+  id: string;
   topic: string;
+  difficulty: string;
   question: string;
   options: string[];
   correct_index: number;

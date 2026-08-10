@@ -1,29 +1,207 @@
-.empty-state {
+ion-content {
+  --background: #f8f9fa;
+}
+ion-header {
+  z-index: 100;
+  ion-toolbar {
+    --background: var(--ion-background-color, #ffffff);
+  }
+  ion-button {
+    font-size: 12px;
+    --color: #000;
+  }
+}
+.header-graphic {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 80%;
-  text-align: center;
-  color: var(--ion-color-medium);
+  margin-top: 0px;
+  margin-bottom: 12px;
 
-  .large-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-    color: var(--ion-color-success);
-    background: linear-gradient(135deg, var(--ion-color-success), #2ecc71);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+  .icon-container {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0px;
+
+    svg {
+      width: 70px;
+      height: 70px;
+    }
+
+    .lock-icon {
+      position: absolute;
+      font-size: 24px;
+      color: #111;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+    }
+
+    .check-icon {
+      position: absolute;
+      font-size: 22px;
+      color: #34c759;
+      bottom: 7px;
+      right: 15px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .dot {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: #d1d5db;
+    }
+    
+    .dot-1 { top: 20%; left: 10%; }
+    .dot-2 { top: 10%; right: 20%; background-color: #e5e7eb; }
+    .dot-3 { bottom: 30%; left: 0%; }
+    .dot-4 { bottom: 20%; right: 5%; background-color: #a7f3d0; width: 5px; height: 5px; }
   }
 
-  h2 {
+  .main-title {
+    font-size: 14px;
     font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--ion-color-dark);
+    color: #111;
+    margin: 0 0 4px 0;
   }
 
-  p {
-    font-size: 16px;
-    opacity: 0.8;
+  .main-subtitle {
+    font-size: 11px;
+    color: #6b7280;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
   }
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  margin: 10px 0 8px 10px;
+}
+
+.card-list {
+  background: white;
+  border-radius: 12px;
+  margin: 0px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid #f3f4f6;
+
+  &.security-card {
+    background: #f4fbf5;
+    border: 1px solid #e5f5e9;
+  }
+
+  &.contact-card {
+    background: #f9fafb;
+  }
+
+  &.mt-16 {
+    margin-top: 16px;
+  }
+
+  .list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    position: relative;
+
+    &.ripple-parent {
+      cursor: pointer;
+    }
+
+    .icon-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 8px;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 14px;
+        color: #111;
+      }
+    }
+
+    .security-check {
+      font-size: 20px;
+      color: #34c759;
+      margin-right: 8px;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .info-icon {
+      font-size: 20px;
+      color: #6b7280;
+      margin-right: 8px;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .item-content {
+      flex: 1;
+
+      h3 {
+        font-size: 12px;
+        font-weight: 600;
+        color: #111;
+        margin: 0 0 4px 0;
+      }
+
+      p {
+        font-size: 10px;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      &.contact-content {
+        p {
+          font-size: 11px;
+        }
+        .email-link {
+          font-weight: 600;
+          color: #111;
+        }
+      }
+    }
+
+    .chevron {
+      font-size: 20px;
+      color: #9ca3af;
+      margin-left: 8px;
+    }
+  }
+
+  .divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin-left: 72px;
+
+    &.green-divider {
+      background-color: #e5f5e9;
+      margin-left: 56px;
+    }
+  }
+}
+
+.bottom-padding {
+  height: 32px;
 }

@@ -1,16 +1,118 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/profile"></ion-back-button>
+      <ion-button routerLink="/profile" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+      <!-- <ion-back-button defaultHref="/profile"></ion-back-button> -->
     </ion-buttons>
     <ion-title>Privacy & Security</ion-title>
+    <ion-buttons slot="end">
+      <div style="width: 48px;"></div> <!-- To center the title properly -->
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="empty-state">
-    <ion-icon name="shield-checkmark-outline" class="large-icon"></ion-icon>
-    <h2>Privacy First</h2>
-    <p>Your data is secure and under your control.</p>
+  <div class="header-graphic">
+    <div class="icon-container">
+      <svg width="86" height="100" viewBox="0 0 86 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M43 0L0 18.5V47.5C0 72.8 18.5 95 43 100C67.5 95 86 72.8 86 47.5V18.5L43 0Z" fill="#F0F2F6"/>
+      </svg>
+      <ion-icon name="lock-closed" class="lock-icon"></ion-icon>
+      <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+      
+      <!-- Background decorations -->
+      <div class="dot dot-1"></div>
+      <div class="dot dot-2"></div>
+      <div class="dot dot-3"></div>
+      <div class="dot dot-4"></div>
+    </div>
+    
+    <h2 class="main-title">Your privacy matters</h2>
+    <p class="main-subtitle">We are committed to protecting your data<br>and giving you full control.</p>
   </div>
+
+  <div class="section-label">PRIVACY</div>
+  <div class="card-list">
+    <div class="list-item ion-activatable ripple-parent" (click)="openWebLink('privacy')">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box"><ion-icon name="shield-outline"></ion-icon></div>
+      <div class="item-content">
+        <h3>Privacy Policy</h3>
+        <p>How we collect, use and protect your data</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="openWebLink('terms')">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box"><ion-icon name="document-text-outline"></ion-icon></div>
+      <div class="item-content">
+        <h3>Terms of Service</h3>
+        <p>Rules and guidelines for using 10xDaily</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="openDataPreferences()">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box"><ion-icon name="options-outline"></ion-icon></div>
+      <div class="item-content">
+        <h3>Data Preferences</h3>
+        <p>Manage how your data is used</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+  </div>
+
+  <div class="section-label">SECURITY</div>
+  <div class="card-list security-card">
+    <div class="list-item no-chevron">
+      <ion-icon name="checkmark-circle" class="security-check"></ion-icon>
+      <div class="item-content">
+        <h3>Your data is transmitted securely</h3>
+        <p>We use industry-standard encryption to keep your data safe.</p>
+      </div>
+    </div>
+    <div class="divider green-divider"></div>
+    <div class="list-item no-chevron">
+      <ion-icon name="checkmark-circle" class="security-check"></ion-icon>
+      <div class="item-content">
+        <h3>We never sell your personal information</h3>
+        <p>Your data is never sold or shared for advertising.</p>
+      </div>
+    </div>
+    <div class="divider green-divider"></div>
+    <div class="list-item no-chevron">
+      <ion-icon name="checkmark-circle" class="security-check"></ion-icon>
+      <div class="item-content">
+        <h3>You are in control</h3>
+        <p>You can review, manage or delete your data at any time.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-list mt-16">
+    <div class="list-item ion-activatable ripple-parent" (click)="openSecurityTips()">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box"><ion-icon name="lock-closed-outline"></ion-icon></div>
+      <div class="item-content">
+        <h3>Security Tips</h3>
+        <p>Best practices to keep your account safe</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+  </div>
+
+  <div class="card-list mt-16 contact-card">
+    <div class="list-item ion-activatable ripple-parent" (click)="openWebLink('support')">
+      <ion-ripple-effect></ion-ripple-effect>
+      <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+      <div class="item-content contact-content">
+        <p>If you have any questions about your privacy<br>or data, contact us at<br><span class="email-link">support&#64;10xdaily.app</span></p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+  </div>
+  
+  <div class="bottom-padding"></div>
 </ion-content>

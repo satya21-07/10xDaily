@@ -51,3 +51,12 @@ ion-app > :not(router-outlet) {
   font-size: 14px;
   margin-right: 12px;
 }
+
+/* Global Font Family */
+:root {
+  --ion-font-family: 'Inter', sans-serif;
+}
+
+html, body, * {
+  font-family: 'Inter', sans-serif !important;
+}

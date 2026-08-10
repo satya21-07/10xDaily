@@ -79,7 +79,10 @@ ion-header {
 }
 
 /* ─── Content Container ──────────────────────────────────────── */
-.content-container { padding: 10px; }
+.content-container { 
+  padding: 10px;
+  padding-bottom: 80px; 
+}
 
 .segment-header {
   display: flex;
@@ -181,14 +184,14 @@ ion-header {
       display: flex;
       flex-wrap: wrap;
       gap: 5px;
-      margin-bottom: 7px;
+      margin-bottom: 12px;
     }
 
     .pill {
       display: inline-block;
       font-size: 9px;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 8px 16px;
       border-radius: 20px;
       background: rgba(91, 117, 83, 0.1);
       color: #5B7553;
@@ -355,7 +358,7 @@ ion-header {
 /* ─── Vocabulary Card (unchanged pattern) ────────────────────── */
 .vocab-layout {
   display: flex;
-  padding: 10px;
+  padding: 10px 10px 20px 10px;
   position: relative;
   min-height: 100px;
 }
@@ -388,7 +391,7 @@ ion-header {
 
   .header-row {
     .word-title {
-      font-size: 1.05rem;
+      font-size: 16px;
       font-weight: 700;
       color: #1a1a24;
       margin: 0;

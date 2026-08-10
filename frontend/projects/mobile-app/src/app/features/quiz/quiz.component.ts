@@ -1,16 +1,28 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { QuizService, QuizQuestion, QuizResponse } from '../../services/quiz.service';
 import { AuthService } from '../../services/auth.service';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { addIcons } from 'ionicons';
-import { checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, refreshOutline, homeOutline, trophyOutline, listOutline } from 'ionicons/icons';
+import { 
+  checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, 
+  refreshOutline, homeOutline, trophyOutline, listOutline, chevronBackOutline, 
+  bookmarkOutline, shareOutline, bulbOutline, bookOutline, cashOutline, 
+  newspaperOutline, codeSlashOutline, leafOutline, checkmarkCircle, closeCircle
+} from 'ionicons/icons';
+
+export interface TopicPerformance {
+  topic: string;
+  correct: number;
+  total: number;
+}
 
 @Component({
   selector: 'app-quiz',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, LoaderComponent],
   templateUrl: './quiz.component.html',
   styleUrls: ['./quiz.component.scss']
 })
@@ -18,6 +30,7 @@ export class QuizComponent implements OnInit {
   private quizService = inject(QuizService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private location = inject(Location);
 
   isLoading = true;
   questions: QuizQuestion[] = [];
@@ -32,11 +45,17 @@ export class QuizComponent implements OnInit {
   userAnswers: (number | null)[] = [];
   isReviewing = false;
   statsSynced = false;
+  topicPerformanceList: TopicPerformance[] = [];
   
   private storageKey = '';
 
   constructor() {
-    addIcons({ checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, refreshOutline, homeOutline, trophyOutline, listOutline });
+    addIcons({ 
+      checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, 
+      refreshOutline, homeOutline, trophyOutline, listOutline, chevronBackOutline, 
+      bookmarkOutline, shareOutline, bulbOutline, bookOutline, cashOutline, 
+      newspaperOutline, codeSlashOutline, leafOutline, checkmarkCircle, closeCircle
+    });
   }
 
   ngOnInit() {
@@ -67,20 +86,29 @@ export class QuizComponent implements OnInit {
       if (savedState) {
         try {
           const state = JSON.parse(savedState);
-          this.userAnswers = state.userAnswers;
-          this.score = state.score;
-          this.isFinished = state.isFinished;
-          this.statsSynced = state.statsSynced || false;
           
-          if (this.isFinished && !this.statsSynced) {
-            // Retroactively sync stats if they finished before this feature existed
-            this.syncStats();
-          }
-          
-          if (!this.isFinished && !this.isReviewing) {
-            // Find the first unanswered question
-            const firstUnanswered = this.userAnswers.findIndex(ans => ans === null);
-            this.currentIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
+          // Verify that the saved state matches the current quiz length
+          if (state.userAnswers && state.userAnswers.length === this.questions.length) {
+            this.userAnswers = state.userAnswers;
+            this.score = state.score;
+            this.isFinished = state.isFinished;
+            this.statsSynced = state.statsSynced || false;
+            
+            if (this.isFinished) {
+              this.calculateTopicPerformance();
+            }
+
+            if (this.isFinished && !this.statsSynced) {
+              this.syncStats();
+            }
+            
+            if (!this.isFinished && !this.isReviewing) {
+              const firstUnanswered = this.userAnswers.findIndex(ans => ans === null);
+              this.currentIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
+            }
+          } else {
+            // Mismatch in length (e.g., from a previously corrupted generation), so clear it
+            localStorage.removeItem(this.storageKey);
           }
         } catch (e) {
           console.error('Failed to parse quiz state');
@@ -112,7 +140,6 @@ export class QuizComponent implements OnInit {
     
     this.isAnswerSubmitted = true;
     
-    // Only increase score if it's the first time answering this question
     if (this.userAnswers[this.currentIndex] === null) {
       this.userAnswers[this.currentIndex] = this.selectedOptionIndex;
       const currentQ = this.questions[this.currentIndex];
@@ -120,14 +147,13 @@ export class QuizComponent implements OnInit {
         this.score++;
       }
     } else {
-      // Overwrite previous answer, adjust score if necessary
       const currentQ = this.questions[this.currentIndex];
       const previousAnswer = this.userAnswers[this.currentIndex];
       
       if (previousAnswer === currentQ.correct_index && this.selectedOptionIndex !== currentQ.correct_index) {
-        this.score--; // Changed from right to wrong
+        this.score--; 
       } else if (previousAnswer !== currentQ.correct_index && this.selectedOptionIndex === currentQ.correct_index) {
-        this.score++; // Changed from wrong to right
+        this.score++; 
       }
       this.userAnswers[this.currentIndex] = this.selectedOptionIndex;
     }
@@ -153,6 +179,7 @@ export class QuizComponent implements OnInit {
       
       if (!this.isFinished) {
         this.isFinished = true;
+        this.calculateTopicPerformance();
       }
       
       if (!this.statsSynced) {
@@ -229,4 +256,57 @@ export class QuizComponent implements OnInit {
     this.selectedOptionIndex = null;
     this.isAnswerSubmitted = false;
   }
+
+  calculateTopicPerformance() {
+    const perf: { [key: string]: { correct: number, total: number } } = {
+        'Vocabulary': { correct: 0, total: 0 },
+        'Finance': { correct: 0, total: 0 },
+        'News': { correct: 0, total: 0 },
+        'Coding': { correct: 0, total: 0 },
+        'Spiritual': { correct: 0, total: 0 }
+    };
+    
+    this.questions.forEach((q, i) => {
+        const t = q.topic;
+        if (!perf[t]) return;
+        perf[t].total++;
+        if (this.userAnswers[i] === q.correct_index) {
+            perf[t].correct++;
+        }
+    });
+    
+    this.topicPerformanceList = [
+        { topic: 'Vocabulary', ...perf['Vocabulary'] },
+        { topic: 'Finance', ...perf['Finance'] },
+        { topic: 'News', ...perf['News'] },
+        { topic: 'Coding', ...perf['Coding'] },
+        { topic: 'Spiritual', ...perf['Spiritual'] }
+    ];
+  }
+
+  get accuracy(): number {
+    const totalAnswered = this.userAnswers.filter(a => a !== null).length;
+    if (totalAnswered === 0) return 0;
+    return Math.round((this.score / totalAnswered) * 100);
+  }
+
+  goBack() {
+    this.location.back();
+  }
+
+  goHome() {
+    this.router.navigate(['/']);
+  }
+
+  getTopicIcon(topic: string): string {
+    switch(topic) {
+      case 'Vocabulary': return 'book-outline';
+      case 'Finance': return 'cash-outline';
+      case 'News': return 'newspaper-outline';
+      case 'Coding': return 'code-slash-outline';
+      case 'Spiritual': return 'leaf-outline';
+      default: return 'list-outline';
+    }
+  }
 }
+

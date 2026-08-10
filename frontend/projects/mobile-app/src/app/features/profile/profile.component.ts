@@ -122,4 +122,19 @@ export class ProfileComponent implements OnInit {
     if (hrs > 0) return `${hrs}h ${mins}m`;
     return `${mins}m`;
   }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        if (this.user) {
+          const base64Image = e.target.result;
+          this.user.avatarUrl = base64Image;
+          this.authService.updateAvatar(base64Image).subscribe();
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 }

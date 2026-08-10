@@ -7,6 +7,8 @@ export interface UserProfile {
   id?: number;
   name: string;
   email: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
   avatarUrl: string;
   streak: number;
   modulesExplored: number;
@@ -26,12 +28,15 @@ export interface AuthResponse {
     id: number;
     email: string;
     full_name: string;
+    phone_number?: string;
+    date_of_birth?: string;
     streak?: number;
     words_learned?: number;
     quiz_correct_answers?: number;
     quiz_total_answers?: number;
     modules_completed?: number;
     total_time_spent_seconds?: number;
+    avatar?: string;
   };
 }
 
@@ -155,8 +160,13 @@ export class AuthService {
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
             modules_completed: updatedUser.modules_completed,
-            total_time_spent_seconds: updatedUser.total_time_spent_seconds
+            total_time_spent_seconds: updatedUser.total_time_spent_seconds,
+            phoneNumber: updatedUser.phone_number,
+            dateOfBirth: updatedUser.date_of_birth
           };
+          if (updatedUser.avatar) {
+            newProfile.avatarUrl = updatedUser.avatar;
+          }
           this.currentUserSubject.next(newProfile);
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem(this.AUTH_KEY, JSON.stringify(newProfile));
@@ -195,7 +205,9 @@ export class AuthService {
       id: res.user.id,
       name: res.user.full_name,
       email: res.user.email,
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.user.email}`,
+      phoneNumber: res.user.phone_number,
+      dateOfBirth: res.user.date_of_birth,
+      avatarUrl: res.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.user.email}`,
       streak: res.user.streak || 1,
       modulesExplored: 0,
       aiInsights: 0,
@@ -220,5 +232,61 @@ export class AuthService {
       localStorage.removeItem(this.TOKEN_KEY);
     }
     this.currentUserSubject.next(null);
+  }
+
+  updateLocalProfile(profile: UserProfile): void {
+    this.currentUserSubject.next(profile);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(this.AUTH_KEY, JSON.stringify(profile));
+    }
+  }
+
+  updateAvatar(base64Image: string): Observable<any> {
+    if (!this.isLoggedIn) return of(null);
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.patch(`${this.apiUrl}/users/me/avatar`, { avatar: base64Image }, { headers }).pipe(
+      tap(() => {
+        const current = this.currentUserSubject.value;
+        if (current) {
+          current.avatarUrl = base64Image;
+          this.updateLocalProfile(current);
+        }
+      }),
+      catchError(err => {
+        console.error('Failed to update avatar on backend', err);
+        return of(null);
+      })
+    );
+  }
+
+  updateProfile(data: { full_name?: string, phone_number?: string, date_of_birth?: string }): Observable<any> {
+    if (!this.isLoggedIn) return of(null);
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.patch(`${this.apiUrl}/users/me/profile`, data, { headers }).pipe(
+      tap((updatedUser: any) => {
+        const current = this.currentUserSubject.value;
+        if (current) {
+          const newProfile = {
+            ...current,
+            name: updatedUser.full_name,
+            phoneNumber: updatedUser.phone_number,
+            dateOfBirth: updatedUser.date_of_birth
+          };
+          this.updateLocalProfile(newProfile);
+        }
+      }),
+      catchError(err => {
+        console.error('Failed to update profile on backend', err);
+        return throwError(() => err);
+      })
+    );
   }
 }

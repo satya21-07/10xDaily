@@ -8,13 +8,14 @@
     
     <!-- Profile Info Card -->
     <div class="profile-card">
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" (click)="fileInput.click()">
         <div class="avatar-bg">
           <img [src]="user.avatarUrl || 'assets/default-avatar.png'" alt="Avatar" />
         </div>
         <div class="edit-btn">
           <ion-icon name="pencil-outline"></ion-icon>
         </div>
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
       </div>
       
       <div class="profile-details">

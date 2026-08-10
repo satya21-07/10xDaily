@@ -83,3 +83,42 @@ def update_user_stats(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+from app.schemas.user import UserAvatarUpdate
+
+@router.patch("/me/avatar", response_model=User)
+def update_user_avatar(
+    *,
+    db: Session = Depends(deps.get_db),
+    avatar_in: UserAvatarUpdate,
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Update user avatar."""
+    current_user.avatar = avatar_in.avatar
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+from app.schemas.user import UserProfileUpdate
+
+@router.patch("/me/profile", response_model=User)
+def update_user_profile(
+    *,
+    db: Session = Depends(deps.get_db),
+    profile_in: UserProfileUpdate,
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Update user profile information."""
+    if profile_in.full_name is not None:
+        current_user.full_name = profile_in.full_name
+    if profile_in.phone_number is not None:
+        current_user.phone_number = profile_in.phone_number
+    if profile_in.date_of_birth is not None:
+        current_user.date_of_birth = profile_in.date_of_birth
+        
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+

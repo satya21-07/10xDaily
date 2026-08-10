@@ -1,16 +1,90 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/profile"></ion-back-button>
+      <ion-button routerLink="/profile" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
     </ion-buttons>
-    <ion-title>Help & Support</ion-title>
+    <ion-title class="header-title">Help & Support</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="empty-state">
-    <ion-icon name="help-circle-outline" class="large-icon"></ion-icon>
-    <h2>How can we help?</h2>
-    <p>Contact us or browse our FAQs to get assistance.</p>
+  <!-- <div class="subtitle-container">
+    <p>Find answers and get help with 10xDaily</p>
+  </div> -->
+
+  <div class="search-container">
+    <ion-icon name="search-outline"></ion-icon>
+    <input type="text" placeholder="Search for help articles..." />
+  </div>
+
+  <div class="section-container">
+    <div class="section-title">QUICK HELP</div>
+    <div class="help-list">
+      <div class="help-item" (click)="openArticle('How does 10xDaily work?')">
+        <div class="icon-container">
+          <ion-icon name="book-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How does 10xDaily work?</h3>
+          <p>Understand the basics of 10xDaily</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+      
+      <div class="help-item" (click)="openArticle('How is my daily content generated?')">
+        <div class="icon-container">
+          <ion-icon name="sparkles-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How is my daily content generated?</h3>
+          <p>AI, sources and accuracy</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+      
+      <div class="help-item" (click)="openArticle('How do I save an item?')">
+        <div class="icon-container">
+          <ion-icon name="bookmark-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How do I save an item?</h3>
+          <p>Save lessons, words, news and more</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+      
+      <div class="help-item" (click)="openArticle('How does News work?')">
+        <div class="icon-container">
+          <ion-icon name="newspaper-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How does News work?</h3>
+          <p>Sources and updates</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+      
+      <div class="help-item" (click)="openArticle('How does Daily Quiz work?')">
+        <div class="icon-container">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How does Daily Quiz work?</h3>
+          <p>Questions, scoring and results</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+      
+      <div class="help-item" (click)="openArticle('How is my progress calculated?')">
+        <div class="icon-container">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h3>How is my progress calculated?</h3>
+          <p>XP, streaks, accuracy and more</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+    </div>
   </div>
 </ion-content>

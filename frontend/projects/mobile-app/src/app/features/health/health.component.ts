@@ -8,7 +8,7 @@ import {
   arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
   chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
   leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
-  documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline
+  documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline
 } from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
@@ -39,7 +39,7 @@ export class HealthComponent implements OnInit {
       arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
       chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
       leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
-      documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline
+      documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline
     });
   }
 

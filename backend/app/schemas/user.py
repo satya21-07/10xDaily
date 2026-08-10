@@ -7,6 +7,8 @@ class UserBase(BaseModel):
     is_active: Optional[bool] = True
     is_superuser: bool = False
     full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    date_of_birth: Optional[str] = None
     xp: Optional[int] = 0
     current_streak: Optional[int] = 0
     words_learned: Optional[int] = 0
@@ -14,6 +16,15 @@ class UserBase(BaseModel):
     quiz_total_answers: Optional[int] = 0
     modules_completed: Optional[int] = 0
     total_time_spent_seconds: Optional[int] = 0
+    avatar: Optional[str] = None
+
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    date_of_birth: Optional[str] = None
+
+class UserAvatarUpdate(BaseModel):
+    avatar: str
 
 class UserStatsUpdate(BaseModel):
     words_learned_increment: Optional[int] = 0

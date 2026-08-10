@@ -41,14 +41,16 @@
     <div class="facts-grid">
       <div *ngFor="let fact of lesson.health_facts; let i = index" class="fact-card">
         <div class="fact-icon-row">
-          <div class="fact-icon" [ngClass]="'icon-' + (i % 4)">
-            <ion-icon [name]="factIcons[i % factIcons.length]"></ion-icon>
+          <div class="fact-left">
+            <div class="fact-icon" [ngClass]="'icon-' + (i % 4)">
+              <ion-icon [name]="factIcons[i % factIcons.length]"></ion-icon>
+            </div>
+            <h3>{{ fact.title }}</h3>
           </div>
           <ion-button fill="clear" size="small" class="bookmark-btn" (click)="toggleSaveFact(fact, $event)">
             <ion-icon slot="icon-only" [name]="isSaved(fact) ? 'bookmark' : 'bookmark-outline'" [color]="isSaved(fact) ? 'primary' : 'medium'"></ion-icon>
           </ion-button>
         </div>
-        <h3>{{ fact.title }}</h3>
         <p class="fact-explanation">{{ fact.explanation }}</p>
         <ul class="key-points" *ngIf="fact.key_points && fact.key_points.length > 0">
           <li *ngFor="let point of fact.key_points">

@@ -4,7 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterLink } from '@angular/router';
 import { CodingService, CodingLesson } from '../../services/coding.service';
 import { addIcons } from 'ionicons';
-import { arrowBack, bulbOutline, codeSlashOutline, flashOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark } from 'ionicons/icons';
+import { arrowBack, bulbOutline, codeSlashOutline, flashOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark,searchOutline, personCircleOutline } from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
@@ -32,7 +32,7 @@ export class CodingComponent implements OnInit {
   activeSolutionTab: { [key: number]: 'java' | 'python' | 'javascript' | 'cpp' } = {};
 
   constructor() {
-    addIcons({ arrowBack, bulbOutline, codeSlashOutline, flashOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark });
+    addIcons({ arrowBack, bulbOutline, codeSlashOutline, flashOutline, chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, searchOutline, personCircleOutline });
   }
 
   ngOnInit() {

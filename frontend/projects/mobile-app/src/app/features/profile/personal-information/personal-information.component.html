@@ -1,16 +1,144 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/profile"></ion-back-button>
+      <ion-button routerLink="/profile" fill="clear" color="dark"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+      <!-- <ion-back-button defaultHref="/profile"></ion-back-button> -->
     </ion-buttons>
     <ion-title>Personal Information</ion-title>
+    <ion-buttons slot="end" *ngIf="isEditing">
+      <ion-button fill="clear" color="dark" (click)="cancelEdit()">
+        <ion-icon  name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="empty-state">
-    <ion-icon name="person-outline" class="large-icon"></ion-icon>
-    <h2>Your Information</h2>
-    <p>Manage your personal details here.</p>
+  <!-- <div class="page-header">
+    <h2 class="main-title">Personal Information</h2>
+    <p class="main-subtitle">View and manage your personal details.</p>
+  </div> -->
+
+  <div class="section-label">PROFILE</div>
+  <div class="card-list">
+    <!-- Hidden file input for profile picture update -->
+    <input type="file" id="avatar-input" accept="image/*" style="display: none" (change)="onFileSelected($event)">
+
+    <div class="list-item ion-activatable ripple-parent" (click)="triggerFileInput()">
+      <ion-ripple-effect *ngIf="!isEditing"></ion-ripple-effect>
+      <div class="item-content flex-row">
+        <h3>Profile Picture</h3>
+        <div class="right-content">
+          <img [src]="user?.avatarUrl || 'assets/default-avatar.png'" alt="Avatar" class="avatar-img" />
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon> -->
+          <ion-icon name="pencil-outline" class="chevron" *ngIf="isEditing" style="font-size: 16px; margin-left: 12px; color: var(--ion-color-primary)"></ion-icon>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="!isEditing && showComingSoon('Name Update')">
+      <ion-ripple-effect *ngIf="!isEditing"></ion-ripple-effect>
+      <div class="item-content flex-row">
+        <h3>Name</h3>
+        <div class="right-content" style="flex: 1; justify-content: flex-end; display: flex;">
+          <span class="value-text" *ngIf="!isEditing">{{ user?.name || '' }}</span>
+          <ion-input *ngIf="isEditing" [(ngModel)]="editName" class="edit-input ion-text-right"></ion-input>
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon> -->
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="!isEditing && showComingSoon('Email Update')">
+      <ion-ripple-effect *ngIf="!isEditing"></ion-ripple-effect>
+      <div class="item-content flex-row">
+        <h3>Email</h3>
+        <div class="right-content">
+          <span class="value-text">{{ user?.email }}</span>
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon> -->
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="!isEditing && showComingSoon('Phone Number Update')">
+      <ion-ripple-effect *ngIf="!isEditing"></ion-ripple-effect>
+      <div class="item-content flex-row">
+        <h3>Phone Number</h3>
+        <div class="right-content" style="flex: 1; justify-content: flex-end; display: flex;">
+          <span class="value-text" *ngIf="!isEditing">{{ user?.phoneNumber || '' }}</span>
+          <ion-input *ngIf="isEditing" [(ngModel)]="editPhone" placeholder="Enter phone number" class="edit-input ion-text-right" type="tel"></ion-input>
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon> -->
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="!isEditing && showComingSoon('Date of Birth Update')">
+      <ion-ripple-effect *ngIf="!isEditing"></ion-ripple-effect>
+      <div class="item-content flex-row">
+        <h3>Date of Birth</h3>
+        <div class="right-content" style="flex: 1; justify-content: flex-end; display: flex;">
+          <span class="value-text" *ngIf="!isEditing">{{ user?.dateOfBirth || '' }}</span>
+          <ion-input *ngIf="isEditing" [(ngModel)]="editDob" placeholder="YYYY-MM-DD" class="edit-input ion-text-right" type="text"></ion-input>
+          <!-- <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon> -->
+        </div>
+      </div>
+    </div>
   </div>
+
+  <div class="card-list mt-16 edit-card">
+    <div class="list-item ion-activatable ripple-parent" (click)="isEditing ? saveProfile() : toggleEditMode()">
+      <ion-ripple-effect></ion-ripple-effect>
+      <ion-icon [name]="isEditing ? 'save-outline' : 'pencil-outline'" class="edit-icon" [ngStyle]="{'color': isEditing ? 'var(--ion-color-success)' : '#111'}"></ion-icon>
+      <div class="item-content">
+        <h3 [ngStyle]="{'color': isEditing ? 'var(--ion-color-success)' : '#111'}">{{ isEditing ? 'Save Personal Information' : 'Edit Personal Information' }}</h3>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron" *ngIf="!isEditing"></ion-icon>
+    </div>
+  </div>
+
+  <div class="section-label mt-24">ACCOUNT</div>
+  <div class="card-list">
+    <div class="list-item ion-activatable ripple-parent" (click)="showComingSoon('Change Password')">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box purple-box">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+      </div>
+      <div class="item-content">
+        <h3>Change Password</h3>
+        <p>Update your account password</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+    </div>
+    <div class="divider"></div>
+    <div class="list-item ion-activatable ripple-parent" (click)="showComingSoon('Two-Factor Authentication')">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box blue-box">
+        <ion-icon name="shield-outline"></ion-icon>
+      </div>
+      <div class="item-content">
+        <h3>Two-Factor Authentication</h3>
+        <p>Add an extra layer of security</p>
+      </div>
+      <div class="right-content">
+        <span class="value-text">{{ twoFactorEnabled ? 'On' : 'Off' }}</span>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label mt-24">DANGER ZONE</div>
+  <div class="card-list danger-card mt-8">
+    <div class="list-item ion-activatable ripple-parent" (click)="confirmDelete()">
+      <ion-ripple-effect></ion-ripple-effect>
+      <div class="icon-box red-box">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <div class="item-content">
+        <h3 class="danger-text">Delete My Account</h3>
+        <p>Permanently delete your account and<br>all associated data. This action cannot be undone.</p>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="chevron danger-chevron"></ion-icon>
+    </div>
+  </div>
+  
+  <div class="bottom-padding"></div>
 </ion-content>
