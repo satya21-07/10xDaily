@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
@@ -10,16 +11,29 @@ import { environment } from '../../environments/environment';
 })
 export class VocabularyService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private currentUserId: string | number | null = null;
   private apiUrl = `${environment.apiUrl}/vocabulary`;
   
   private cachedDailyWords: VocabularyWord[] | null = null;
   private cacheDate: string | null = null;
 
+
+  constructor() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || null;
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.cachedDailyWords = null;
+        this.cacheDate = null;
+      }
+    });
+  }
   getDailyVocabulary(): Observable<VocabularyWord[]> {
     const today = new Date().toISOString().split('T')[0];
     
     if (this.cachedDailyWords && this.cacheDate === today) {
-      return of(this.cachedDailyWords);
+      return of(JSON.parse(JSON.stringify(this.cachedDailyWords)));
     }
     
     return this.http.get<DailyVocabularyResponse>(`${this.apiUrl}/daily`).pipe(

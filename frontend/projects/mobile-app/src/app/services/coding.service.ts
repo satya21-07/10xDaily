@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -41,16 +42,29 @@ export interface CodingLesson {
 })
 export class CodingService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private currentUserId: string | number | null = null;
   private apiUrl = `${environment.apiUrl}/coding`;
 
   private cachedLesson: CodingLesson | null = null;
   private cacheDate: string | null = null;
 
+
+  constructor() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || null;
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.cachedLesson = null;
+        this.cacheDate = null;
+      }
+    });
+  }
   getDailyLesson(): Observable<CodingLesson> {
     const today = new Date().toISOString().split('T')[0];
     
     if (this.cachedLesson && this.cacheDate === today) {
-      return of(this.cachedLesson);
+      return of(JSON.parse(JSON.stringify(this.cachedLesson)));
     }
     
     return this.http.get<CodingLesson>(`${this.apiUrl}/daily`).pipe(

@@ -70,8 +70,12 @@ ion-content {
       }
       
       img {
-        height: 60px;
+        height: 200px;
         width: auto;
+        background: linear-gradient(135deg, #f4f7ff 0%, #e1eaff 100%);
+        padding: 16px 24px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
       }
     }
     

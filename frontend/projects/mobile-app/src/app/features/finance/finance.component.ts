@@ -14,6 +14,7 @@ import {
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-finance',
@@ -27,6 +28,9 @@ export class FinanceComponent implements OnInit {
   private financeService = inject(FinanceService);
   private progressService = inject(ProgressService);
   private bookmarkService = inject(BookmarkService);
+  private authService = inject(AuthService);
+  
+  private currentUserId: number | string = 'guest';
   
   lesson?: FinanceLesson;
   savedBookmarks: Bookmark[] = [];
@@ -104,11 +108,87 @@ export class FinanceComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || 'guest';
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.resetState();
+      }
+      this.loadData();
+    });
+  }
+
+  private loadData() {
     this.progressService.markVisited('finance');
     this.updateCurrencySymbol();
     this.loadLesson();
     this.loadBookmarks();
     this.calculateCurrent(); // Run initial calculation
+  }
+
+  private resetState() {
+    this.expandedConceptIndex = 0;
+    this.activeSegment = 'lesson';
+    this.selectedCalculator = 'sip';
+    this.isCalculating = false;
+    
+    // SIP
+    this.sipAmount = 5000;
+    this.sipReturn = 12;
+    this.sipYears = 20;
+    this.sipResult = null;
+
+    // EMI
+    this.emiPrincipal = 1000000;
+    this.emiInterest = 8.5;
+    this.emiMonths = 120;
+    this.emiResult = null;
+
+    // Compound Interest
+    this.ciPrincipal = 100000;
+    this.ciRate = 8;
+    this.ciYears = 10;
+    this.ciFreq = 12;
+    this.ciResult = null;
+
+    // Loan Interest
+    this.loanPrincipal = 500000;
+    this.loanRate = 9;
+    this.loanYears = 5;
+    this.loanFreq = 12;
+    this.loanResult = null;
+
+    // Inflation
+    this.infAmount = 50000;
+    this.infRate = 6;
+    this.infYears = 10;
+    this.infResult = null;
+
+    // Future Value
+    this.fvPresent = 100000;
+    this.fvRate = 8;
+    this.fvYears = 10;
+    this.fvResult = null;
+
+    // Retirement Corpus
+    this.retCurrentAge = 30;
+    this.retRetireAge = 60;
+    this.retLifeExpectancy = 85;
+    this.retExpenses = 50000;
+    this.retInflation = 6;
+    this.retPostReturn = 8;
+    this.retResult = null;
+
+    // Emergency Fund
+    this.emExpenses = 30000;
+    this.emMonths = 6;
+    this.emResult = null;
+    
+    if (this.countryCode !== 'IN') {
+      this.onCountryChange(); // To reset country-specific defaults
+    } else {
+      this.calculateCurrent();
+    }
   }
 
   ionViewWillEnter() {

@@ -22,12 +22,17 @@ ion-content {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+ion-toolbar {
+  --background: linear-gradient(135deg, #f4f7ff 0%, #e1eaff 100%);
+}
+
 /* Header */
 .app-brand {
   display: flex;
   align-items: center;
+  padding-left: 10px;
   img {
-    height: 32px;
+    height: 80px;
     width: auto;
   }
 }
@@ -97,6 +102,114 @@ ion-content {
     ion-icon {
       font-size: 13px;
     }
+  }
+}
+
+/* On This Day Section */
+.on-this-day-section {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom:6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  position: relative;
+
+  .section-badge {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: inline-block;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 4px;
+  }
+
+  .otd-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .otd-date {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      
+      .otd-day {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      
+      .otd-month-year {
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        line-height: 1.2;
+      }
+    }
+
+    .otd-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .otd-description {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .otd-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      
+      .otd-category {
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .otd-read-more {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-main);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        
+        ion-icon {
+          font-size: 12px;
+        }
+        
+        &:hover {
+          color: var(--purple-main);
+        }
+      }
+    }
+  }
+
+  .otd-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 }
 

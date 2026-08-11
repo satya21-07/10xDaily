@@ -24,7 +24,8 @@ def get_cache(key: str) -> dict | list | None:
             import time
             entry = _memory_cache[key]
             if entry["expires_at"] > time.time():
-                return entry["data"]
+                import copy
+                return copy.deepcopy(entry["data"])
             else:
                 del _memory_cache[key]
     return None
@@ -36,8 +37,9 @@ def set_cache(key: str, data: dict | list, expire: int = 3600) -> bool:
     except ConnectionError:
         # Fallback to in-memory cache if Redis is not running
         import time
+        import copy
         _memory_cache[key] = {
-            "data": data,
+            "data": copy.deepcopy(data),
             "expires_at": time.time() + expire
         }
         return True

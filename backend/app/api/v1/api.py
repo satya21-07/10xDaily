@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, vocabulary, news, coding, lessons, quote, finance, health, spiritual, bookmarks, quiz
+from app.api.v1.endpoints import auth, users, vocabulary, news, coding, lessons, quote, finance, health, spiritual, bookmarks, quiz, on_this_day
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["login"])
@@ -14,3 +14,4 @@ api_router.include_router(finance.router, prefix="/finance", tags=["finance"])
 api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(spiritual.router, prefix="/spiritual", tags=["spiritual"])
 api_router.include_router(bookmarks.router, prefix="/bookmarks", tags=["bookmarks"])
+api_router.include_router(on_this_day.router, prefix="/on-this-day", tags=["on-this-day"])

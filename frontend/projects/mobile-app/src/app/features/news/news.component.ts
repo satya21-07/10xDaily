@@ -8,6 +8,7 @@ import { shareOutline, bookmarkOutline, bookmark, openOutline, arrowBack, search
 import { RouterLink } from '@angular/router';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-news',
@@ -20,6 +21,9 @@ import { ProgressService } from '../../services/progress.service';
 export class NewsComponent implements OnInit {
   private newsService = inject(NewsService);
   private progressService = inject(ProgressService);
+  private authService = inject(AuthService);
+  
+  private currentUserId: number | string = 'guest';
   
   articles: NewsArticle[] = [];
   isLoading = true;
@@ -42,8 +46,24 @@ export class NewsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || 'guest';
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.resetState();
+      }
+      this.loadData();
+    });
+  }
+
+  private loadData() {
     this.progressService.markVisited('news');
     this.loadNews();
+  }
+
+  private resetState() {
+    this.segment = 'for you';
+    this.articles = [];
   }
 
   ionViewWillEnter() {

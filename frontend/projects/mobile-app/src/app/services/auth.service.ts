@@ -228,8 +228,14 @@ export class AuthService {
 
   logout(): void {
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem(this.AUTH_KEY);
-      localStorage.removeItem(this.TOKEN_KEY);
+      // Preserve theme preference across logouts
+      const themePref = localStorage.getItem('10xdaily_dark_mode');
+      
+      localStorage.clear();
+      
+      if (themePref !== null) {
+        localStorage.setItem('10xdaily_dark_mode', themePref);
+      }
     }
     this.currentUserSubject.next(null);
   }

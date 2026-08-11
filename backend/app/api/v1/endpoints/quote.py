@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.db.session import get_db
 from app.models.core_models import User
-from app.services.quote_service import generate_random_quote
+from app.services.quote_service import get_daily_quote
 from app.core.cache import get_cache, set_cache
 from datetime import datetime, timezone
 
 router = APIRouter()
 
-@router.get("/random")
+@router.get("/daily-quote")
 def get_random_quote(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
@@ -23,7 +23,7 @@ def get_random_quote(
     if cached_data:
         return cached_data
         
-    quote_data = generate_random_quote()
+    quote_data = get_daily_quote()
     set_cache(cache_key, quote_data, expire=86400)
     
     return quote_data

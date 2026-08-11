@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -35,16 +36,29 @@ export interface FinanceLesson {
 })
 export class FinanceService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private currentUserId: string | number | null = null;
   private apiUrl = `${environment.apiUrl}/finance`;
 
   private cachedLesson: { [country: string]: FinanceLesson } = {};
   private cacheDate: { [country: string]: string } = {};
 
+
+  constructor() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || null;
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.cachedLesson = {};
+        this.cacheDate = {};
+      }
+    });
+  }
   getDailyLesson(country: string = 'IN'): Observable<FinanceLesson> {
     const today = new Date().toISOString().split('T')[0];
     
     if (this.cachedLesson[country] && this.cacheDate[country] === today) {
-      return of(this.cachedLesson[country]);
+      return of(JSON.parse(JSON.stringify(this.cachedLesson[country])));
     }
     
     const params = new HttpParams().set('country', country);

@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -39,20 +40,35 @@ export interface SpiritualLesson {
 })
 export class SpiritualService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private currentUserId: string | number | null = null;
   private apiUrl = `${environment.apiUrl}/spiritual`;
 
   private cachedLesson: SpiritualLesson | null = null;
+  private cacheDate: string | null = null;
 
+
+  constructor() {
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || null;
+      if (this.currentUserId !== newUserId) {
+        this.currentUserId = newUserId;
+        this.cachedLesson = null;
+        this.cacheDate = null;
+      }
+    });
+  }
   getDailyLesson(): Observable<SpiritualLesson> {
     const today = new Date().toISOString().split('T')[0];
     
-    if (this.cachedLesson && this.cachedLesson.lesson_date === today) {
-      return of(this.cachedLesson);
+    if (this.cachedLesson && this.cacheDate === today) {
+      return of(JSON.parse(JSON.stringify(this.cachedLesson)));
     }
     
     return this.http.get<SpiritualLesson>(`${this.apiUrl}/daily`).pipe(
       tap(lesson => {
         this.cachedLesson = lesson;
+        this.cacheDate = today;
       }),
       catchError(error => {
         console.error('Error fetching spiritual lesson, using offline fallback', error);

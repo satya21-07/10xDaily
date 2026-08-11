@@ -18,7 +18,7 @@ export class QuoteService {
   private readonly CACHE_KEY = 'daily_quote_cache';
   private readonly DATE_KEY = 'daily_quote_date';
 
-  getRandomQuote(): Observable<DailyQuote> {
+  getDailyQuote(): Observable<DailyQuote> {
     const today = new Date().toDateString();
     const cachedDate = localStorage.getItem(this.DATE_KEY);
     
@@ -29,13 +29,14 @@ export class QuoteService {
       }
     }
 
-    return this.http.get<DailyQuote>(`${this.apiUrl}/random`).pipe(
+    return this.http.get<DailyQuote>(`${this.apiUrl}/daily-quote`).pipe(
       tap(quote => {
+        console.log('Daily quote fetched:', quote);
         localStorage.setItem(this.CACHE_KEY, JSON.stringify(quote));
         localStorage.setItem(this.DATE_KEY, today);
       }),
       catchError(error => {
-        console.error('Error fetching random quote, using offline fallback', error);
+        console.error('Error fetching daily quote, using offline fallback', error);
         return of(this.getOfflineMockData());
       })
     );

@@ -58,22 +58,52 @@ export class QuizComponent implements OnInit {
     });
   }
 
+  private activeUserId: string | number = '';
+
   ngOnInit() {
-    const today = new Date().toISOString().split('T')[0];
-    this.storageKey = `10xdaily_quiz_state_${today}`;
-    this.loadQuiz();
+    this.authService.currentUser$.subscribe(user => {
+      const newUserId = user?.id || 'guest';
+      this.activeUserId = newUserId;
+      
+      const today = new Date().toISOString().split('T')[0];
+      const newStorageKey = `10xdaily_quiz_state_${newUserId}_${today}`;
+      
+      if (this.storageKey !== newStorageKey) {
+        this.storageKey = newStorageKey;
+        this.forceFullReset();
+        this.loadQuiz(newUserId);
+      }
+    });
+  }
+  
+  private forceFullReset() {
+    this.questions = [];
+    this.userAnswers = [];
+    this.score = 0;
+    this.currentIndex = 0;
+    this.isFinished = false;
+    this.isReviewing = false;
+    this.statsSynced = false;
+    this.selectedOptionIndex = null;
+    this.isAnswerSubmitted = false;
+    this.topicPerformanceList = [];
+    this.isLoading = true;
   }
 
-  loadQuiz() {
+  loadQuiz(userId: string | number = this.activeUserId) {
     this.isLoading = true;
     this.quizService.getDailyQuiz().subscribe({
       next: (res: QuizResponse) => {
+        // Prevent race condition if user changed while loading
+        if (this.activeUserId !== userId) return;
+        
         this.questions = res.questions || [];
         this.userAnswers = new Array(this.questions.length).fill(null);
         this.loadStateFromStorage();
         this.isLoading = false;
       },
       error: (err) => {
+        if (this.activeUserId !== userId) return;
         console.error('Failed to load quiz', err);
         this.isLoading = false;
       }
