@@ -1,10 +1,12 @@
 databases:
   - name: 10xdaily-db
     databaseName: dailyknowledge
+    plan: free
 
 services:
   - type: web
     name: 10xdaily-api
+    plan: free
     env: python
     buildCommand: "./backend/render-build.sh"
     startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
@@ -18,6 +20,7 @@ services:
 
   - type: web
     name: 10xdaily-web
+    plan: free
     env: static
     buildCommand: "cd frontend && ./build.sh"
     staticPublishPath: "./frontend/dist/mobile-app/browser"
