@@ -27,10 +27,4 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: RENDER_API_URL
-        fromService:
-          type: web
-          name: 10xdaily-api
-          env: python
-          property: host
+
