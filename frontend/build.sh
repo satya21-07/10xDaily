@@ -18,6 +18,6 @@ fi
 
 # Install dependencies and build the app
 npm ci
-npm run build -- --configuration production
+npx ng build mobile-app --configuration production
 
 echo "Frontend build completed successfully."
