@@ -1,7 +1,6 @@
 databases:
   - name: 10xdaily-db
     databaseName: dailyknowledge
-    user: postgres
 
 services:
   - type: web
