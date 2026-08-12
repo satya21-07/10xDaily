@@ -20,7 +20,6 @@ services:
 
   - type: web
     name: 10xdaily-web
-    plan: free
     env: static
     buildCommand: "cd frontend && ./build.sh"
     staticPublishPath: "./frontend/dist/mobile-app/browser"
