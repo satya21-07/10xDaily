@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -21,6 +21,7 @@ export class LoginComponent implements AfterViewInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
+  private alertCtrl = inject(AlertController);
 
   loginEmail = '';
   loginPassword = '';
@@ -60,10 +61,16 @@ export class LoginComponent implements AfterViewInit {
           });
         });
       },
-      error: (err) => {
+      error: async (err) => {
         console.error('Google login failed', err);
         this.isLoggingIn = false;
-        alert('Google login failed. ' + (err?.error?.detail || 'Please try again.'));
+        
+        const alert = await this.alertCtrl.create({
+          header: 'Google Login Failed',
+          message: err?.error?.detail || 'Please try again.',
+          buttons: ['OK']
+        });
+        await alert.present();
       }
     });
   }
@@ -81,10 +88,16 @@ export class LoginComponent implements AfterViewInit {
           });
         });
       },
-      error: (err) => {
+      error: async (err) => {
         console.error('Login failed', err);
         this.isLoggingIn = false;
-        alert('Login failed. Please check your credentials.');
+        
+        const alert = await this.alertCtrl.create({
+          header: 'Login Failed',
+          message: 'Please check your credentials and try again.',
+          buttons: ['OK']
+        });
+        await alert.present();
       }
     });
   }

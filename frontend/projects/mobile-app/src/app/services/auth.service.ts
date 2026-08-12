@@ -123,6 +123,7 @@ export class AuthService {
         if (current) {
           const newProfile = {
             ...current,
+            streak: updatedUser.current_streak || current.streak,
             words_learned: updatedUser.words_learned,
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
@@ -291,6 +292,24 @@ export class AuthService {
       }),
       catchError(err => {
         console.error('Failed to update profile on backend', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  deleteAccount(): Observable<any> {
+    if (!this.isLoggedIn) return of(null);
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.delete(`${this.apiUrl}/users/me`, { headers }).pipe(
+      tap(() => {
+        this.logout();
+      }),
+      catchError(err => {
+        console.error('Failed to delete account', err);
         return throwError(() => err);
       })
     );

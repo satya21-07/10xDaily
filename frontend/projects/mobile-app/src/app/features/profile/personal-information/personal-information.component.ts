@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
@@ -29,6 +29,7 @@ export class PersonalInformationComponent implements OnInit {
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
   private loadingCtrl = inject(LoadingController);
+  private router = inject(Router);
   
   user: UserProfile | null = null;
   twoFactorEnabled: boolean = false;
@@ -194,8 +195,35 @@ export class PersonalInformationComponent implements OnInit {
         }, {
           text: 'Delete',
           cssClass: 'danger',
-          handler: () => {
-            this.showComingSoon('Account Deletion');
+          handler: async () => {
+            const loading = await this.loadingCtrl.create({
+              message: 'Deleting account...',
+            });
+            await loading.present();
+
+            this.authService.deleteAccount().subscribe({
+              next: async () => {
+                await loading.dismiss();
+                const toast = await this.toastCtrl.create({
+                  message: 'Account deleted successfully',
+                  duration: 2000,
+                  color: 'success',
+                  position: 'bottom'
+                });
+                toast.present();
+                this.router.navigate(['/welcome']);
+              },
+              error: async (err) => {
+                await loading.dismiss();
+                const toast = await this.toastCtrl.create({
+                  message: 'Failed to delete account. Please try again.',
+                  duration: 3000,
+                  color: 'danger',
+                  position: 'bottom'
+                });
+                toast.present();
+              }
+            });
           }
         }
       ]

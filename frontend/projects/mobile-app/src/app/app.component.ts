@@ -19,6 +19,11 @@ export class AppComponent implements OnInit, OnDestroy {
   private timeTrackerInterval: any;
 
   ngOnInit() {
+    // Sync profile on app load if logged in
+    if (this.authService.isLoggedIn) {
+      this.authService.fetchProfile().subscribe();
+    }
+
     // Track time spent in app (every 60 seconds)
     this.timeTrackerInterval = setInterval(() => {
       if (this.authService.isLoggedIn) {

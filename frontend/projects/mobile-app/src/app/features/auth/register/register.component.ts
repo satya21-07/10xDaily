@@ -1,6 +1,6 @@
 import { Component, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
@@ -18,6 +18,7 @@ export class RegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
+  private alertCtrl = inject(AlertController);
 
   registerName = '';
   registerEmail = '';
@@ -28,8 +29,20 @@ export class RegisterComponent {
     addIcons({ personOutline, lockClosedOutline, rocket, mailOutline });
   }
 
-  onRegister() {
+  async onRegister() {
     if (!this.registerEmail || !this.registerPassword || !this.registerName) return;
+    
+    // Password validation: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(this.registerPassword)) {
+      const alert = await this.alertCtrl.create({
+        header: 'Weak Password',
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
     
     this.isRegistering = true;
     
@@ -40,10 +53,16 @@ export class RegisterComponent {
           this.router.navigate(['/home']);
         });
       },
-      error: (err) => {
+      error: async (err) => {
         console.error('Registration failed', err);
         this.isRegistering = false;
-        alert('Registration failed. ' + (err?.error?.detail || 'Please check your inputs.'));
+        
+        const alert = await this.alertCtrl.create({
+          header: 'Registration Failed',
+          message: err?.error?.detail || 'Please check your inputs.',
+          buttons: ['OK']
+        });
+        await alert.present();
       }
     });
   }

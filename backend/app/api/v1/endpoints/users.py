@@ -64,6 +64,8 @@ def update_user_stats(
     current_user: UserModel = Depends(deps.get_current_user)
 ) -> Any:
     """Update user statistics incrementally."""
+    update_user_streak(db, current_user)
+    
     if stats_in.words_learned_increment:
         current_user.words_learned = (current_user.words_learned or 0) + stats_in.words_learned_increment
     
@@ -120,5 +122,16 @@ def update_user_profile(
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
+    return current_user
+
+@router.delete("/me", response_model=User)
+def delete_user_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Delete current user."""
+    db.delete(current_user)
+    db.commit()
     return current_user
 
