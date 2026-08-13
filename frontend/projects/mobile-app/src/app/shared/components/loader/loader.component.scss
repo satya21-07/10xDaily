@@ -60,6 +60,10 @@
   margin: 0;
 }
 
+:host-context(.ion-palette-dark) .loader-message {
+  color: #FFFFFF;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

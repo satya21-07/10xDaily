@@ -230,12 +230,12 @@ export class AuthService {
   logout(): void {
     if (typeof window !== 'undefined' && window.localStorage) {
       // Preserve theme preference across logouts
-      const themePref = localStorage.getItem('10xdaily_dark_mode');
+      const themePref = localStorage.getItem('10xdaily_theme_pref');
       
       localStorage.clear();
       
       if (themePref !== null) {
-        localStorage.setItem('10xdaily_dark_mode', themePref);
+        localStorage.setItem('10xdaily_theme_pref', themePref);
       }
     }
     this.currentUserSubject.next(null);

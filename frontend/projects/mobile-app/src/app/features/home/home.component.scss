@@ -28,6 +28,10 @@
   --blue-light: rgba(59, 130, 246, 0.1);
   --red-light: rgba(239, 68, 68, 0.1);
   --teal-light: rgba(20, 184, 166, 0.1);
+
+  ion-toolbar {
+    --background: #121212;
+  }
 }
 
 ion-content {

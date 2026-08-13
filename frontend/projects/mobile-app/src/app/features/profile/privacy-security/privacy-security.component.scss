@@ -205,3 +205,53 @@ ion-header {
 .bottom-padding {
   height: 32px;
 }
+
+:host-context(.ion-palette-dark) {
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  ion-content {
+    --background: #121212;
+  }
+  
+  .header-graphic {
+    .icon-container .lock-icon { color: #FFFFFF; }
+    .icon-container .check-icon { background: #121212; }
+    .icon-container .dot { background-color: #555555; }
+    
+    .main-title { color: #FFFFFF; }
+    .main-subtitle { color: #A0A0A0; }
+  }
+  
+  .section-label { color: #A0A0A0; }
+  
+  .card-list {
+    background: #1C1C1E;
+    border-color: #333333;
+    
+    &.security-card {
+      background: rgba(52, 199, 89, 0.05);
+      border-color: rgba(52, 199, 89, 0.2);
+    }
+    
+    &.contact-card {
+      background: #1A1A1C;
+    }
+    
+    .list-item {
+      .icon-box { background: #333333; ion-icon { color: #FFFFFF; } }
+      .info-icon { color: #A0A0A0; }
+      
+      .item-content {
+        h3 { color: #FFFFFF; }
+        p { color: #A0A0A0; }
+        
+        &.contact-content .email-link { color: #FFFFFF; }
+      }
+    }
+    
+    .divider { background-color: #333333; }
+    .divider.green-divider { background-color: rgba(52, 199, 89, 0.2); }
+  }
+}

@@ -518,3 +518,90 @@ ion-header {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+:host-context(.ion-palette-dark) {
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  --10x-card-bg: #1C1C1E;
+  --10x-text-color: #FFFFFF;
+  
+  .segment-container {
+    background: #1C1C1E;
+    
+    ion-segment {
+      background: rgba(255, 255, 255, 0.04);
+      ion-segment-button {
+        --background-checked: #333333;
+        --color: #A0A0A0;
+        --color-checked: #FFFFFF;
+      }
+    }
+  }
+  
+  .editorial-header {
+    .topic-title { color: #FFFFFF; }
+    .why-it-matters { color: #A0A0A0; }
+  }
+  
+  .section-divider span { color: #A0A0A0; }
+  .section-divider::after { background: rgba(255, 255, 255, 0.08); }
+  
+  .concepts-list .concept-card {
+    border-color: #333333;
+    
+    .concept-header .concept-title-group h3 { color: #FFFFFF; }
+    .concept-header .concept-actions .chevron { color: #A0A0A0; }
+    .concept-body p { color: #A0A0A0; }
+  }
+  
+  .editorial-card {
+    border-color: #333333;
+    
+    .card-title, .card-header-icon h3 { color: #FFFFFF; }
+    .card-explanation { color: #A0A0A0; }
+    &.example-card { border-left-color: #FFFFFF; }
+  }
+  
+  .disclaimer-container p { color: #A0A0A0; }
+  
+  .calculator-selector {
+    .select-label { color: #A0A0A0; }
+    .select-wrapper {
+      border-color: #333333;
+      .premium-select { color: #FFFFFF; }
+    }
+  }
+  
+  .calculator-card {
+    border-color: #333333;
+    
+    .form-field ion-label { color: #FFFFFF; }
+    .form-field .input-wrapper, .form-field .select-wrapper {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: #333333;
+    }
+    .form-field .input-wrapper input { color: #FFFFFF; }
+    .form-field .input-wrapper .currency-symbol, .form-field .input-wrapper .suffix { color: #A0A0A0; }
+    .form-field .select-wrapper .premium-select { color: #FFFFFF; }
+  }
+  
+  .results-container .results-card {
+    border-color: #333333;
+    .results-header { color: #A0A0A0; }
+    .result-row { border-bottom-color: rgba(255, 255, 255, 0.05); }
+    .result-row span { color: #A0A0A0; }
+    .result-row strong { color: #FFFFFF; }
+    .result-row.highlight { border-bottom-color: #FFFFFF; }
+    .result-row.highlight span { color: #FFFFFF; }
+    
+    .assumption-box {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: #333333;
+      .box-header { color: #A0A0A0; }
+      p { color: #A0A0A0; }
+      p strong { color: #FFFFFF; }
+    }
+  }
+}

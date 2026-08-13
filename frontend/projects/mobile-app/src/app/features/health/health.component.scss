@@ -558,3 +558,88 @@ ion-content {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+:host-context(.ion-palette-dark) {
+  ion-content {
+    --background: #000000;
+  }
+  
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  .section-heading { color: #FFFFFF; }
+  
+  .hero-card {
+    background: #1C1C1E;
+    border: 1px solid #333333;
+    
+    .hero-content .hero-title { color: #FFFFFF; }
+    .hero-content .hero-desc { color: #A0A0A0; }
+    
+    .mark-btn {
+      background: #1C1C1E;
+      border-color: #333333;
+      color: #FFFFFF;
+    }
+  }
+  
+  .fact-card, .activity-card, .bottom-card {
+    background: #1C1C1E;
+    border-color: #333333;
+  }
+  
+  .fact-card {
+    h3 { color: #FFFFFF; }
+    .fact-explanation { color: #A0A0A0; }
+    .key-points li { color: #A0A0A0; }
+  }
+  
+  .activity-card {
+    .activity-info h3 { color: #FFFFFF; }
+    .activity-info .activity-meta { color: #A0A0A0; }
+    .activity-info .activity-desc { color: #A0A0A0; }
+    
+    .exercise-row {
+      border-bottom-color: #333333;
+      .exercise-name { color: #FFFFFF; }
+      .exercise-dur, .chevron-icon { color: #A0A0A0; }
+    }
+    
+    .exercise-expanded {
+      background: rgba(255, 255, 255, 0.05);
+      p { color: #A0A0A0; }
+    }
+    
+    .safety-banner { border-top-color: #333333; }
+  }
+  
+  .bottom-card {
+    .bottom-label { color: #FFFFFF; }
+    h3, h4 { color: #FFFFFF; }
+    p { color: #A0A0A0; }
+    .bottom-icon.grey-icon { background: #333333; color: #FFFFFF; }
+  }
+  
+  .nutrition-card .featured-foods .food-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #333333;
+    
+    h4 { color: #FFFFFF; }
+    
+    .macros .macro {
+      background: #1C1C1E;
+      border-color: #333333;
+      .label { color: #A0A0A0; }
+    }
+  }
+  
+  .habit-card .checkbox-box {
+    background: #1C1C1E;
+    border-color: #555555;
+  }
+  
+  .source-card .retrieved {
+    color: #A0A0A0 !important;
+  }
+}

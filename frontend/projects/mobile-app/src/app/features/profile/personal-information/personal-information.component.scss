@@ -173,3 +173,44 @@ ion-content {
 .bottom-padding {
   height: 32px;
 }
+
+:host-context(.ion-palette-dark) {
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  ion-content {
+    --background: #121212;
+  }
+  
+  .page-header {
+    .main-title { color: #FFFFFF; }
+    .main-subtitle { color: #A0A0A0; }
+  }
+  
+  .section-label { color: #A0A0A0; }
+  
+  .card-list {
+    background: #1C1C1E;
+    border-color: #333333;
+    
+    &.danger-card {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    
+    .list-item {
+      .edit-icon { color: #FFFFFF; }
+      
+      .item-content {
+        h3 { color: #FFFFFF; }
+        h3.danger-text { color: #EF4444; }
+        p { color: #A0A0A0; }
+      }
+      
+      .right-content .value-text { color: #A0A0A0; }
+    }
+    
+    .divider { background-color: #333333; }
+  }
+}

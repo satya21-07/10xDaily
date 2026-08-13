@@ -176,3 +176,33 @@ ion-header {
   gap: 24px;
   padding: 16px;
 }
+
+:host-context(.ion-palette-dark) {
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  .categories-container {
+    background: #1C1C1E;
+    border-bottom: 1px solid #333333;
+  }
+  
+  .category-tab {
+    color: #A0A0A0;
+  }
+  
+  .news-item {
+    background: #1C1C1E;
+    border-bottom: 1px solid #333333;
+    
+    .item-main {
+      .title { color: #FFFFFF; }
+      .meta .source { color: #DDDDDD; }
+      .summary { color: #BBBBBB; }
+    }
+    
+    .item-actions .action-icon {
+      color: #DDDDDD;
+    }
+  }
+}

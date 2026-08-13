@@ -138,10 +138,10 @@
           <span>Notifications</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
-        <div class="setting-row" (click)="toggleTheme()">
+        <div class="setting-row" (click)="openThemeActionSheet()">
           <div class="setting-icon blue-light-bg"><ion-icon name="color-palette-outline" class="blue-text"></ion-icon></div>
           <span>Theme</span>
-          <div class="badge">System</div>
+          <div class="badge" style="text-transform: capitalize;">{{ themeService.currentTheme$ | async }}</div>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
         <div class="setting-row">

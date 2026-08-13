@@ -377,3 +377,34 @@ ion-header {
     }
   }
 }
+
+:host-context(.ion-palette-dark) {
+  ion-button {
+    --color: #FFFFFF;
+  }
+  
+  .accordion-list .accordion-item {
+    border-color: #333333;
+    
+    .accordion-header {
+      ion-icon { color: #A0A0A0; }
+    }
+    
+    .accordion-content p { color: #A0A0A0; }
+  }
+  
+  .question-list .question-card {
+    border-color: #333333;
+    
+    .q-desc { color: #A0A0A0; }
+    
+    .q-header .header-badges .tag-chip {
+      background: #333333;
+      color: #A0A0A0;
+    }
+    
+    .solution-section .solution-content .solution-tabs .tab-btn {
+      color: #A0A0A0;
+    }
+  }
+}

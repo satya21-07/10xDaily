@@ -1,14 +1,19 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+export type AppTheme = 'light' | 'dark' | 'system';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
-  private readonly THEME_KEY = '10xdaily_dark_mode';
-  private isDarkSubject = new BehaviorSubject<boolean>(false);
+  public readonly THEME_KEY = '10xdaily_theme_pref';
   
+  private isDarkSubject = new BehaviorSubject<boolean>(false);
   isDark$ = this.isDarkSubject.asObservable();
+  
+  private currentThemeSubject = new BehaviorSubject<AppTheme>('system');
+  currentTheme$ = this.currentThemeSubject.asObservable();
 
   constructor() {
     this.initTheme();
@@ -16,21 +21,43 @@ export class ThemeService {
 
   private initTheme() {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(this.THEME_KEY);
-      if (stored !== null) {
-        this.setDark(stored === 'true');
+      const stored = localStorage.getItem(this.THEME_KEY) as AppTheme | null;
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      if (stored === 'light' || stored === 'dark') {
+        this.currentThemeSubject.next(stored);
+        this.applyTheme(stored === 'dark');
       } else {
-        // Check system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        this.setDark(prefersDark);
+        this.currentThemeSubject.next('system');
+        this.applyTheme(mediaQuery.matches);
+      }
+
+      mediaQuery.addEventListener('change', (e) => {
+        if (this.currentThemeSubject.value === 'system') {
+          this.applyTheme(e.matches);
+        }
+      });
+    }
+  }
+
+  setTheme(theme: AppTheme) {
+    this.currentThemeSubject.next(theme);
+    
+    if (typeof window !== 'undefined') {
+      if (theme === 'system') {
+        localStorage.removeItem(this.THEME_KEY);
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.applyTheme(mediaQuery.matches);
+      } else {
+        localStorage.setItem(this.THEME_KEY, theme);
+        this.applyTheme(theme === 'dark');
       }
     }
   }
 
-  setDark(isDark: boolean) {
+  private applyTheme(isDark: boolean) {
     this.isDarkSubject.next(isDark);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(this.THEME_KEY, String(isDark));
       if (isDark) {
         document.body.classList.add('dark-theme');
         document.body.classList.remove('light-theme');
@@ -41,9 +68,5 @@ export class ThemeService {
         document.documentElement.classList.remove('ion-palette-dark');
       }
     }
-  }
-
-  toggle() {
-    this.setDark(!this.isDarkSubject.value);
   }
 }

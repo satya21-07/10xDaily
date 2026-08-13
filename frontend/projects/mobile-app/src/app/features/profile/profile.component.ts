@@ -5,16 +5,16 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, UserProfile } from '../../services/auth.service';
 import { ProgressService } from '../../services/progress.service';
-import { ThemeService } from '../../services/theme.service';
+import { ThemeService, AppTheme } from '../../services/theme.service';
 import { addIcons } from 'ionicons';
-import { ToastController } from '@ionic/angular';
+import { ToastController, ActionSheetController } from '@ionic/angular';
 import { 
   logOutOutline, settingsOutline, notificationsOutline, moonOutline,
   flame, gridOutline, bulbOutline, checkmarkCircle, pencilOutline, logoGoogle,
   bookOutline, locateOutline, starOutline, timeOutline, book, newspaperOutline,
   locate, chatboxEllipsesOutline, personOutline, shieldCheckmarkOutline,
   colorPaletteOutline, globeOutline, helpCircleOutline, chevronForwardOutline,
-  ribbon
+  ribbon, sunnyOutline, phonePortraitOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -29,6 +29,7 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private toastController = inject(ToastController);
+  private actionSheetCtrl = inject(ActionSheetController);
   public progressService = inject(ProgressService);
   public themeService = inject(ThemeService);
   
@@ -36,7 +37,6 @@ export class ProfileComponent implements OnInit {
 
   // Settings state
   pushEnabled = true;
-  darkModeEnabled = false;
 
   constructor() {
     addIcons({
@@ -45,7 +45,7 @@ export class ProfileComponent implements OnInit {
       bookOutline, locateOutline, starOutline, timeOutline, book, newspaperOutline,
       locate, chatboxEllipsesOutline, personOutline, shieldCheckmarkOutline,
       colorPaletteOutline, globeOutline, helpCircleOutline, chevronForwardOutline,
-      ribbon
+      ribbon, sunnyOutline, phonePortraitOutline
     });
   }
 
@@ -60,10 +60,6 @@ export class ProfileComponent implements OnInit {
       } else {
         this.user = user;
       }
-    });
-    
-    this.themeService.isDark$.subscribe(isDark => {
-      this.darkModeEnabled = isDark;
     });
   }
 
@@ -91,8 +87,39 @@ export class ProfileComponent implements OnInit {
     await toast.present();
   }
 
-  toggleTheme() {
-    this.themeService.setDark(this.darkModeEnabled);
+  async openThemeActionSheet() {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Choose Theme',
+      cssClass: 'compact-action-sheet',
+      buttons: [
+        {
+          text: 'Light',
+          icon: 'sunny-outline',
+          handler: () => {
+            this.themeService.setTheme('light');
+          }
+        },
+        {
+          text: 'Dark',
+          icon: 'moon-outline',
+          handler: () => {
+            this.themeService.setTheme('dark');
+          }
+        },
+        {
+          text: 'System Default',
+          icon: 'phone-portrait-outline',
+          handler: () => {
+            this.themeService.setTheme('system');
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
   }
 
   // Dynamic Stat Getters
