@@ -13,7 +13,11 @@ app = FastAPI(
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For production, change this to specific origins
+    allow_origins=[
+        "http://localhost:8100",
+        "http://localhost:4200",
+        "https://one0xdaily-web.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
