@@ -19,7 +19,7 @@ def get_news(
     category: Optional[str] = None,
     skip: int = 0,
     limit: int = 20,
-    current_user: User = Depends(deps.get_current_user)
+    current_user: Optional[User] = Depends(deps.get_current_user_optional)
 ) -> Any:
     """Retrieve news articles with optional category filtering (cached)."""
     cache_key = f"news:{category or 'all'}:{limit}"

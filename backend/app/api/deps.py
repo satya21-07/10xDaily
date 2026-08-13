@@ -44,3 +44,21 @@ def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login/access-token", auto_error=False)
+
+def get_current_user_optional(
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme_optional)
+) -> User | None:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except JWTError:
+        return None
+        
+    user = db.query(User).filter(User.id == token_data.sub).first()
+    return user
