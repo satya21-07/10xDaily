@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -49,7 +49,7 @@ oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/a
 
 def get_current_user_optional(
     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme_optional)
-) -> User | None:
+) -> Optional[User]:
     if not token:
         return None
     try:
