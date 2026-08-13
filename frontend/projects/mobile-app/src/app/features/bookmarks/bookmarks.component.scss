@@ -456,3 +456,28 @@ ion-header {
     white-space: nowrap;
   }
 }
+
+:host-context(.ion-palette-dark) {
+  .tabs-scroll-container { background: #1C1C1E; border-bottom: 1px solid #333; }
+  .segment-header .segment-title { color: #FFFFFF; }
+  .bm-card, .news-item { background: #1C1C1E; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+  
+  .type-chip { border-bottom: 1px solid #2C2C2E; }
+  .type-chip.spiritual-chip { background: rgba(91, 117, 83, 0.2); }
+  .type-chip.health-chip { background: rgba(21, 101, 192, 0.2); }
+  .type-chip.coding-chip { background: rgba(107, 63, 160, 0.2); }
+  .type-chip.finance-chip { background: rgba(180, 83, 9, 0.2); }
+  .type-chip.other-chip { background: #2C2C2E; color: #DDD; }
+  
+  .generic-item .item-main .title, .news-item .item-main .title, .vocab-layout .middle-section .header-row .word-title { color: #FFFFFF; }
+  .generic-item .item-main .meta .source, .news-item .item-main .meta .source { color: #DDD; }
+  .generic-item .item-main .summary, .news-item .item-main .summary { color: #BBB; }
+  .generic-item .item-main .sub-block .sub-label { color: #DDD; }
+  .generic-item .item-main .sub-block .sub-value { color: #AAA; }
+  .generic-item .item-main .hint-block { background: #2C2C2E; color: #DDD; }
+  
+  .vocab-layout .middle-section .meaning-row .label, .vocab-layout .middle-section .synonyms-row .label { color: #DDD; }
+  .vocab-layout .middle-section .meaning-row .value, .vocab-layout .middle-section .synonyms-row .value { color: #AAA; }
+  
+  ion-button { --color: #FFFFFF; }
+}

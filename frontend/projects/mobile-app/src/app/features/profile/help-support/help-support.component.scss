@@ -6,6 +6,14 @@
   --border-color: #F1F5F9;
 }
 
+:host-context(.ion-palette-dark) {
+  --page-bg: #121212;
+  --text-main: #FFFFFF;
+  --text-muted: #A0A0A0;
+  --card-bg: #1C1C1E;
+  --border-color: #333333;
+}
+
 ion-header {
   z-index: 100;
   ion-toolbar {

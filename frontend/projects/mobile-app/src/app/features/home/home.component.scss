@@ -17,6 +17,19 @@
   --teal-light: #F0FDFA;
 }
 
+:host-context(.ion-palette-dark) {
+  --page-bg: #121212;
+  --text-main: #FFFFFF;
+  --text-muted: #A0A0A0;
+  --card-bg: #1C1C1E;
+  --purple-light: rgba(124, 58, 237, 0.1);
+  --green-light: rgba(16, 185, 129, 0.1);
+  --orange-light: rgba(245, 158, 11, 0.1);
+  --blue-light: rgba(59, 130, 246, 0.1);
+  --red-light: rgba(239, 68, 68, 0.1);
+  --teal-light: rgba(20, 184, 166, 0.1);
+}
+
 ion-content {
   --background: var(--page-bg);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

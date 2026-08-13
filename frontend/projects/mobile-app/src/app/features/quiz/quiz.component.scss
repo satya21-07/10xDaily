@@ -13,6 +13,20 @@
   --gray-bg: #F3F4F6;
   --orange-main: #F97316;
   --orange-bg: #FFF7ED;
+  --inverted-text: #FFFFFF;
+}
+
+:host-context(.ion-palette-dark) {
+  --page-bg: #121212;
+  --text-main: #FFFFFF;
+  --text-muted: #A0A0A0;
+  --black: #FFFFFF; /* Inverts to white */
+  --inverted-text: #000000; /* Inverts to black when background is --black */
+  --green-bg: rgba(74, 222, 128, 0.1);
+  --red-bg: rgba(248, 113, 113, 0.1);
+  --gray-border: #333333;
+  --gray-bg: #1E1E1E;
+  --orange-bg: rgba(249, 115, 22, 0.1);
 }
 
 ion-content {
@@ -211,7 +225,7 @@ ion-content {
     border-color: var(--black);
     .option-letter {
       background: var(--black);
-      color: white;
+      color: var(--inverted-text);
     }
   }
 }
@@ -265,7 +279,7 @@ ion-content {
   
   &.dark-btn {
     background: var(--black);
-    color: white;
+    color: var(--inverted-text);
     border: none;
     
     ion-icon {

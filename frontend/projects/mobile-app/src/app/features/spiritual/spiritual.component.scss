@@ -338,8 +338,7 @@ ion-header {
 }
 
 /* ─── Dark Mode ──────────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :host {
+:host-context(.ion-palette-dark) {
     --sp-bg: #131312;
     --sp-card: #1E1D1B;
     --sp-text-primary: #F0EDE8;
@@ -351,4 +350,3 @@ ion-header {
     --sp-border: #2A2826;
     --sp-divider: #252321;
   }
-}

@@ -21,19 +21,19 @@
 
 /* Since we replaced ion-router-outlet with standard router-outlet, 
    we need to ensure the routed components fill the screen like .ion-page used to */
-ion-app > :not(router-outlet) {
-  display: block;
-  height: 100vh;
-  width: 100vw;
-  position: relative;
-}
-
-/* Also ensure components rendered inside the tab bar fill the tab content area */
+ion-app > :not(router-outlet),
 .tabs-content > :not(router-outlet) {
-  display: block;
-  height: 100%;
-  width: 100%;
-  position: relative;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  justify-content: space-between;
+  contain: layout size style;
+  overflow: hidden;
+  z-index: 0;
 }
 .compact-action-sheet .action-sheet-button {
   min-height: 38px;

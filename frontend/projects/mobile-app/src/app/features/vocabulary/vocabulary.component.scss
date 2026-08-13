@@ -615,8 +615,7 @@ ion-content {
 }
 
 /* Dark mode tweaks (optional, if they use it) */
-@media (prefers-color-scheme: dark) {
-  :host {
+:host-context(.ion-palette-dark) {
     --app-bg: #121212;
     --card-bg: #1E1E1E;
     --text-primary: #FFFFFF;
@@ -630,7 +629,6 @@ ion-content {
     
     --red-bg: rgba(239, 68, 68, 0.1);
     --red-text: #F87171;
-  }
   
   .word-card-top .word-title-group .pronounce-icon-btn {
     --background: #2D2D2D;

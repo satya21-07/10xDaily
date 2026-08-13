@@ -16,6 +16,19 @@
   --border-color: #F1F5F9;
 }
 
+:host-context(.ion-palette-dark) {
+  --page-bg: #121212;
+  --text-main: #FFFFFF;
+  --text-muted: #A0A0A0;
+  --card-bg: #1C1C1E;
+  --purple-light: rgba(124, 58, 237, 0.1);
+  --green-light: rgba(16, 185, 129, 0.1);
+  --orange-light: rgba(245, 158, 11, 0.1);
+  --blue-light: rgba(59, 130, 246, 0.1);
+  --red-light: rgba(239, 68, 68, 0.1);
+  --border-color: #333333;
+}
+
 ion-header {
   z-index: 100;
   ion-toolbar {
