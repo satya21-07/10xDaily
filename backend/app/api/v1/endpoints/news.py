@@ -38,10 +38,15 @@ def get_news(
     # Check which ones are saved by current user
     if current_user and articles_data:
         article_ids = [a["id"] for a in articles_data]
-        saved_urls = db.query(SavedNewsModel.url).filter(
-            SavedNewsModel.user_id == current_user.id
-        ).all()
-        saved_url_set = {u[0] for u in saved_urls}
+        saved_url_set = set()
+        
+        try:
+            saved_urls = db.query(SavedNewsModel.url).filter(
+                SavedNewsModel.user_id == current_user.id
+            ).all()
+            saved_url_set = {u[0] for u in saved_urls}
+        except Exception as e:
+            logger.error(f"Failed to fetch saved articles: {e}")
         
         for article in articles_data:
             article["is_saved"] = article["url"] in saved_url_set
