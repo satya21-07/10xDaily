@@ -217,13 +217,15 @@ def get_daily_spiritual_source(db: Session) -> SpiritualSource:
 
 
 def generate_with_groq(source: SpiritualSource) -> dict:
+    import time
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
         raise Exception("GROQ_API_KEY is not set.")
 
     try:
         from groq import Groq
-        client = Groq(api_key=api_key)
+        # Set explicit timeout for robustness
+        client = Groq(api_key=api_key, timeout=30.0)
     except ImportError:
         raise Exception("Failed to import groq.")
 
@@ -290,23 +292,35 @@ Respond with ONLY a valid JSON object in this exact structure:
     "journal_prompt": "A deep, honest journaling question that challenges the reader to reflect specifically on this lesson in their own life."
 }}"""
 
-    response = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": "You are an educational content writer. Output ONLY valid JSON, no markdown, no code blocks."},
-            {"role": "user", "content": prompt}
-        ],
-        response_format={"type": "json_object"}
-    )
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": "You are an educational content writer. Output ONLY valid JSON, no markdown, no code blocks."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=2000
+            )
 
-    text_response = response.choices[0].message.content
-    # Strip any accidental markdown wrappers
-    if text_response.startswith("```json"):
-        text_response = text_response.replace("```json", "", 1)
-    if text_response.endswith("```"):
-        text_response = text_response.rsplit("```", 1)[0]
+            text_response = response.choices[0].message.content
+            # Strip any accidental markdown wrappers
+            if text_response.startswith("```json"):
+                text_response = text_response.replace("```json", "", 1)
+            if text_response.endswith("```"):
+                text_response = text_response.rsplit("```", 1)[0]
 
-    return json.loads(text_response.strip())
+            return json.loads(text_response.strip())
+        except Exception as e:
+            logger.error(f"Groq generation failed on attempt {attempt+1}: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise e
 
 
 def build_lesson_response(lesson: DailySpiritualLesson) -> dict:
@@ -386,14 +400,19 @@ def get_or_generate_daily_spiritual_lesson(db: Session) -> dict:
         ).first()
         if existing_lesson:
             return build_lesson_response(existing_lesson)
-        # Shouldn't happen, but fall through to fallback
-        fallback = FALLBACK_DATA.copy()
-        fallback["lesson_date"] = today_str
-        return fallback
 
     except Exception as e:
-        logger.error(f"Error generating daily spiritual lesson: {e}")
+        logger.error(f"Error during Groq generation or Pydantic validation: {e}")
         db.rollback()
-        fallback = FALLBACK_DATA.copy()
-        fallback["lesson_date"] = today_str
-        return fallback
+        
+    # Resilient fallback: Try to return the most recent lesson in DB
+    logger.warning("Falling back to most recent DB lesson due to generation failure.")
+    last_lesson = db.query(DailySpiritualLesson).order_by(DailySpiritualLesson.lesson_date.desc()).first()
+    if last_lesson:
+        return build_lesson_response(last_lesson)
+        
+    # Ultimate fallback if DB is empty
+    logger.error("No recent DB lesson available. Using static FALLBACK_DATA.")
+    fallback = FALLBACK_DATA.copy()
+    fallback["lesson_date"] = today_str
+    return fallback

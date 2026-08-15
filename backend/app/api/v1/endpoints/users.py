@@ -135,3 +135,56 @@ def delete_user_me(
     db.commit()
     return current_user
 
+from app.models.games import GameProgress
+from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel
+
+class ModulesProgressUpdate(BaseModel):
+    visited_modules: List[str]
+
+@router.get("/me/progress/modules")
+def get_today_modules_progress(
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "explored_modules",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    return {
+        "visited_modules": progress.game_data.get("visited_modules", []) if progress and progress.game_data else []
+    }
+
+@router.post("/me/progress/modules")
+def update_today_modules_progress(
+    request: ModulesProgressUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "explored_modules",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    if progress:
+        progress.game_data = {"visited_modules": request.visited_modules}
+        db.commit()
+        return {"message": "Modules progress updated!"}
+        
+    new_progress = GameProgress(
+        user_id=current_user.id,
+        game_name="explored_modules",
+        completion_date=today_str,
+        score=0,
+        game_data={"visited_modules": request.visited_modules}
+    )
+    db.add(new_progress)
+    db.commit()
+    
+    return {"message": "Modules progress saved!"}
+

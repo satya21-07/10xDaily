@@ -1,5 +1,5 @@
-from typing import Optional
-from pydantic import BaseModel
+from typing import Optional, List
+from pydantic import BaseModel, Field
 from datetime import datetime, timedelta, timezone
 
 class CodingProblemBase(BaseModel):
@@ -28,3 +28,31 @@ class CodingProblem(CodingProblemBase):
     class Config:
         from_attributes = True
 
+class ConceptSchema(BaseModel):
+    title: str
+    explanation: str
+    key_points: List[str]
+    example: str
+
+class QuestionSchema(BaseModel):
+    id: str
+    title: str
+    description: str
+    difficulty: str
+    pattern: str
+    tags: List[str]
+    hint: str
+    approach: str
+    explanation: str
+    time_complexity: str
+    space_complexity: str
+    solution_java: str
+    solution_python: str
+    solution_javascript: str
+    solution_cpp: str
+
+class GroqCodingLessonSchema(BaseModel):
+    topic: str
+    learning_objective: str
+    concepts: List[ConceptSchema] = Field(..., min_length=4, max_length=4)
+    questions: List[QuestionSchema] = Field(..., min_length=5, max_length=5)

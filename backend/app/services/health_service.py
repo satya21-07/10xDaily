@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+import time
+import random
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -62,7 +64,6 @@ FALLBACK_DATA = {
     "disclaimer": "This content is for general educational purposes and is not medical advice."
 }
 
-import random
 
 def fetch_source_data(topic_seed: str):
     source = ExcelNutritionSource()
@@ -82,13 +83,13 @@ def fetch_source_data(topic_seed: str):
 def generate_health_lesson(topic_seed: str) -> dict:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
-        return FALLBACK_DATA
+        return None
 
     try:
         from groq import Groq
-        client = Groq(api_key=api_key)
+        client = Groq(api_key=api_key, timeout=30.0)
     except ImportError:
-        return FALLBACK_DATA
+        return None
 
     source_data, source_metadata = fetch_source_data(topic_seed)
     
@@ -179,31 +180,46 @@ You MUST respond with ONLY a valid JSON object matching this exact structure:
 Ensure the JSON is perfectly formatted and contains no markdown code blocks outside of the raw JSON itself.
 """
 
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        text_response = response.choices[0].message.content
-        if text_response.startswith("```json"):
-            text_response = text_response.replace("```json", "", 1)
-        if text_response.endswith("```"):
-            text_response = text_response.rsplit("```", 1)[0]
-        
-        parsed_json = json.loads(text_response.strip())
-        # Validate with Pydantic
-        DailyHealthLessonCreate(**parsed_json)
-        return parsed_json
-    except ValidationError as e:
-        logger.error(f"Pydantic validation error for Groq health lesson: {e}")
-        return FALLBACK_DATA
-    except Exception as e:
-        logger.error(f"Error generating Groq health lesson: {e}")
-        return FALLBACK_DATA
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=2000
+            )
+            text_response = response.choices[0].message.content
+            if text_response.startswith("```json"):
+                text_response = text_response.replace("```json", "", 1)
+            if text_response.endswith("```"):
+                text_response = text_response.rsplit("```", 1)[0]
+            
+            parsed_json = json.loads(text_response.strip())
+            # Validate with Pydantic
+            DailyHealthLessonCreate(**parsed_json)
+            return parsed_json
+        except ValidationError as e:
+            logger.error(f"Pydantic validation error for Groq health lesson (attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+        except Exception as e:
+            logger.error(f"Error generating Groq health lesson (attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+                
+    return None
+
+def get_recent_health_topics(db: Session, days: int = 14) -> set:
+    lessons = db.query(DailyHealthLessonModel).order_by(
+        DailyHealthLessonModel.lesson_date.desc()
+    ).limit(days).all()
+    return {lesson.topic for lesson in lessons}
 
 def get_or_generate_daily_health_lesson(db: Session) -> DailyHealthLesson:
     today = datetime.now(timezone.utc).date()
@@ -222,10 +238,22 @@ def get_or_generate_daily_health_lesson(db: Session) -> DailyHealthLesson:
         "Digital Wellness", "Healthy Daily Routines", "Rest & Recovery",
         "Outdoor Activity", "Workplace Wellness", "Sustainable Habits"
     ]
-    day_of_year = today.timetuple().tm_yday
-    topic_seed = topics[day_of_year % len(topics)]
+    
+    recent_topics = get_recent_health_topics(db)
+    available_topics = [t for t in topics if t not in recent_topics]
+    if not available_topics:
+        available_topics = topics
+        
+    topic_seed = random.choice(available_topics)
     
     lesson_data = generate_health_lesson(topic_seed)
+    
+    if not lesson_data:
+        # Resilient Fallback: Use latest DB lesson if Groq fails
+        last_lesson = db.query(DailyHealthLessonModel).order_by(DailyHealthLessonModel.lesson_date.desc()).first()
+        if last_lesson:
+            return DailyHealthLesson.from_orm(last_lesson)
+        lesson_data = FALLBACK_DATA
     
     # Save to db
     db_lesson = DailyHealthLessonModel(
@@ -255,4 +283,3 @@ def get_or_generate_daily_health_lesson(db: Session) -> DailyHealthLesson:
         if existing:
             return DailyHealthLesson.from_orm(existing)
         raise
-

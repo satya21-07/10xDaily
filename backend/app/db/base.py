@@ -4,7 +4,7 @@ from app.models.core_models import User, Topic, UserTopic, Bookmark, Note, UserP
 from app.models.vocabulary import VocabularyWord, DailyVocabulary
 from app.models.news import SavedNews
 from app.models.coding import CodingProblem
-from app.models.lessons import FinanceLesson, HealthLesson, SpiritualLesson, DailyHealthLesson, DailyFinanceLesson
+from app.models.lessons import DailyHealthLesson, DailyFinanceLesson
 from app.models.games import GameProgress
 
 # This ensures all models are registered with Base.metadata

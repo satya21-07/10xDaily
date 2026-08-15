@@ -107,13 +107,17 @@ export class WordSearchComponent implements OnInit {
         }
       });
       
-      if (this.foundWords.length === this.targetWords.length) {
+      if (this.alreadyCompletedToday || this.foundWords.length === this.targetWords.length) {
         this.isCompleted = true;
-      } else if (!this.alreadyCompletedToday) {
+      } else {
         this.startTimer();
       }
     } else {
-      this.startTimer();
+      if (this.alreadyCompletedToday) {
+        this.isCompleted = true;
+      } else {
+        this.startTimer();
+      }
     }
   }
 

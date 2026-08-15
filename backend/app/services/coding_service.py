@@ -1,8 +1,17 @@
 import os
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+import random
+import uuid
+import time
+from datetime import datetime, timezone
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from app.models.lessons import DailyCodingLesson
+from app.models.coding import CodingProblem
+from app.schemas.coding import GroqCodingLessonSchema
 
 load_dotenv()
 
@@ -15,7 +24,7 @@ FALLBACK_DATA = {
     "concepts": [
         {
             "title": "What is a Sliding Window?",
-            "explanation": "A sliding window is a sublist that runs over an underlying collection. That is, if you have an array like [a b c d e f], a window of size 3 would be [a b c], then [b c d], then [c d e], and so on.",
+            "explanation": "A sliding window is a sublist that runs over an underlying collection.",
             "key_points": [
                 "It avoids redundant work in nested loops.",
                 "Typically used for contiguous subarrays or substrings.",
@@ -56,7 +65,7 @@ FALLBACK_DATA = {
     ],
     "questions": [
         {
-            "id": "q1-sw",
+            "id": uuid.uuid4().hex,
             "title": "Maximum Subarray Average",
             "description": "Given an array of integers nums and an integer k, find the contiguous subarray of length k that has the maximum average value and return this value.",
             "difficulty": "Easy",
@@ -75,29 +84,57 @@ FALLBACK_DATA = {
     ]
 }
 
-def generate_daily_coding_lesson() -> dict:
-    """Uses Groq API to generate a daily coding lesson."""
+def get_recent_topics(db: Session, days: int = 14) -> set:
+    lessons = db.query(DailyCodingLesson).order_by(
+        DailyCodingLesson.lesson_date.desc()
+    ).limit(days).all()
+    return {lesson.topic for lesson in lessons}
+
+def get_or_generate_daily_coding_lesson(db: Session) -> dict:
+    """Uses Groq API to generate a daily coding lesson, with DB caching."""
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # 1. Check Cache
+    existing_lesson = db.query(DailyCodingLesson).filter(
+        DailyCodingLesson.lesson_date == today_str
+    ).first()
+
+    if existing_lesson:
+        logger.info(f"Returning cached coding lesson for {today_str}.")
+        return {
+            "topic": existing_lesson.topic,
+            "learning_objective": existing_lesson.learning_objective,
+            "concepts": existing_lesson.concepts,
+            "questions": existing_lesson.questions
+        }
+
+    # 2. Prepare API Call
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
-        logger.warning("GROQ_API_KEY not found in environment. Using fallback data.")
+        logger.warning("GROQ_API_KEY not found. Using fallback data.")
         return FALLBACK_DATA
 
     try:
         from groq import Groq
-        client = Groq(api_key=api_key)
+        client = Groq(api_key=api_key, timeout=30.0)
     except ImportError:
         logger.error("groq package not installed. Using fallback data.")
         return FALLBACK_DATA
-    
-    # We use day of year as a seed concept for variety
-    day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
+
+    # Smart topic rotation
     topics = [
         "Dynamic Programming", "Graph Theory", "Hash Maps & Sets", 
         "Binary Search Trees", "Sliding Window", "Tries", 
         "Greedy Algorithms", "Backtracking", "Linked Lists", "Bit Manipulation",
         "Two Pointers", "Stacks & Queues", "Heaps", "Intervals"
     ]
-    topic_seed = topics[day_of_year % len(topics)]
+    recent_topics = get_recent_topics(db)
+    available_topics = [t for t in topics if t not in recent_topics]
+    
+    if not available_topics:
+        available_topics = topics
+        
+    topic_seed = random.choice(available_topics)
 
     prompt = f"""
     You are an expert Data Structures and Algorithms instructor.
@@ -130,7 +167,7 @@ def generate_daily_coding_lesson() -> dict:
       ],
       "questions": [
         {{
-          "id": "unique-question-id",
+          "id": "placeholder",
           "title": "Original Problem Title",
           "description": "Full original problem description...",
           "difficulty": "Easy",
@@ -153,26 +190,91 @@ def generate_daily_coding_lesson() -> dict:
     Ensure the JSON is perfectly formatted and contains no markdown code blocks outside of the raw JSON itself. Ensure code strings properly escape newlines and quotes.
     """
 
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        text_response = response.choices[0].message.content
-        
-        # Clean up any potential markdown formatting
-        if text_response.startswith("```json"):
-            text_response = text_response.replace("```json", "", 1)
-        if text_response.endswith("```"):
-            text_response = text_response.rsplit("```", 1)[0]
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=4000
+            )
+            text_response = response.choices[0].message.content
             
-        data = json.loads(text_response.strip())
-        return data
-    except Exception as e:
-        logger.error(f"Error generating Groq content: {e}")
-        return FALLBACK_DATA
-
+            # Clean up any potential markdown formatting
+            if text_response.startswith("```json"):
+                text_response = text_response.replace("```json", "", 1)
+            if text_response.endswith("```"):
+                text_response = text_response.rsplit("```", 1)[0]
+                
+            raw_data = json.loads(text_response.strip())
+            
+            # Validate with Pydantic
+            validated_data = GroqCodingLessonSchema.model_validate(raw_data)
+            
+            # Verify LeetCode uniqueness
+            collision_found = False
+            for q in validated_data.questions:
+                q.id = uuid.uuid4().hex  # Generate unique IDs here
+                
+                # Check DB for duplicate titles
+                existing_problem = db.query(CodingProblem).filter(
+                    func.lower(CodingProblem.title) == q.title.lower()
+                ).first()
+                if existing_problem:
+                    logger.warning(f"Collision detected with existing LeetCode problem: {q.title}")
+                    collision_found = True
+                    break
+                    
+            if collision_found:
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying Groq call due to title collision (attempt {attempt+1})")
+                    continue
+                else:
+                    logger.error("Failed to generate original questions after max retries.")
+                    break
+            
+            # Save to DB
+            new_lesson = DailyCodingLesson(
+                lesson_date=today_str,
+                topic=validated_data.topic,
+                learning_objective=validated_data.learning_objective,
+                concepts=[c.model_dump() for c in validated_data.concepts],
+                questions=[q.model_dump() for q in validated_data.questions]
+            )
+            db.add(new_lesson)
+            db.commit()
+            
+            logger.info(f"Successfully generated and saved coding lesson for {today_str}.")
+            
+            return {
+                "topic": validated_data.topic,
+                "learning_objective": validated_data.learning_objective,
+                "concepts": new_lesson.concepts,
+                "questions": new_lesson.questions
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating Groq content (attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(2)
+            else:
+                break
+                
+    # Fallback Mechanism: try to use the most recent lesson from DB
+    logger.warning("All Groq attempts failed. Attempting to use a previous lesson as fallback.")
+    last_lesson = db.query(DailyCodingLesson).order_by(DailyCodingLesson.lesson_date.desc()).first()
+    if last_lesson:
+        return {
+            "topic": last_lesson.topic,
+            "learning_objective": last_lesson.learning_objective,
+            "concepts": last_lesson.concepts,
+            "questions": last_lesson.questions
+        }
+    
+    return FALLBACK_DATA

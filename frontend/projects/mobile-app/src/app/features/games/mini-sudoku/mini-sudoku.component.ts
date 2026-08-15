@@ -102,13 +102,17 @@ export class MiniSudokuComponent implements OnInit {
       
       this.validateGrid();
       
-      if (this.checkWinCondition()) {
+      if (this.alreadyCompletedToday || this.checkWinCondition()) {
         this.isCompleted = true;
-      } else if (!this.alreadyCompletedToday) {
+      } else {
         this.startTimer();
       }
     } else {
-      this.startTimer();
+      if (this.alreadyCompletedToday) {
+        this.isCompleted = true;
+      } else {
+        this.startTimer();
+      }
     }
   }
 

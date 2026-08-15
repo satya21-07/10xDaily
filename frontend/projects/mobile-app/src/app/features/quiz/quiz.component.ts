@@ -99,8 +99,26 @@ export class QuizComponent implements OnInit {
         
         this.questions = res.questions || [];
         this.userAnswers = new Array(this.questions.length).fill(null);
-        this.loadStateFromStorage();
-        this.isLoading = false;
+        
+        if (this.authService.isLoggedIn) {
+          this.quizService.getTodayProgress().subscribe({
+            next: (prog) => {
+              if (prog.saved_state) {
+                this.applyState(prog.saved_state);
+              } else {
+                this.loadStateFromStorage(); // Fallback to local storage for migration
+              }
+              this.isLoading = false;
+            },
+            error: () => {
+              this.loadStateFromStorage();
+              this.isLoading = false;
+            }
+          });
+        } else {
+          this.loadStateFromStorage();
+          this.isLoading = false;
+        }
       },
       error: (err) => {
         if (this.activeUserId !== userId) return;
@@ -110,36 +128,39 @@ export class QuizComponent implements OnInit {
     });
   }
 
+  private applyState(state: any) {
+    const userAnswers = state.userAnswers || state.user_answers;
+    const isFinished = state.isFinished !== undefined ? state.isFinished : state.is_finished;
+    const statsSynced = state.statsSynced !== undefined ? state.statsSynced : state.stats_synced;
+    
+    if (userAnswers && userAnswers.length === this.questions.length) {
+      this.userAnswers = userAnswers;
+      this.score = state.score;
+      this.isFinished = isFinished;
+      this.statsSynced = statsSynced || false;
+      
+      if (this.isFinished) {
+        this.calculateTopicPerformance();
+      }
+
+      if (this.isFinished && !this.statsSynced) {
+        this.syncStats();
+      }
+      
+      if (!this.isFinished && !this.isReviewing) {
+        const firstUnanswered = this.userAnswers.findIndex((ans: any) => ans === null);
+        this.currentIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
+      }
+    }
+  }
+
   private loadStateFromStorage() {
     if (typeof window !== 'undefined' && window.localStorage) {
       const savedState = localStorage.getItem(this.storageKey);
       if (savedState) {
         try {
           const state = JSON.parse(savedState);
-          
-          // Verify that the saved state matches the current quiz length
-          if (state.userAnswers && state.userAnswers.length === this.questions.length) {
-            this.userAnswers = state.userAnswers;
-            this.score = state.score;
-            this.isFinished = state.isFinished;
-            this.statsSynced = state.statsSynced || false;
-            
-            if (this.isFinished) {
-              this.calculateTopicPerformance();
-            }
-
-            if (this.isFinished && !this.statsSynced) {
-              this.syncStats();
-            }
-            
-            if (!this.isFinished && !this.isReviewing) {
-              const firstUnanswered = this.userAnswers.findIndex(ans => ans === null);
-              this.currentIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
-            }
-          } else {
-            // Mismatch in length (e.g., from a previously corrupted generation), so clear it
-            localStorage.removeItem(this.storageKey);
-          }
+          this.applyState(state);
         } catch (e) {
           console.error('Failed to parse quiz state');
         }
@@ -148,14 +169,24 @@ export class QuizComponent implements OnInit {
   }
 
   private saveStateToStorage() {
+    const state = {
+      userAnswers: this.userAnswers,
+      score: this.score,
+      isFinished: this.isFinished,
+      statsSynced: this.statsSynced
+    };
+    
     if (typeof window !== 'undefined' && window.localStorage) {
-      const state = {
-        userAnswers: this.userAnswers,
-        score: this.score,
-        isFinished: this.isFinished,
-        statsSynced: this.statsSynced
-      };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
+    }
+
+    if (this.authService.isLoggedIn) {
+      this.quizService.saveProgress({
+        user_answers: this.userAnswers,
+        score: this.score,
+        is_finished: this.isFinished,
+        stats_synced: this.statsSynced
+      }).subscribe();
     }
   }
 

@@ -2,6 +2,7 @@ import httpx
 import random
 import logging
 import json
+import time
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta, timezone
@@ -52,6 +53,7 @@ def fetch_word_definition(word: str) -> dict:
 
 def fallback_groq_completion(word: str, needs_example: bool, needs_synonyms: bool, needs_antonyms: bool) -> dict:
     """Use Groq to generate missing example, synonyms, or antonyms."""
+    from app.schemas.vocabulary import VocabularyGroqFallbackSchema
     client = get_groq_client()
     if not client:
         return {}
@@ -76,26 +78,44 @@ def fallback_groq_completion(word: str, needs_example: bool, needs_synonyms: boo
         prompt += "'antonyms' (list of strings). "
     prompt += "Do NOT wrap in markdown. Output ONLY valid JSON."
     
-    try:
-        completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
-            temperature=0.3,
-            max_tokens=256
-        )
-        response_content = completion.choices[0].message.content
-        
-        # simple json cleaning if it has markdown formatting
-        if response_content.startswith("```json"):
-            response_content = response_content[7:]
-        if response_content.endswith("```"):
-            response_content = response_content[:-3]
+    model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            # Recreate client with explicit timeout for resilience
+            client.timeout = 20.0
             
-        data = json.loads(response_content.strip())
-        return data
-    except Exception as e:
-        logger.error(f"Groq fallback failed for '{word}': {e}")
-        return {}
+            completion = client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "You strictly output valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                model=model_name,
+                temperature=0.3,
+                max_tokens=256,
+                response_format={"type": "json_object"}
+            )
+            response_content = completion.choices[0].message.content
+            
+            if response_content.startswith("```json"):
+                response_content = response_content[7:]
+            if response_content.endswith("```"):
+                response_content = response_content[:-3]
+                
+            data = json.loads(response_content.strip())
+            
+            # Validate with Pydantic
+            validated = VocabularyGroqFallbackSchema.model_validate(data)
+            return validated.model_dump(exclude_none=True)
+            
+        except Exception as e:
+            logger.error(f"Groq fallback failed for '{word}' (attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                return {}
+    return {}
 
 def process_dictionary_data(word: str, data: dict) -> dict:
     """Process the dictionary API response into our DB model format."""
@@ -251,4 +271,3 @@ def get_or_generate_daily_words(db: Session, limit: int = 10) -> list[Vocabulary
         final_words.append(m.word)
         
     return final_words
-

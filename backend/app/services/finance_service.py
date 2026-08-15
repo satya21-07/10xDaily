@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+import time
+import random
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -111,13 +113,13 @@ def generate_daily_finance_lesson(topic: str, country: str = "IN") -> dict:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
         logger.warning("GROQ_API_KEY is not set or placeholder. Using fallback.")
-        return get_fallback_lesson(country, topic)
+        return None
 
     if Groq is None:
         logger.warning("groq library is not installed. Using fallback.")
-        return get_fallback_lesson(country, topic)
+        return None
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=api_key, timeout=30.0)
 
     config = COUNTRY_CONFIGS.get(country.upper(), COUNTRY_CONFIGS["IN"])
     financial_data_ctx = get_financial_data_context(country)
@@ -178,24 +180,44 @@ You MUST respond with a JSON object matching this schema:
 
 Do NOT include any explanation or markdown formatting (e.g. ```json) outside the JSON. Return only raw JSON."""
 
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        text_response = response.choices[0].message.content
-        if text_response.startswith("```json"):
-            text_response = text_response.replace("```json", "", 1)
-        if text_response.endswith("```"):
-            text_response = text_response.rsplit("```", 1)[0]
-        return json.loads(text_response.strip())
-    except Exception as e:
-        logger.error(f"Error generating Groq finance lesson: {e}")
-        return get_fallback_lesson(country, topic)
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=2000
+            )
+            text_response = response.choices[0].message.content
+            if text_response.startswith("```json"):
+                text_response = text_response.replace("```json", "", 1)
+            if text_response.endswith("```"):
+                text_response = text_response.rsplit("```", 1)[0]
+                
+            data = json.loads(text_response.strip())
+            # Basic validation check
+            DailyFinanceLessonContent.model_validate(data)
+            return data
+        except Exception as e:
+            logger.error(f"Error generating Groq finance lesson (attempt {attempt+1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+                
+    return None
+
+def get_recent_finance_topics(db: Session, country_code: str, days: int = 14) -> set:
+    lessons = db.query(DailyFinanceLessonModel).filter(
+        DailyFinanceLessonModel.country == country_code
+    ).order_by(
+        DailyFinanceLessonModel.lesson_date.desc()
+    ).limit(days).all()
+    return {lesson.topic for lesson in lessons}
 
 def get_or_generate_daily_finance_lesson(db: Session, country: str = "IN") -> DailyFinanceLessonModel:
     today = datetime.now(timezone.utc).date()
@@ -214,17 +236,28 @@ def get_or_generate_daily_finance_lesson(db: Session, country: str = "IN") -> Da
         return existing
 
     # Topic selection
-    topic_index = today.toordinal() % len(PROGRESSIVE_TOPICS)
-    topic = PROGRESSIVE_TOPICS[topic_index]
+    recent_topics = get_recent_finance_topics(db, country_code)
+    available_topics = [t for t in PROGRESSIVE_TOPICS if t not in recent_topics]
+    if not available_topics:
+        available_topics = PROGRESSIVE_TOPICS
+        
+    topic = random.choice(available_topics)
     
     lesson_data = generate_daily_finance_lesson(topic, country_code)
     
-    # Validate with Pydantic
-    try:
-        validated_content = DailyFinanceLessonContent.model_validate(lesson_data)
-        content_dict = validated_content.model_dump()
-    except ValidationError as e:
-        logger.error(f"Pydantic validation error for daily finance lesson (topic: {topic}, country: {country_code}): {e}")
+    if lesson_data:
+        content_dict = lesson_data
+    else:
+        # Resilient fallback: Get most recent lesson
+        last_lesson = db.query(DailyFinanceLessonModel).filter(
+            DailyFinanceLessonModel.country == country_code
+        ).order_by(DailyFinanceLessonModel.lesson_date.desc()).first()
+        
+        if last_lesson:
+            logger.warning(f"Returning most recent finance lesson for {country_code} due to generation failure.")
+            return last_lesson
+            
+        logger.warning(f"Returning static fallback finance lesson for {country_code}.")
         fallback_lesson = get_fallback_lesson(country_code, topic)
         content_dict = DailyFinanceLessonContent.model_validate(fallback_lesson).model_dump()
         
@@ -251,4 +284,3 @@ def get_or_generate_daily_finance_lesson(db: Session, country: str = "IN") -> Da
         if existing:
             return existing
         raise
-

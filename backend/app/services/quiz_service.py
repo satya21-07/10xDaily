@@ -5,9 +5,14 @@ import asyncio
 import httpx
 import random
 import uuid
+import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, Field, ValidationError
+
+from app.models.lessons import DailyQuiz
 
 logger = logging.getLogger(__name__)
 
@@ -119,11 +124,6 @@ class QuizQuestion(BaseModel):
 class QuizResponse(BaseModel):
     questions: list[QuizQuestion] = Field(..., min_length=10, max_length=10)
 
-# --- Memory Cache ---
-_daily_quiz_cache = {
-    "date": None,
-    "quiz_data": None
-}
 
 # --- Context Fetchers ---
 async def _fetch_single_word(client: httpx.AsyncClient, word: str) -> str:
@@ -185,7 +185,7 @@ async def fetch_spiritual_context() -> str:
     return "Spiritual topics: Mindfulness, Stoicism, emotional regulation, being present, dichotomy of control."
 
 async def _gather_all_contexts() -> dict:
-    async with httpx.AsyncClient(timeout=5.0) as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         results = await asyncio.gather(
             fetch_vocabulary_context(client),
             fetch_news_context(client),
@@ -214,6 +214,7 @@ async def _gather_all_contexts() -> dict:
 # --- Generation and Validation ---
 def validate_quiz_data(data: dict) -> bool:
     try:
+        # Validate with Pydantic first
         validated = QuizResponse.model_validate(data)
         
         # Validate topic distribution (exactly 2 of each)
@@ -251,25 +252,25 @@ def validate_quiz_data(data: dict) -> bool:
         logger.warning(f"Unexpected validation error: {e}")
         return False
 
-async def generate_daily_quiz(force_refresh: bool = False) -> dict:
+async def generate_daily_quiz(db: Session, force_refresh: bool = False) -> dict:
     """
     Main function to get or generate the daily quiz.
-    Uses an in-memory cache that resets daily.
+    Uses DB caching.
     """
-    global _daily_quiz_cache
+    today_date = datetime.now(timezone.utc).date()
     
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    
-    if not force_refresh and _daily_quiz_cache["date"] == today_str and _daily_quiz_cache["quiz_data"]:
-        return _daily_quiz_cache["quiz_data"]
-        
+    if not force_refresh:
+        existing = db.query(DailyQuiz).filter(DailyQuiz.lesson_date == today_date).first()
+        if existing and existing.quiz_data:
+            return existing.quiz_data
+            
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or api_key == "your_groq_api_key_here":
         return FALLBACK_QUIZ
 
     try:
         from groq import AsyncGroq
-        client = AsyncGroq(api_key=api_key)
+        client = AsyncGroq(api_key=api_key, timeout=40.0)
     except ImportError:
         logger.error("Failed to import AsyncGroq")
         return FALLBACK_QUIZ
@@ -301,20 +302,20 @@ CONTEXT TO USE FOR QUESTIONS:
 ---
 
 RULES:
-1. Every question must contain: id (a unique string), topic (one of the 5 exact topic names), difficulty (Easy, Medium, or Hard), question, options (exactly 4), correct_index (0 to 3), and explanation.
-2. EXACTLY 10 QUESTIONS TOTAL. DO NOT GENERATE 15. DO NOT GENERATE 5. EXACTLY 10.
-2. Exactly one correct answer.
-3. Do not use "All of the above" or "None of the above".
-4. Avoid ambiguous or duplicate questions.
-5. Avoid questions where the correct answer is obvious because it is significantly longer.
-6. Explanations should be concise but educational.
-7. Finance questions must not be personalized financial advice.
-8. Spiritual questions must not fabricate quotations or scripture references.
-9. Return ONLY valid JSON matching this exact structure, with no markdown formatting outside it:
+1. Every question must contain: topic (one of the 5 exact topic names), difficulty (Easy, Medium, or Hard), question, options (exactly 4), correct_index (0 to 3), and explanation.
+2. DO NOT INCLUDE AN 'id' FIELD. We will inject IDs later.
+3. EXACTLY 10 QUESTIONS TOTAL. DO NOT GENERATE 15. DO NOT GENERATE 5. EXACTLY 10.
+4. Exactly one correct answer.
+5. Do not use "All of the above" or "None of the above".
+6. Avoid ambiguous or duplicate questions.
+7. Avoid questions where the correct answer is obvious because it is significantly longer.
+8. Explanations should be concise but educational.
+9. Finance questions must not be personalized financial advice.
+10. Spiritual questions must not fabricate quotations or scripture references.
+11. Return ONLY valid JSON matching this exact structure, with no markdown formatting outside it:
 {{
   "questions": [
     {{
-      "id": "q1",
       "topic": "Vocabulary",
       "difficulty": "Easy",
       "question": "...",
@@ -326,16 +327,20 @@ RULES:
 }}
 """
 
-    for attempt in range(2):
+    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    max_retries = 3
+
+    for attempt in range(max_retries):
         try:
             response = await client.chat.completions.create(
-                model="openai/gpt-oss-120b",  # Using 70b model for strict instruction following
+                model=model_name,
                 messages=[
-                    {"role": "system", "content": "You strictly output valid JSON. You must generate exactly 10 questions, not 15 or 5. Do not generate Markdown blocks or comments."},
+                    {"role": "system", "content": "You strictly output valid JSON. You must generate exactly 10 questions. Do not generate Markdown blocks or comments."},
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.3
+                temperature=0.3,
+                max_tokens=4000
             )
             text_response = response.choices[0].message.content
             if text_response.startswith("```json"):
@@ -345,16 +350,41 @@ RULES:
                 
             quiz_data = json.loads(text_response.strip())
             
+            # Inject UUIDs
+            if "questions" in quiz_data:
+                for q in quiz_data["questions"]:
+                    q["id"] = uuid.uuid4().hex
+            
             if validate_quiz_data(quiz_data):
-                # Save to cache
-                _daily_quiz_cache["date"] = today_str
-                _daily_quiz_cache["quiz_data"] = quiz_data
+                # Save to DB
+                new_quiz = DailyQuiz(
+                    lesson_date=today_date,
+                    quiz_data=quiz_data
+                )
+                try:
+                    db.add(new_quiz)
+                    db.commit()
+                except IntegrityError:
+                    db.rollback()
+                    # Concurrent insert
+                    existing = db.query(DailyQuiz).filter(DailyQuiz.lesson_date == today_date).first()
+                    if existing and existing.quiz_data:
+                        return existing.quiz_data
                 return quiz_data
             else:
                 logger.warning(f"Quiz validation failed on attempt {attempt+1}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(1)
         except Exception as e:
             logger.error(f"Error generating Groq quiz on attempt {attempt+1}: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(1)
             
-    # If all attempts fail, use fallback
+    # If all attempts fail, resilient fallback to latest DB quiz
+    logger.warning("Groq quiz generation failed completely. Checking DB for most recent quiz.")
+    last_quiz = db.query(DailyQuiz).order_by(DailyQuiz.lesson_date.desc()).first()
+    if last_quiz and last_quiz.quiz_data:
+        return last_quiz.quiz_data
+        
+    logger.error("No recent quiz in DB. Using static FALLBACK_QUIZ.")
     return FALLBACK_QUIZ
-

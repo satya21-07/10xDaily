@@ -99,35 +99,10 @@ from datetime import timedelta
 
 def update_daily_streak_and_xp(db: Session, current_user: User) -> int:
     """
-    Updates the user's daily streak and awards XP if this is their first game today.
-    Returns the points awarded (50 if first game, 10 otherwise).
+    Awards XP if this is their first game today.
+    Returns the points awarded (100).
     """
-    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
-    yesterday_str = (datetime.now(timezone(timedelta(hours=5, minutes=30))) - timedelta(days=1)).strftime("%Y-%m-%d")
-
-    # Check if they already completed any game today
-    played_today = db.query(GameProgress).filter(
-        GameProgress.user_id == current_user.id,
-        GameProgress.completion_date == today_str
-    ).first()
-    
     points_awarded = 100 # 100 XP for every game completed
-    
-    if not played_today:
-        
-        # Check if they played yesterday
-        played_yesterday = db.query(GameProgress).filter(
-            GameProgress.user_id == current_user.id,
-            GameProgress.completion_date == yesterday_str
-        ).first()
-        
-        if played_yesterday:
-            current_user.current_streak += 1
-        else:
-            current_user.current_streak = 1
-            
-        if current_user.current_streak > current_user.longest_streak:
-            current_user.longest_streak = current_user.current_streak
             
     current_user.xp += points_awarded
     return points_awarded

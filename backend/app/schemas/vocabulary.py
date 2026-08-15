@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, timedelta, timezone
 
 class DefinitionItem(BaseModel):
@@ -50,3 +50,7 @@ class DailyVocabularyResponse(BaseModel):
     total: int
     words: List[VocabularyWord]
 
+class VocabularyGroqFallbackSchema(BaseModel):
+    example: Optional[str] = None
+    synonyms: Optional[List[str]] = Field(default_factory=list)
+    antonyms: Optional[List[str]] = Field(default_factory=list)

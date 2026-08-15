@@ -134,6 +134,9 @@ export class FlowPuzzleComponent implements OnInit, OnDestroy {
           this.updateConnections(key);
         }
       });
+    }
+
+    if (this.alreadyCompletedToday) {
       this.isCompleted = true;
     }
     
