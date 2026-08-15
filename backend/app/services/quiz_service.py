@@ -6,7 +6,7 @@ import httpx
 import random
 import uuid
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -357,3 +357,4 @@ RULES:
             
     # If all attempts fail, use fallback
     return FALLBACK_QUIZ
+

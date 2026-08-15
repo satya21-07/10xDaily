@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -123,3 +123,18 @@ class DailySpiritualLesson(Base):
 
     # Relationships
     source_passage = relationship("SpiritualSource", back_populates="lessons")
+
+class DailyOnThisDayEvent(Base):
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(String(10), unique=True, index=True, nullable=False) # YYYY-MM-DD
+    month = Column(Integer)
+    day = Column(Integer)
+    year = Column(String(50))
+    title = Column(String(255))
+    description = Column(Text)
+    category = Column(String(100))
+    country = Column(String(100))
+    source_name = Column(String(100))
+    source_url = Column(String(255))
+    why_it_matters = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

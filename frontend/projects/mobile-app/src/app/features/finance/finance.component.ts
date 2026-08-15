@@ -9,7 +9,7 @@ import {
   arrowBack, walletOutline, trendingUpOutline, cashOutline, 
   chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, 
   globeOutline, calculatorOutline, informationCircleOutline, warningOutline,
-  statsChartOutline, alarmOutline, timeOutline, shieldCheckmarkOutline
+  statsChartOutline, alarmOutline, timeOutline, shieldCheckmarkOutline, personCircleOutline
 } from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
@@ -103,7 +103,7 @@ export class FinanceComponent implements OnInit {
       arrowBack, walletOutline, trendingUpOutline, cashOutline, 
       chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, 
       globeOutline, calculatorOutline, informationCircleOutline, warningOutline,
-      statsChartOutline, alarmOutline, timeOutline, shieldCheckmarkOutline
+      statsChartOutline, alarmOutline, timeOutline, shieldCheckmarkOutline, personCircleOutline
     });
   }
 

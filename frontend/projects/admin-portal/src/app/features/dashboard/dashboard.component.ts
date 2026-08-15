@@ -18,13 +18,21 @@ export class DashboardComponent implements OnInit {
   private apiUrl = environment.apiUrl;
 
   stats = {
-    users: 1542,
-    activeToday: 423,
-    totalContent: 124
+    users: 0,
+    activeToday: 0,
+    totalContent: 0
   };
 
   ngOnInit() {
-    // In a real app, fetch stats from an admin endpoint
-    // this.http.get(`${this.apiUrl}/admin/stats`).subscribe(data => this.stats = data);
+    this.http.get<any>(`${this.apiUrl}/admin/stats`).subscribe({
+      next: (data) => {
+        this.stats.users = data.users || 0;
+        this.stats.activeToday = data.activeToday || 0;
+        this.stats.totalContent = data.totalContent || 0;
+      },
+      error: (err) => {
+        console.error('Error fetching admin stats:', err);
+      }
+    });
   }
 }

@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class CodingProblemBase(BaseModel):
     title: str
@@ -27,3 +27,4 @@ class CodingProblem(CodingProblemBase):
 
     class Config:
         from_attributes = True
+

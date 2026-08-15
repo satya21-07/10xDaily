@@ -1,0 +1,66 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/games"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mini Sudoku</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reset()" [disabled]="isCompleted">
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [scrollY]="false">
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="label">TIME</span>
+      <span class="value">{{ timerFormatted }}</span>
+    </div>
+  </div>
+
+  <div class="grid-container" *ngIf="levelData">
+    <div class="sudoku-grid">
+      <div class="grid-row" *ngFor="let row of grid">
+        <div class="sudoku-cell" 
+             *ngFor="let cell of row" 
+             [class.fixed]="cell.isFixed"
+             [class.selected]="cell.isSelected"
+             [class.error]="cell.hasError"
+             [class.hinted]="cell.isHinted"
+             [class.animate-complete]="cell.animateComplete"
+             [class.border-right]="cell.col === 2"
+             [class.border-bottom]="cell.row === 1 || cell.row === 3"
+             (click)="selectCell(cell)">
+          {{ cell.val !== 0 ? cell.val : '' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="numpad-container" *ngIf="!isCompleted">
+    <div class="numpad-row">
+      <button class="numpad-btn" *ngFor="let num of [1, 2, 3]" (click)="inputNumber(num)">{{ num }}</button>
+    </div>
+    <div class="numpad-row">
+      <button class="numpad-btn" *ngFor="let num of [4, 5, 6]" (click)="inputNumber(num)">{{ num }}</button>
+    </div>
+    <div class="numpad-row centered">
+      <button class="numpad-btn action" (click)="eraseNumber()">
+        <ion-icon name="backspace"></ion-icon>
+      </button>
+      <button class="numpad-btn action hint" (click)="showHint()">
+        <ion-icon name="bulb"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="success-overlay" *ngIf="isCompleted">
+    <div class="success-content">
+      <h2>Brilliant!</h2>
+      <p>You solved the puzzle in {{ timerFormatted }}.</p>
+      <button class="primary-btn" (click)="goBack()">Back to Hub</button>
+    </div>
+  </div>
+</ion-content>

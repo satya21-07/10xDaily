@@ -6,7 +6,7 @@ from app.db.session import get_db
 from app.models.core_models import User
 from app.services.quote_service import get_daily_quote
 from app.core.cache import get_cache, set_cache
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -27,3 +27,4 @@ def get_random_quote(
     set_cache(cache_key, quote_data, expire=86400)
     
     return quote_data
+

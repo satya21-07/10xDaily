@@ -46,6 +46,52 @@
   color: var(--ion-color-primary, #007aff);
 }
 
+.center-play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+  
+  .circle-btn {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary, #9c27b0));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: 0px; // Float slightly above the bar
+    box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
+    animation: gameBounce 2.5s infinite;
+    
+    ion-icon {
+      font-size: 32px;
+      color: white;
+    }
+  }
+}
+
+@keyframes gameBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+  30% {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 12px 24px rgba(var(--ion-color-primary-rgb), 0.6);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+  70% {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(var(--ion-color-primary-rgb), 0.5);
+  }
+}
+
 :host-context(.ion-palette-dark) {
   .custom-tab-bar {
     background: rgba(28, 28, 30, 0.85);

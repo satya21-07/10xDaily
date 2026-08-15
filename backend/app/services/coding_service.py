@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -175,3 +175,4 @@ def generate_daily_coding_lesson() -> dict:
     except Exception as e:
         logger.error(f"Error generating Groq content: {e}")
         return FALLBACK_DATA
+

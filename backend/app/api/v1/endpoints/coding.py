@@ -17,7 +17,7 @@ def get_daily_coding_problem(
     """Retrieve the daily AI generated coding lesson."""
     from app.services.coding_service import generate_daily_coding_lesson
     from app.core.cache import get_cache, set_cache
-    from datetime import datetime, timezone
+    from datetime import datetime, timedelta, timezone
     
     # We cache it per day so we don't spam the Gemini API on every page load
     day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
@@ -33,3 +33,4 @@ def get_daily_coding_problem(
     set_cache(cache_key, lesson_data, expire=86400)
     
     return lesson_data
+

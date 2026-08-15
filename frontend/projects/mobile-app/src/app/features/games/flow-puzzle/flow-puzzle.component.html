@@ -1,0 +1,86 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/games"></ion-back-button>
+    </ion-buttons>
+    <ion-title>LEVEL {{ levelData?.grid_size || 5 }}x{{ levelData?.grid_size || 5 }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reset()" [disabled]="isCompleted">
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="label">TIME:</span>
+      <span class="value">{{ formattedTime }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="label">MOVES:</span>
+      <span class="value">{{ moves }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="label">LINES:</span>
+      <span class="value">{{ completedLines }}/{{ totalLines }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="label">FILL:</span>
+      <span class="value">{{ fillPercentage }}%</span>
+    </div>
+  </div>
+
+  <div class="game-board-container">
+    <div class="game-board" [style.grid-template-columns]="'repeat(' + gridSize + ', 1fr)'">
+      <ng-container *ngFor="let row of grid; let y = index">
+        <ng-container *ngFor="let cell of row; let x = index">
+          <div class="grid-cell" 
+               [attr.data-x]="x" 
+               [attr.data-y]="y"
+               (touchstart)="onTouchStart($event, cell)"
+               (mousedown)="onMouseDown($event, cell)"
+               (mouseenter)="onMouseEnter(cell)">
+               
+            <!-- The pipe container shows the path connections -->
+            <div class="pipe-container" *ngIf="cell.color">
+              <div class="pipe center" [style.background]="cell.color"></div>
+              <div class="pipe top" *ngIf="cell.connections.top" [style.background]="cell.color"></div>
+              <div class="pipe right" *ngIf="cell.connections.right" [style.background]="cell.color"></div>
+              <div class="pipe bottom" *ngIf="cell.connections.bottom" [style.background]="cell.color"></div>
+              <div class="pipe left" *ngIf="cell.connections.left" [style.background]="cell.color"></div>
+            </div>
+            
+            <!-- Endpoint dot -->
+            <div class="endpoint" *ngIf="cell.isEndpoint" [style.background]="cell.color"></div>
+          </div>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <ion-button class="control-btn undo-btn" expand="block" (click)="undo()" [disabled]="isCompleted">
+      <ion-icon slot="start" name="arrow-undo"></ion-icon>
+      UNDO
+    </ion-button>
+    <ion-button class="control-btn reset-btn" expand="block" (click)="reset()" [disabled]="isCompleted">
+      <ion-icon slot="start" name="refresh"></ion-icon>
+      RESET
+    </ion-button>
+    <ion-button class="control-btn hint-btn" expand="block" (click)="hint()" [disabled]="isCompleted">
+      <ion-icon slot="start" name="bulb"></ion-icon>
+      HINT
+    </ion-button>
+  </div>
+  
+  <div class="completion-overlay" *ngIf="isCompleted">
+    <div class="completion-card">
+      <h2>Puzzle Solved!</h2>
+      <p *ngIf="!alreadyCompletedToday">You earned XP and updated your streak!</p>
+      <p *ngIf="alreadyCompletedToday">Great job! Come back tomorrow for a new puzzle.</p>
+      <ion-button expand="block" (click)="goBack()">Back to Games</ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class BookmarkBase(BaseModel):
     title: str
@@ -20,3 +20,4 @@ class BookmarkResponse(BookmarkBase):
 
     class Config:
         from_attributes = True
+

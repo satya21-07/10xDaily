@@ -1,0 +1,63 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/games"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Word Search</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="showHint()" [disabled]="isCompleted">
+        <ion-icon slot="icon-only" name="bulb"></ion-icon>
+      </ion-button>
+      <ion-button (click)="reset()" [disabled]="isCompleted">
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [scrollY]="false">
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="label">WORDS</span>
+      <span class="value">{{ foundWords.length }}/{{ targetWords.length }}</span>
+    </div>
+    <div class="stat">
+      <span class="label">TIME</span>
+      <span class="value">{{ timerFormatted }}</span>
+    </div>
+  </div>
+
+  <div class="grid-container" *ngIf="levelData">
+    <div class="word-grid">
+      <div class="grid-row" *ngFor="let row of grid">
+        <div class="letter-cell" 
+             *ngFor="let cell of row" 
+             [attr.data-x]="cell.x" 
+             [attr.data-y]="cell.y"
+             [class.selected]="cell.isSelected"
+             [class.found]="cell.isFound"
+             [class.hinted]="cell.isHinted"
+             [style.background-color]="cell.isFound ? cell.color : ''"
+             (touchstart)="onTouchStart($event, cell)"
+             (mousedown)="onTouchStart($event, cell)">
+          {{ cell.letter }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="words-list-container">
+    <div class="word-item" *ngFor="let word of targetWords" [class.found]="foundWords.includes(word)">
+      <ion-icon name="checkmark-circle" *ngIf="foundWords.includes(word)"></ion-icon>
+      <span>{{ word }}</span>
+    </div>
+  </div>
+
+  <div class="success-overlay" *ngIf="isCompleted">
+    <div class="success-content">
+      <h2>Outstanding!</h2>
+      <p>You found all 10 words in {{ timerFormatted }}.</p>
+      <button class="primary-btn" (click)="goBack()">Back to Hub</button>
+    </div>
+  </div>
+</ion-content>

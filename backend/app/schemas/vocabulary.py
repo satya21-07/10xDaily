@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class DefinitionItem(BaseModel):
     part_of_speech: Optional[str] = None
@@ -49,3 +49,4 @@ class DailyVocabularyResponse(BaseModel):
     date: str
     total: int
     words: List[VocabularyWord]
+

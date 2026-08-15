@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
@@ -255,3 +255,4 @@ def get_or_generate_daily_health_lesson(db: Session) -> DailyHealthLesson:
         if existing:
             return DailyHealthLesson.from_orm(existing)
         raise
+

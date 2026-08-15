@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class NewsArticleBase(BaseModel):
     title: str
@@ -30,3 +30,4 @@ class SavedNewsResponse(NewsArticleBase):
 
     class Config:
         from_attributes = True
+

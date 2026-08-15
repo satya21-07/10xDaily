@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from datetime import datetime, timezone, date
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
@@ -251,3 +251,4 @@ def get_or_generate_daily_finance_lesson(db: Session, country: str = "IN") -> Da
         if existing:
             return existing
         raise
+

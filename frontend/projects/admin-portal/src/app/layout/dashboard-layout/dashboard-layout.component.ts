@@ -28,7 +28,7 @@ export class DashboardLayoutComponent {
   menuItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { path: '/content', icon: 'article', label: 'Content Manager' },
-    { path: '/users', icon: 'people', label: 'Users (Coming Soon)' },
+    { path: '/users', icon: 'people', label: 'Users' },
     { path: '/analytics', icon: 'analytics', label: 'Analytics (Coming Soon)' }
   ];
 }

@@ -4,7 +4,7 @@ import logging
 import json
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from app.models.vocabulary import VocabularyWord, DailyVocabulary
 from app.utils.curated_words import CURATED_WORDS
@@ -251,3 +251,4 @@ def get_or_generate_daily_words(db: Session, limit: int = 10) -> list[Vocabulary
         final_words.append(m.word)
         
     return final_words
+

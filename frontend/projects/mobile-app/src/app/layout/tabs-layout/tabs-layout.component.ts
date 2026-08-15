@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { home, helpCircle, bookmark, person } from 'ionicons/icons';
+import { home, helpCircle, bookmark, person, gameController } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs-layout',
@@ -13,6 +13,6 @@ import { home, helpCircle, bookmark, person } from 'ionicons/icons';
 })
 export class TabsLayoutComponent {
   constructor() {
-    addIcons({ home, helpCircle, bookmark, person });
+    addIcons({ home, helpCircle, bookmark, person, gameController });
   }
 }

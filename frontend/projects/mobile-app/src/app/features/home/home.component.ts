@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { notificationsOutline, flame, bookOutline, newspaperOutline, codeSlashOutline, fitnessOutline, medkitOutline, walletOutline, rocket, refreshOutline, chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline } from 'ionicons/icons';
+import { notificationsOutline, flame, bookOutline, newspaperOutline, codeSlashOutline, fitnessOutline, medkitOutline, walletOutline, rocket, refreshOutline, chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline, personCircleOutline } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { QuoteService, DailyQuote } from '../../services/quote.service';
@@ -32,7 +32,8 @@ export class HomeComponent implements OnInit {
       notificationsOutline, flame, bookOutline, 
       newspaperOutline, codeSlashOutline, fitnessOutline, 
       medkitOutline, walletOutline, rocket, refreshOutline,
-      chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline
+      chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline,
+      personCircleOutline
     });
   }
 

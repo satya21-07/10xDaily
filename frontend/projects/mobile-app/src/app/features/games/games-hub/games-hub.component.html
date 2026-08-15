@@ -1,0 +1,164 @@
+<ion-content class="games-hub-content">
+  <!-- Header -->
+  <div class="header">
+    <div class="menu-btn" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </div>
+    <div class="title">Game Hub</div>
+    
+    <div class="header-right">
+      <div class="coin-pill">
+        <div class="coin-icon"></div>
+        <span class="coin-amount">{{ userProfile?.xp || 0 }}</span>
+        <div class="add-btn">
+          <ion-icon name="add-circle"></ion-icon>
+        </div>
+      </div>
+      <!-- <div class="avatar-container">
+        <img [src]="userProfile?.avatarUrl || 'assets/avatar-placeholder.png'" alt="Avatar" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random'"/>
+        <div class="status-dot"></div>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <div class="hero-content">
+      <!-- <div class="streak-badge">
+        🔥 {{ userProfile?.streak || 0 }} Day Streak
+      </div> -->
+      <h1>Keep the streak<br/>Sharpen your mind</h1>
+      <p>Play daily, improve daily!</p>
+      <button class="daily-challenge-btn">
+        Daily Challenge <ion-icon name="arrow-forward"></ion-icon>
+      </button>
+    </div>
+    <div class="hero-graphics">
+      <!-- Approximating 3D graphics with large icon -->
+      <ion-icon name="trophy" class="trophy-icon"></ion-icon>
+      <div class="confetti confetti-1"></div>
+      <div class="confetti confetti-2"></div>
+      <div class="confetti confetti-3"></div>
+      <div class="coin coin-1"></div>
+      <div class="coin coin-2"></div>
+      <div class="pedestal"></div>
+    </div>
+  </div>
+
+  <!-- Daily Games Section -->
+  <div class="section-header">
+    <div class="section-title">
+      <h2>Daily Games</h2>
+      <p>New challenges every day</p>
+    </div>
+    <!-- <button class="calendar-btn">
+      <ion-icon name="calendar-outline"></ion-icon> View Calendar
+    </button> -->
+  </div>
+
+  <div class="games-list">
+    
+    <!-- Word Search Card -->
+    <div class="game-card">
+      <div class="card-left word-search-bg">
+        <div class="ws-icon">
+          <div class="ws-grid">
+            <span>W</span><span class="highlight">O</span>
+            <span>R</span><span>D</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-main">
+        <div class="card-badges">
+          <span class="badge badge-new" *ngIf="!wordSearchCompleted">New</span>
+          <span class="badge badge-done" *ngIf="wordSearchCompleted"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+        </div>
+        <h3>Word Search</h3>
+        <p>Find all 10 hidden words in the grid before time runs out.</p>
+        <div class="streak-mini">🔥 {{ wordSearchStreak }} Day Streak</div>
+      </div>
+      <div class="card-right">
+        <div class="stat-pill">
+          <div class="stat-icon timer-icon"><ion-icon name="timer-outline"></ion-icon></div>
+          <div class="stat-text">
+            <span class="stat-label">Best Time</span>
+            <span class="stat-val">{{ wordSearchTime }}</span>
+          </div>
+        </div>
+        <button class="play-btn" [class.btn-primary]="!wordSearchCompleted" [class.btn-success]="wordSearchCompleted" routerLink="/games/word-search">
+          {{ wordSearchCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!wordSearchCompleted"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mini Sudoku Card -->
+    <div class="game-card">
+      <div class="card-left sudoku-bg">
+        <div class="sudoku-icon">
+          <div class="su-grid">
+            <span>1</span><span>3</span>
+            <span>6</span><span></span>
+            <!-- <span></span><span>2</span>
+            <span>4</span><span></span> -->
+          </div>
+        </div>
+      </div>
+      <div class="card-main">
+        <div class="card-badges">
+          <span class="badge badge-new" *ngIf="!miniSudokuCompleted">New</span>
+          <span class="badge badge-done" *ngIf="miniSudokuCompleted"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+        </div>
+        <h3>Mini Sudoku</h3>
+        <p>Solve the 6×6 Sudoku grid by filling 1-6 in every row, column & block.</p>
+        <div class="streak-mini">🔥 {{ miniSudokuStreak }} Day Streak</div>
+      </div>
+      <div class="card-right">
+        <div class="stat-pill">
+          <div class="stat-icon timer-icon"><ion-icon name="timer-outline"></ion-icon></div>
+          <div class="stat-text">
+            <span class="stat-label">Time Taken</span>
+            <span class="stat-val">{{ miniSudokuTime }}</span>
+          </div>
+        </div>
+        <button class="play-btn" [class.btn-primary]="!miniSudokuCompleted" [class.btn-success]="miniSudokuCompleted" routerLink="/games/mini-sudoku">
+          {{ miniSudokuCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!miniSudokuCompleted"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Flow Free Card -->
+    <div class="game-card">
+      <div class="card-left flow-bg">
+        <div class="flow-icon">
+          <div class="fl-grid">
+            <span class="dot red"></span><span class="line red"></span>
+            <span class="dot blue"></span><span class="line blue"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card-main">
+        <div class="card-badges">
+          <span class="badge badge-hot" *ngIf="!flowCompleted">🔥 Hot</span>
+          <span class="badge badge-done" *ngIf="flowCompleted"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+        </div>
+        <h3>Flow Free</h3>
+        <p>Connect matching colors with pipes to create a flow across the entire grid.</p>
+        <div class="streak-mini">🔥 {{ flowStreak }} Day Streak</div>
+      </div>
+      <div class="card-right">
+        <div class="stat-pill">
+          <div class="stat-icon timer-icon"><ion-icon name="timer-outline"></ion-icon></div>
+          <div class="stat-text">
+            <span class="stat-label">Time Taken</span>
+            <span class="stat-val">{{ flowTime }}</span>
+          </div>
+        </div>
+        <button class="play-btn" [class.btn-primary]="!flowCompleted" [class.btn-success]="flowCompleted" routerLink="/games/flow">
+          {{ flowCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!flowCompleted"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</ion-content>

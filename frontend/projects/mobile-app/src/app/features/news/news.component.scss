@@ -197,7 +197,11 @@ ion-header {
     
     .item-main {
       .title { color: #FFFFFF; }
-      .meta .source { color: #DDDDDD; }
+      .meta {
+        color: #A0A0A0;
+        .source { color: #DDDDDD; }
+        .date { color: #A0A0A0; }
+      }
       .summary { color: #BBBBBB; }
     }
     

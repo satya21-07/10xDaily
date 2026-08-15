@@ -3,7 +3,7 @@ import logging
 import xml.etree.ElementTree as ET
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 logger = logging.getLogger(__name__)
@@ -94,3 +94,4 @@ def get_or_fetch_daily_news(category: str, limit: int = 10) -> list[dict]:
     """
     articles_data = fetch_rss_news(category, limit)
     return articles_data
+

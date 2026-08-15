@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
@@ -62,6 +62,7 @@ class UserUpdate(UserBase):
 class UserInDBBase(UserBase):
     id: Optional[int] = None
     created_at: Optional[datetime] = None
+    last_login_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
@@ -71,3 +72,4 @@ class User(UserInDBBase):
 
 class UserInDB(UserInDBBase):
     hashed_password: str
+

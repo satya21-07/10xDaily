@@ -471,7 +471,9 @@ ion-header {
   .type-chip.other-chip { background: #2C2C2E; color: #DDD; }
   
   .generic-item .item-main .title, .news-item .item-main .title, .vocab-layout .middle-section .header-row .word-title { color: #FFFFFF; }
+  .generic-item .item-main .meta, .news-item .item-main .meta { color: #A0A0A0; }
   .generic-item .item-main .meta .source, .news-item .item-main .meta .source { color: #DDD; }
+  .generic-item .item-main .meta .date, .news-item .item-main .meta .date { color: #A0A0A0; }
   .generic-item .item-main .summary, .news-item .item-main .summary { color: #BBB; }
   .generic-item .item-main .sub-block .sub-label { color: #DDD; }
   .generic-item .item-main .sub-block .sub-value { color: #AAA; }

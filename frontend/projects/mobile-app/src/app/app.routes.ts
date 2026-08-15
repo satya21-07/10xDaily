@@ -37,11 +37,30 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/help-support/help-support.component').then(m => m.HelpSupportComponent)
       },
       {
+        path: 'games',
+        loadComponent: () => import('./features/games/games-hub/games-hub.component').then(m => m.GamesHubComponent)
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full'
       }
     ]
+  },
+  {
+    path: 'games/flow',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/games/flow-puzzle/flow-puzzle.component').then(m => m.FlowPuzzleComponent)
+  },
+  {
+    path: 'games/word-search',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/games/word-search/word-search.component').then(m => m.WordSearchComponent)
+  },
+  {
+    path: 'games/mini-sudoku',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/games/mini-sudoku/mini-sudoku.component').then(m => m.MiniSudokuComponent)
   },
   {
     path: 'login',

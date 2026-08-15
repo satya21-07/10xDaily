@@ -3,9 +3,12 @@ import json
 import logging
 import random
 import httpx
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from app.models.core_models import DailyOnThisDayEvent
 
 load_dotenv()
 
@@ -13,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 INDIA_TZ = ZoneInfo("Asia/Kolkata")
 WIKIPEDIA_API_URL = "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/{month}/{day}"
-
-_cache = {}
-_cache_date = None
 
 def get_groq_client():
     api_key = os.getenv("GROQ_API_KEY")
@@ -30,7 +30,6 @@ def get_groq_client():
 def fetch_wikipedia_events(month: str, day: str) -> list:
     url = WIKIPEDIA_API_URL.format(month=month, day=day)
     try:
-        # Wikipedia requires a user-agent header
         headers = {"User-Agent": "10xDailyApp/1.0 (https://github.com/10xDaily)"}
         response = httpx.get(url, headers=headers, timeout=10.0)
         if response.status_code == 200:
@@ -42,20 +41,103 @@ def fetch_wikipedia_events(month: str, day: str) -> list:
         logger.error(f"Error fetching from Wikipedia: {e}")
     return []
 
-def enhance_event_with_groq(event: dict) -> dict:
+def score_event(event: dict) -> float:
+    """
+    Score an event based on notability heuristics to prioritize major global 
+    and audience-relevant historical events over minor or obscure ones.
+    
+    Heuristics:
+    - Number of linked Wikipedia pages (more pages = more notable).
+    - Presence of thumbnail images on linked pages.
+    - Length of Wikipedia extracts.
+    - Bonus points for matching keywords relevant to an Indian audience 
+      (e.g., independence, republic day, gandhi, etc.).
+    """
+    score = 0.0
+    pages = event.get("pages", [])
+    
+    score += len(pages) * 2.0
+    
+    for page in pages:
+        if page.get("thumbnail"):
+            score += 5.0
+        extract = page.get("extract", "")
+        score += len(extract) / 100.0
+        
+    india_power_terms = [
+        "india", "indian", "republic day", "gandhi", "isro", 
+        "space research", "kalam", "vivekananda", "bose", "shivaji", 
+        "new delhi", "bombay", "mumbai"
+    ]
+    generic_history_terms = ["independence", "constitution", "prime minister", "president", "treaty"]
+    
+    text = event.get("text", "").lower()
+    
+    # Check for direct mentions in the main text
+    for term in india_power_terms:
+        if term in text:
+            score += 300.0  # Massive boost for explicit India mentions
+            
+    for term in generic_history_terms:
+        if term in text:
+            score += 20.0
+            
+    for page in pages:
+        title = page.get("title", "").lower()
+        desc = page.get("description", "").lower()
+        
+        for term in india_power_terms:
+            if term in title or term in desc:
+                score += 150.0
+                
+        for term in generic_history_terms:
+            if term in title or term in desc:
+                score += 10.0
+                
+    return score
+
+def get_top_candidate_events(events: list, top_n: int = 5) -> list:
+    """
+    Sort events by notability score descending and return the top N.
+    """
+    scored = [(score_event(e), e) for e in events]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [e for score, e in scored[:top_n]]
+
+def choose_and_enhance_with_groq(candidates: list) -> dict:
+    """
+    We use Groq to make the final selection among the top candidate events because LLMs 
+    are better at understanding the nuanced historical significance of events than raw 
+    heuristics. Groq acts as a historian, picking the single most globally or locally 
+    significant event from the top N candidates, and simultaneously writes an engaging 
+    title, summary, and explanation of why it matters.
+    """
+    if not candidates:
+        return {}
+        
     client = get_groq_client()
     if not client:
-        return event
-
+        return candidates[0]
+        
+    candidates_text = ""
+    for i, candidate in enumerate(candidates):
+        candidates_text += f"[{i}] Year: {candidate.get('year')}\nText: {candidate.get('text')}\n\n"
+        
     prompt = f"""
-    Rewrite the following historical event description to be concise and user-friendly. 
-    Explain why this event is interesting or historically important.
+    You are a historian. From the following list of historical events, pick the SINGLE most historically 
+    significant or broadly interesting one.
     
-    Event Year: {event.get('year')}
-    Event Description: {event.get('text')}
+    CRITICAL INSTRUCTION: You are writing for an Indian audience. You MUST strongly prefer events that 
+    represent powerful, positive, and major moments in Indian history (e.g., India's independence, 
+    Indian achievements in science/space/culture, famous Indian leaders). If a major Indian event 
+    is in the list, you MUST choose it over non-Indian events.
+    
+    Candidates:
+    {candidates_text}
     
     You MUST respond with ONLY a valid JSON object matching this exact structure:
     {{
+      "chosen_index": 0,
       "title": "A short, engaging title for the event",
       "summary": "A concise 2-3 sentence explanation of what happened.",
       "why_it_matters": "A short explanation of why this event is historically important."
@@ -65,6 +147,7 @@ def enhance_event_with_groq(event: dict) -> dict:
     - Do NOT invent facts.
     - Do NOT change the year.
     - Do NOT change the core event.
+    - chosen_index MUST be between 0 and {len(candidates) - 1}.
     - Output ONLY JSON.
     """
 
@@ -73,7 +156,7 @@ def enhance_event_with_groq(event: dict) -> dict:
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant",
             temperature=0.3,
-            max_tokens=256
+            max_tokens=512
         )
         response_content = completion.choices[0].message.content
         
@@ -84,20 +167,26 @@ def enhance_event_with_groq(event: dict) -> dict:
             
         data = json.loads(response_content.strip())
         
-        event["enhanced_title"] = data.get("title")
-        event["enhanced_summary"] = data.get("summary")
-        event["why_it_matters"] = data.get("why_it_matters")
-    except Exception as e:
-        logger.error(f"Groq fallback failed for on_this_day: {e}")
+        chosen_index = data.get("chosen_index", 0)
+        if not isinstance(chosen_index, int) or chosen_index < 0 or chosen_index >= len(candidates):
+            chosen_index = 0
+            
+        chosen_event = candidates[chosen_index].copy()
+        chosen_event["enhanced_title"] = data.get("title")
+        chosen_event["enhanced_summary"] = data.get("summary")
+        chosen_event["why_it_matters"] = data.get("why_it_matters")
+        return chosen_event
         
-    return event
+    except Exception as e:
+        logger.error(f"Groq selection/enhancement failed: {e}")
+        return candidates[0]
 
 def get_fallback_event(date_obj) -> dict:
     return {
         "date": date_obj.strftime("%Y-%m-%d"),
         "month": date_obj.month,
         "day": date_obj.day,
-        "year": 1969,
+        "year": "1969",
         "title": "Apollo 11 Moon Landing",
         "description": "American astronauts Neil Armstrong and Buzz Aldrin became the first humans to walk on the Moon.",
         "category": "Science & Technology",
@@ -107,14 +196,29 @@ def get_fallback_event(date_obj) -> dict:
         "why_it_matters": "A monumental achievement in human history and space exploration."
     }
 
-def get_on_this_day_event() -> dict:
-    global _cache, _cache_date
-    
+def get_on_this_day_event(db: Session) -> dict:
     now = datetime.now(INDIA_TZ)
     current_date_str = now.strftime("%Y-%m-%d")
     
-    if _cache_date == current_date_str and _cache:
-        return _cache
+    # 1. Return existing event if it was already generated today
+    existing_event = db.query(DailyOnThisDayEvent).filter(
+        DailyOnThisDayEvent.date == current_date_str
+    ).first()
+    
+    if existing_event:
+        return {
+            "date": existing_event.date,
+            "month": existing_event.month,
+            "day": existing_event.day,
+            "year": existing_event.year,
+            "title": existing_event.title,
+            "description": existing_event.description,
+            "category": existing_event.category,
+            "country": existing_event.country,
+            "source_name": existing_event.source_name,
+            "source_url": existing_event.source_url,
+            "why_it_matters": existing_event.why_it_matters
+        }
         
     month_str = now.strftime("%m")
     day_str = now.strftime("%d")
@@ -122,44 +226,71 @@ def get_on_this_day_event() -> dict:
     events = fetch_wikipedia_events(month_str, day_str)
     
     if not events:
-        fallback = get_fallback_event(now)
-        _cache = fallback
-        _cache_date = current_date_str
-        return fallback
+        final_event_dict = get_fallback_event(now)
+    else:
+        # Get top candidates and enhance
+        candidates = get_top_candidate_events(events, top_n=5)
+        enhanced_event = choose_and_enhance_with_groq(candidates)
         
-    # Select a notable event.
-    selected_event = random.choice(events)
-    # Give priority to events with a "pages" array that is not empty
-    pages = selected_event.get("pages", [])
-    if not pages:
-        for ev in events:
-            if ev.get("pages"):
-                selected_event = ev
-                pages = ev.get("pages")
-                break
-                
-    enhanced_event = enhance_event_with_groq(selected_event)
-    
-    source_name = "Wikipedia"
-    source_url = None
-    if pages:
-        source_url = pages[0].get("content_urls", {}).get("desktop", {}).get("page")
+        pages = enhanced_event.get("pages", [])
+        source_name = "Wikipedia"
+        source_url = None
+        if pages:
+            source_url = pages[0].get("content_urls", {}).get("desktop", {}).get("page")
+            
+        final_event_dict = {
+            "date": current_date_str,
+            "month": now.month,
+            "day": now.day,
+            "year": str(enhanced_event.get("year", "Unknown Year")),
+            "title": enhanced_event.get("enhanced_title") or f"Event in {enhanced_event.get('year')}",
+            "description": enhanced_event.get("enhanced_summary") or enhanced_event.get("text"),
+            "category": "History",
+            "country": "World",
+            "source_name": source_name,
+            "source_url": source_url,
+            "why_it_matters": enhanced_event.get("why_it_matters", "")
+        }
         
-    final_event = {
-        "date": current_date_str,
-        "month": now.month,
-        "day": now.day,
-        "year": enhanced_event.get("year", "Unknown Year"),
-        "title": enhanced_event.get("enhanced_title") or f"Event in {enhanced_event.get('year')}",
-        "description": enhanced_event.get("enhanced_summary") or enhanced_event.get("text"),
-        "category": "History",
-        "country": "World",
-        "source_name": source_name,
-        "source_url": source_url,
-        "why_it_matters": enhanced_event.get("why_it_matters", "")
-    }
-    
-    _cache = final_event
-    _cache_date = current_date_str
-    
-    return final_event
+    try:
+        new_event = DailyOnThisDayEvent(
+            date=final_event_dict["date"],
+            month=final_event_dict["month"],
+            day=final_event_dict["day"],
+            year=final_event_dict["year"],
+            title=final_event_dict["title"],
+            description=final_event_dict["description"],
+            category=final_event_dict["category"],
+            country=final_event_dict["country"],
+            source_name=final_event_dict["source_name"],
+            source_url=final_event_dict["source_url"],
+            why_it_matters=final_event_dict["why_it_matters"]
+        )
+        db.add(new_event)
+        db.commit()
+    except IntegrityError:
+        # Race condition
+        db.rollback()
+        logger.warning("IntegrityError on on_this_day insert — concurrent request. Returning existing.")
+        existing_event = db.query(DailyOnThisDayEvent).filter(
+            DailyOnThisDayEvent.date == current_date_str
+        ).first()
+        if existing_event:
+            return {
+                "date": existing_event.date,
+                "month": existing_event.month,
+                "day": existing_event.day,
+                "year": existing_event.year,
+                "title": existing_event.title,
+                "description": existing_event.description,
+                "category": existing_event.category,
+                "country": existing_event.country,
+                "source_name": existing_event.source_name,
+                "source_url": existing_event.source_url,
+                "why_it_matters": existing_event.why_it_matters
+            }
+    except Exception as e:
+        logger.error(f"Error generating daily on this day event: {e}")
+        db.rollback()
+
+    return final_event_dict

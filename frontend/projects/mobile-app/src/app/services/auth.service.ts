@@ -11,6 +11,7 @@ export interface UserProfile {
   dateOfBirth?: string;
   avatarUrl: string;
   streak: number;
+  xp?: number;
   modulesExplored: number;
   aiInsights: number;
   joinDate: string;
@@ -31,6 +32,7 @@ export interface AuthResponse {
     phone_number?: string;
     date_of_birth?: string;
     streak?: number;
+    xp?: number;
     words_learned?: number;
     quiz_correct_answers?: number;
     quiz_total_answers?: number;
@@ -124,6 +126,7 @@ export class AuthService {
           const newProfile = {
             ...current,
             streak: updatedUser.current_streak || current.streak,
+            xp: updatedUser.xp,
             words_learned: updatedUser.words_learned,
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
@@ -157,6 +160,7 @@ export class AuthService {
           const newProfile = {
             ...current,
             streak: updatedUser.current_streak,
+            xp: updatedUser.xp,
             words_learned: updatedUser.words_learned,
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
@@ -210,6 +214,7 @@ export class AuthService {
       dateOfBirth: res.user.date_of_birth,
       avatarUrl: res.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.user.email}`,
       streak: res.user.streak || 1,
+      xp: res.user.xp || 0,
       modulesExplored: 0,
       aiInsights: 0,
       joinDate: new Date().toISOString(),
