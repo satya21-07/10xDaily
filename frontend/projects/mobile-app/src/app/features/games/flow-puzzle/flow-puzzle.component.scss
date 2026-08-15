@@ -1,17 +1,19 @@
 .stats-bar {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin-bottom: 20px;
   
   .stat-item {
     background: #3b3b4f;
     color: white;
-    padding: 6px 12px;
+    padding: 8px 12px;
     border-radius: 6px;
     font-weight: bold;
     font-size: 14px;
     display: flex;
-    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
     
     .label {
       color: #b0b0c0;
