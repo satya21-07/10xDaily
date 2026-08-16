@@ -19,8 +19,9 @@ if config.config_file_name is not None:
 from app.db.base import Base
 import os
 
+url = os.getenv("DATABASE_URL", "postgresql://postgres@localhost:5434/dailyknowledge")
 config.set_main_option(
-    "sqlalchemy.url", os.getenv("DATABASE_URL", "postgresql://postgres@localhost:5434/dailyknowledge")
+    "sqlalchemy.url", url.replace("%", "%%")
 )
 target_metadata = Base.metadata
 
