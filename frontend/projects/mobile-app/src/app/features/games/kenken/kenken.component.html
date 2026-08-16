@@ -1,0 +1,77 @@
+<ion-content class="game-content">
+  <div class="header" *ngIf="!won">
+    <div class="menu-btn" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </div>
+    <div class="title">KenKen</div>
+    <div style="width: 40px"></div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" *ngIf="!won">
+    <div class="stat">
+      <span class="label">TIME</span>
+      <span class="value">{{ formattedTime }}</span>
+    </div>
+  </div>
+
+  <!-- Win Message / Success Overlay -->
+  <div class="success-overlay" *ngIf="won">
+    <div class="success-content">
+      <h2>Puzzle Solved!</h2>
+      <p style="margin-bottom: 24px; font-size: 16px;">Great job! Come back<br/>tomorrow for a new puzzle.</p>
+      <button class="primary-btn" (click)="goBack()">Back to Games</button>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <div class="kenken-board" [ngStyle]="{'grid-template-columns': 'repeat(' + size + ', 1fr)'}">
+      <ng-container *ngFor="let row of grid; let r = index">
+        <div *ngFor="let cell of row; let c = index" 
+             class="kenken-cell"
+             [class.selected]="selectedCell && selectedCell[0] === r && selectedCell[1] === c"
+             [class.conflict]="conflicts[r][c]"
+             [class.cage-valid]="cellToCage[r+','+c].isValid"
+             [class.cage-invalid]="cellToCage[r+','+c].isInvalid"
+             [ngStyle]="getBorders(r, c)"
+             (click)="selectCell(r, c)"
+             tabindex="0"
+             role="button"
+             [attr.aria-label]="'Row ' + (r + 1) + ', Column ' + (c + 1) + (cell ? ', Value ' + cell : ', Empty') + (getCageLabel(r, c) ? ', Cage Clue ' + getCageLabel(r, c) : '')"
+             (keydown.enter)="selectCell(r, c)"
+             (keydown.space)="selectCell(r, c)">
+             
+          <div class="cage-label" *ngIf="getCageLabel(r, c)">
+            {{ getCageLabel(r, c) }}
+          </div>
+          
+          <div class="cell-value" *ngIf="cell !== 0">
+            {{ cell }}
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Keypad -->
+  <div class="numpad-container" *ngIf="!won">
+    <div class="numpad-row">
+      <ng-container *ngFor="let i of [].constructor(Math.ceil(size / 2)); let idx = index">
+        <button class="numpad-btn" (click)="inputNumber(idx + 1)">{{ idx + 1 }}</button>
+      </ng-container>
+    </div>
+    <div class="numpad-row">
+      <ng-container *ngFor="let i of [].constructor(size - Math.ceil(size / 2)); let idx = index">
+        <button class="numpad-btn" (click)="inputNumber(idx + 1 + Math.ceil(size / 2))">{{ idx + 1 + Math.ceil(size / 2) }}</button>
+      </ng-container>
+    </div>
+    <div class="numpad-row centered">
+      <button class="numpad-btn action hint" (click)="showHint()">
+        <ion-icon name="bulb-outline"></ion-icon>
+      </button>
+      <button class="numpad-btn action" (click)="clearCell()">
+        <ion-icon name="backspace-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+</ion-content>

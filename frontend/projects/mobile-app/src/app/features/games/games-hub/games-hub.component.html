@@ -159,6 +159,72 @@
       </div>
     </div>
 
+    <!-- Sliding Puzzle Card -->
+    <div class="game-card">
+      <div class="card-left sliding-puzzle-bg">
+        <div class="sliding-puzzle-icon">
+          <div class="sp-grid">
+            <span>1</span><span>2</span>
+            <span>3</span><span class="empty"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card-main">
+        <div class="card-badges">
+          <span class="badge badge-new" *ngIf="!slidingPuzzleCompleted">New</span>
+          <span class="badge badge-done" *ngIf="slidingPuzzleCompleted"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+        </div>
+        <h3>Sliding Puzzle</h3>
+        <p>Slide tiles into the empty space to sort them in numerical order.</p>
+        <div class="streak-mini">🔥 {{ slidingPuzzleStreak }} Day Streak</div>
+      </div>
+      <div class="card-right">
+        <div class="stat-pill">
+          <div class="stat-icon timer-icon"><ion-icon name="timer-outline"></ion-icon></div>
+          <div class="stat-text">
+            <span class="stat-label">Best Time</span>
+            <span class="stat-val">{{ slidingPuzzleTime }}</span>
+          </div>
+        </div>
+        <button class="play-btn" [class.btn-primary]="!slidingPuzzleCompleted" [class.btn-success]="slidingPuzzleCompleted" routerLink="/games/sliding-puzzle">
+          {{ slidingPuzzleCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!slidingPuzzleCompleted"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- KenKen Card -->
+    <div class="game-card">
+      <div class="card-left kenken-bg">
+        <div class="sliding-puzzle-icon">
+          <div class="sp-grid">
+            <span>2+</span><span></span>
+            <span></span><span>3*</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-main">
+        <div class="card-badges">
+          <span class="badge badge-new" *ngIf="!kenkenCompleted">New</span>
+          <span class="badge badge-done" *ngIf="kenkenCompleted"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+        </div>
+        <h3>KenKen</h3>
+        <p>Use math and logic to fill the grid so every row and column has unique numbers.</p>
+        <div class="streak-mini">🔥 {{ kenkenStreak }} Day Streak</div>
+      </div>
+      <div class="card-right">
+        <div class="stat-pill">
+          <div class="stat-icon timer-icon"><ion-icon name="timer-outline"></ion-icon></div>
+          <div class="stat-text">
+            <span class="stat-label">Best Time</span>
+            <span class="stat-val">{{ kenkenTime }}</span>
+          </div>
+        </div>
+        <button class="play-btn" [class.btn-primary]="!kenkenCompleted" [class.btn-success]="kenkenCompleted" routerLink="/games/kenken">
+          {{ kenkenCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!kenkenCompleted"></ion-icon>
+        </button>
+      </div>
+    </div>
+
   </div>
 
 </ion-content>

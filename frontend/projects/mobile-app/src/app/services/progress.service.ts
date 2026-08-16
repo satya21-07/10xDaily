@@ -97,6 +97,11 @@ export class ProgressService {
       currentSet.add(moduleId);
       this.saveState(currentSet);
       this.visitedModulesSubject.next(new Set(currentSet));
+      
+      // Increment all-time modules_explored tracker
+      if (this.authService.isLoggedIn) {
+        this.authService.updateStats({ modules_explored_increment: 1 }).subscribe();
+      }
     }
   }
 

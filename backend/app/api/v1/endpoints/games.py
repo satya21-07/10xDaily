@@ -7,7 +7,7 @@ from app.api import deps
 from app.models.core_models import User
 from app.models.games import GameProgress
 from app.schemas.user import UserUpdate # Assuming we might need something like this, or we can just update directly
-from app.services.game_generators import generate_word_search, generate_mini_sudoku
+from app.services.game_generators import generate_word_search, generate_mini_sudoku, generate_sliding_puzzle, get_or_generate_daily_kenken
 
 router = APIRouter()
 
@@ -354,3 +354,147 @@ def complete_mini_sudoku(
         "game_streak": game_streak
     }
 
+class SlidingPuzzleCompleteRequest(BaseModel):
+    time_taken: int
+    moves: int
+    size: int
+
+@router.get("/sliding-puzzle/today")
+def get_today_sliding_puzzle(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "sliding-puzzle",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    game_streak = calculate_game_streak(db, current_user.id, "sliding-puzzle")
+    level_data = generate_sliding_puzzle()
+    
+    return {
+        "completed": progress is not None,
+        "date": today_str,
+        "level": level_data,
+        "game_streak": game_streak,
+        "saved_state": progress.game_data if progress and progress.game_data else None
+    }
+
+@router.post("/sliding-puzzle/complete")
+def complete_sliding_puzzle(
+    request: SlidingPuzzleCompleteRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "sliding-puzzle",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    if progress:
+        # Check if they got a better time or just update the state
+        old_time = progress.game_data.get("time_taken", float('inf')) if progress.game_data else float('inf')
+        if request.time_taken < old_time:
+            progress.game_data = {"time_taken": request.time_taken, "moves": request.moves, "size": request.size}
+            db.commit()
+        game_streak = calculate_game_streak(db, current_user.id, "sliding-puzzle")
+        return {"message": "Sliding Puzzle progress saved!", "points_awarded": 0, "new_xp": current_user.xp, "current_streak": current_user.current_streak, "game_streak": game_streak}
+        
+    points_awarded = update_daily_streak_and_xp(db, current_user)
+        
+    new_progress = GameProgress(
+        user_id=current_user.id,
+        game_name="sliding-puzzle",
+        completion_date=today_str,
+        score=100,
+        game_data={"time_taken": request.time_taken, "moves": request.moves, "size": request.size}
+    )
+    db.add(new_progress)
+    db.commit()
+    
+    game_streak = calculate_game_streak(db, current_user.id, "sliding-puzzle")
+    
+    return {
+        "message": "Sliding Puzzle completed!",
+        "points_awarded": points_awarded,
+        "new_xp": current_user.xp,
+        "current_streak": current_user.current_streak,
+        "game_streak": game_streak
+    }
+
+class KenKenCompleteRequest(BaseModel):
+    time_taken: int
+    size: int
+
+@router.get("/kenken/today")
+def get_today_kenken(
+    size: int = 4,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == f"kenken-{size}",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    level_data = get_or_generate_daily_kenken(db, size)
+    game_streak = calculate_game_streak(db, current_user.id, f"kenken-{size}")
+    
+    return {
+        "completed": progress is not None,
+        "date": today_str,
+        "level": level_data,
+        "game_streak": game_streak,
+        "saved_state": progress.game_data if progress and progress.game_data else None
+    }
+
+@router.post("/kenken/complete")
+def complete_kenken(
+    request: KenKenCompleteRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    game_name = f"kenken-{request.size}"
+    
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == game_name,
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    if progress:
+        old_time = progress.game_data.get("time_taken", float('inf')) if progress.game_data else float('inf')
+        if request.time_taken < old_time:
+            progress.game_data = {"time_taken": request.time_taken, "size": request.size}
+            db.commit()
+        game_streak = calculate_game_streak(db, current_user.id, game_name)
+        return {"message": "KenKen progress saved!", "points_awarded": 0, "new_xp": current_user.xp, "current_streak": current_user.current_streak, "game_streak": game_streak}
+        
+    points_awarded = update_daily_streak_and_xp(db, current_user)
+        
+    new_progress = GameProgress(
+        user_id=current_user.id,
+        game_name=game_name,
+        completion_date=today_str,
+        score=100,
+        game_data={"time_taken": request.time_taken, "size": request.size}
+    )
+    db.add(new_progress)
+    db.commit()
+    
+    game_streak = calculate_game_streak(db, current_user.id, game_name)
+    
+    return {
+        "message": "KenKen completed!",
+        "points_awarded": points_awarded,
+        "new_xp": current_user.xp,
+        "current_streak": current_user.current_streak,
+        "game_streak": game_streak
+    }

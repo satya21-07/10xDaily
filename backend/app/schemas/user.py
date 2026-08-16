@@ -15,6 +15,7 @@ class UserBase(BaseModel):
     quiz_correct_answers: Optional[int] = 0
     quiz_total_answers: Optional[int] = 0
     modules_completed: Optional[int] = 0
+    modules_explored: Optional[int] = 0
     total_time_spent_seconds: Optional[int] = 0
     avatar: Optional[str] = None
 
@@ -31,6 +32,7 @@ class UserStatsUpdate(BaseModel):
     quiz_correct_increment: Optional[int] = 0
     quiz_total_increment: Optional[int] = 0
     modules_completed_increment: Optional[int] = 0
+    modules_explored_increment: Optional[int] = 0
     time_spent_increment_seconds: Optional[int] = 0
 
 import re

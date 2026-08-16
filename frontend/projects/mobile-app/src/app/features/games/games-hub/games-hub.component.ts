@@ -37,6 +37,14 @@ export class GamesHubComponent implements OnInit {
   miniSudokuStreak = 0;
   miniSudokuTime = '--:--';
 
+  slidingPuzzleCompleted = false;
+  slidingPuzzleStreak = 0;
+  slidingPuzzleTime = '--:--';
+
+  kenkenCompleted = false;
+  kenkenStreak = 0;
+  kenkenTime = '--:--';
+
   ngOnInit() {
     this.authService.currentUser$.subscribe(profile => {
       this.userProfile = profile;
@@ -45,7 +53,7 @@ export class GamesHubComponent implements OnInit {
     this.gamesService.getTodayFlowPuzzle().subscribe(res => {
       this.flowCompleted = res.completed;
       this.flowStreak = res.game_streak || 0;
-      if (res.completed && res.time_taken) {
+      if (res.completed && res.time_taken !== undefined) {
         this.flowTime = this.formatTime(res.time_taken);
       }
     });
@@ -53,7 +61,7 @@ export class GamesHubComponent implements OnInit {
     this.gamesService.getTodayWordSearch().subscribe(res => {
       this.wordSearchCompleted = res.completed;
       this.wordSearchStreak = res.game_streak || 0;
-      if (res.completed && res.saved_state && res.saved_state.time_taken) {
+      if (res.completed && res.saved_state && res.saved_state.time_taken !== undefined) {
         this.wordSearchTime = this.formatTime(res.saved_state.time_taken);
       }
     });
@@ -61,8 +69,24 @@ export class GamesHubComponent implements OnInit {
     this.gamesService.getTodayMiniSudoku().subscribe(res => {
       this.miniSudokuCompleted = res.completed;
       this.miniSudokuStreak = res.game_streak || 0;
-      if (res.completed && res.saved_state && res.saved_state.time_taken) {
+      if (res.completed && res.saved_state && res.saved_state.time_taken !== undefined) {
         this.miniSudokuTime = this.formatTime(res.saved_state.time_taken);
+      }
+    });
+
+    this.gamesService.getTodaySlidingPuzzle().subscribe(res => {
+      this.slidingPuzzleCompleted = res.completed;
+      this.slidingPuzzleStreak = res.game_streak || 0;
+      if (res.completed && res.saved_state && res.saved_state.time_taken !== undefined) {
+        this.slidingPuzzleTime = this.formatTime(res.saved_state.time_taken);
+      }
+    });
+
+    this.gamesService.getTodayKenKen().subscribe(res => {
+      this.kenkenCompleted = res.completed;
+      this.kenkenStreak = res.game_streak || 0;
+      if (res.completed && res.saved_state && res.saved_state.time_taken !== undefined) {
+        this.kenkenTime = this.formatTime(res.saved_state.time_taken);
       }
     });
   }

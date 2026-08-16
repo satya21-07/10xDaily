@@ -1,0 +1,62 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/games"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Sliding Puzzle</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="initGame()" [disabled]="won">
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" [scrollY]="false">
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="label">MOVES</span>
+      <span class="value">{{ moveCount }}</span>
+    </div>
+    <div class="stat">
+      <span class="label">TIME</span>
+      <span class="value">{{ formattedTime }}</span>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <div class="sliding-grid" [ngStyle]="{'grid-template-columns': 'repeat(' + boardSize + ', 1fr)'}">
+      <ng-container *ngFor="let tile of tiles; let i = index">
+          <div *ngIf="tile !== 0" 
+               class="sliding-cell"
+               [class.hinted]="tile === hintTile"
+               tabindex="0"
+               [attr.aria-label]="'Tile ' + tile"
+               (click)="onTileClick(i)"
+               (keydown)="onTileKeyDown($event, i)">
+            {{ tile }}
+            <ion-icon *ngIf="tile === hintTile && hintDirection" 
+                      [name]="'arrow-' + hintDirection + '-outline'" 
+                      class="hint-arrow"></ion-icon>
+          </div>
+        <div *ngIf="tile === 0" class="sliding-cell empty"></div>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="numpad-container" *ngIf="!won">
+    <div class="numpad-row centered">
+      <button class="numpad-btn action hint" (click)="showHint()">
+        <ion-icon name="bulb"></ion-icon> Hint
+      </button>
+    </div>
+  </div>
+
+  <div class="success-overlay" *ngIf="won">
+    <div class="success-content">
+      <h2>Puzzle Solved!</h2>
+      <p style="margin-bottom: 24px; font-size: 16px;">Great job! Come back<br/>tomorrow for a new puzzle.</p>
+      <button class="primary-btn" (click)="goBack()">Back to Games</button>
+    </div>
+  </div>
+</ion-content>

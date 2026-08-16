@@ -63,6 +63,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/games/mini-sudoku/mini-sudoku.component').then(m => m.MiniSudokuComponent)
   },
   {
+    path: 'games/sliding-puzzle',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/games/sliding-puzzle/sliding-puzzle.component').then(m => m.SlidingPuzzleComponent)
+  },
+  {
+    path: 'games/kenken',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/games/kenken/kenken.component').then(m => m.KenKenComponent)
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },

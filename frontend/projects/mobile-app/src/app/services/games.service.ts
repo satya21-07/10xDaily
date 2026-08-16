@@ -58,6 +58,35 @@ export interface TodayMiniSudokuResponse {
   saved_state?: any;
 }
 
+export interface TodaySlidingPuzzleResponse {
+  completed: boolean;
+  date: string;
+  level: {
+    board_size: number;
+    tiles: number[];
+    solution_path: number[];
+  };
+  game_streak: number;
+  saved_state?: any;
+}
+
+export interface TodayKenKenResponse {
+  completed: boolean;
+  date: string;
+  level: {
+    size: number;
+    cages: Array<{
+      id: number;
+      cells: [number, number][];
+      op: string;
+      target: number;
+    }>;
+    solution: number[][];
+  };
+  game_streak: number;
+  saved_state?: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -87,5 +116,21 @@ export class GamesService {
 
   completeMiniSudoku(timeTaken: number, grid: number[][]): Observable<CompleteFlowResponse> {
     return this.http.post<CompleteFlowResponse>(`${this.apiUrl}/mini-sudoku/complete`, { time_taken: timeTaken, grid: grid });
+  }
+
+  getTodaySlidingPuzzle(): Observable<TodaySlidingPuzzleResponse> {
+    return this.http.get<TodaySlidingPuzzleResponse>(`${this.apiUrl}/sliding-puzzle/today`);
+  }
+
+  completeSlidingPuzzle(timeTaken: number, moves: number, size: number): Observable<CompleteFlowResponse> {
+    return this.http.post<CompleteFlowResponse>(`${this.apiUrl}/sliding-puzzle/complete`, { time_taken: timeTaken, moves: moves, size: size });
+  }
+
+  getTodayKenKen(size: number = 4): Observable<TodayKenKenResponse> {
+    return this.http.get<TodayKenKenResponse>(`${this.apiUrl}/kenken/today?size=${size}`);
+  }
+
+  completeKenKen(timeTaken: number, size: number): Observable<CompleteFlowResponse> {
+    return this.http.post<CompleteFlowResponse>(`${this.apiUrl}/kenken/complete`, { time_taken: timeTaken, size: size });
   }
 }

@@ -135,8 +135,9 @@ export class ProfileComponent implements OnInit {
   }
   
   get totalXp(): number {
-    const modules = this.user?.modules_completed || 0;
-    return (this.user?.streak || 0) * 10 + (modules * 100); // Also include streak in XP just to make it cool, or just modules
+    const modules = this.user?.modulesExplored || 0;
+    // console.log('modules', this.user);
+    return  modules * 100; // Also include streak in XP just to make it cool, or just modules
   }
   
   get timeLearned(): string {

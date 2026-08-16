@@ -73,6 +73,7 @@ def login_access_token(
             "quiz_correct_answers": user.quiz_correct_answers,
             "quiz_total_answers": user.quiz_total_answers,
             "modules_completed": user.modules_completed,
+            "modules_explored": user.modules_explored,
             "total_time_spent_seconds": user.total_time_spent_seconds
         }
     }
@@ -123,6 +124,7 @@ def register(
             "quiz_correct_answers": user.quiz_correct_answers,
             "quiz_total_answers": user.quiz_total_answers,
             "modules_completed": user.modules_completed,
+            "modules_explored": user.modules_explored,
             "total_time_spent_seconds": user.total_time_spent_seconds
         }
     }
@@ -179,6 +181,7 @@ def google_auth(
                 "quiz_correct_answers": user.quiz_correct_answers,
                 "quiz_total_answers": user.quiz_total_answers,
                 "modules_completed": user.modules_completed,
+                "modules_explored": user.modules_explored,
                 "total_time_spent_seconds": user.total_time_spent_seconds
             }
         }

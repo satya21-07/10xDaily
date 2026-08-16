@@ -37,6 +37,7 @@ export interface AuthResponse {
     quiz_correct_answers?: number;
     quiz_total_answers?: number;
     modules_completed?: number;
+    modules_explored?: number;
     total_time_spent_seconds?: number;
     avatar?: string;
   };
@@ -105,6 +106,7 @@ export class AuthService {
     quiz_correct_increment?: number;
     quiz_total_increment?: number;
     modules_completed_increment?: number;
+    modules_explored_increment?: number;
     time_spent_increment_seconds?: number;
   }): Observable<any> {
     console.log('[AuthService] Attempting to update stats:', increments);
@@ -131,6 +133,7 @@ export class AuthService {
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
             modules_completed: updatedUser.modules_completed,
+            modulesExplored: updatedUser.modules_explored,
             total_time_spent_seconds: updatedUser.total_time_spent_seconds
           };
           this.currentUserSubject.next(newProfile);
@@ -165,6 +168,7 @@ export class AuthService {
             quiz_correct_answers: updatedUser.quiz_correct_answers,
             quiz_total_answers: updatedUser.quiz_total_answers,
             modules_completed: updatedUser.modules_completed,
+            modulesExplored: updatedUser.modules_explored,
             total_time_spent_seconds: updatedUser.total_time_spent_seconds,
             phoneNumber: updatedUser.phone_number,
             dateOfBirth: updatedUser.date_of_birth
@@ -215,7 +219,7 @@ export class AuthService {
       avatarUrl: res.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.user.email}`,
       streak: res.user.streak || 1,
       xp: res.user.xp || 0,
-      modulesExplored: 0,
+      modulesExplored: res.user.modules_explored || 0,
       aiInsights: 0,
       joinDate: new Date().toISOString(),
       words_learned: res.user.words_learned || 0,

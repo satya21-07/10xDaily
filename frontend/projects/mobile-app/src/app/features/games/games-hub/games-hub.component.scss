@@ -317,8 +317,11 @@
     &.flow-bg {
       background: linear-gradient(135deg, #fb923c, #f97316);
     }
+    &.sliding-puzzle-bg {
+      background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    }
     
-    .ws-grid, .su-grid, .fl-grid {
+    .ws-grid, .su-grid, .fl-grid, .sp-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 4px;
@@ -344,6 +347,8 @@
     }
     
     .su-grid span { color: #10b981; }
+    .sp-grid span { color: #8b5cf6; }
+    .sp-grid .empty { background: rgba(0,0,0,0.2); }
     
     .fl-grid {
       position: relative;

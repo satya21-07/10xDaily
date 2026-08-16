@@ -78,6 +78,9 @@ def update_user_stats(
     if stats_in.modules_completed_increment:
         current_user.modules_completed = (current_user.modules_completed or 0) + stats_in.modules_completed_increment
         
+    if stats_in.modules_explored_increment:
+        current_user.modules_explored = (current_user.modules_explored or 0) + stats_in.modules_explored_increment
+        
     if stats_in.time_spent_increment_seconds:
         current_user.total_time_spent_seconds = (current_user.total_time_spent_seconds or 0) + stats_in.time_spent_increment_seconds
 
