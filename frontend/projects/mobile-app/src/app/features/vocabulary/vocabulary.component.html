@@ -19,100 +19,93 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="vocabulary-content">
+<ion-content class="vocabulary-content" [scrollY]="false">
   <app-loader *ngIf="isLoading" message="Fetching vocabulary..."></app-loader>
 
-  <div class="vocabulary-container" *ngIf="!isLoading && currentWord">
-    <!-- Main Word Card -->
-    <div class="card word-card">
-      <div class="word-card-top">
-        <div class="word-title-group">
-          <h1>{{ currentWord.word }}</h1>
-          <ion-button fill="clear" (click)="playAudio(currentWord)" class="pronounce-icon-btn">
-            <ion-icon name="volume-high-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-        </div>
-        <span class="difficulty-tag" [ngClass]="currentWord.difficulty?.toLowerCase()">{{ currentWord.difficulty | uppercase }}</span>
-      </div>
-      <p class="pronunciation" *ngIf="currentWord.pronunciation">{{ currentWord.pronunciation }}</p>
-      
-      <div class="word-card-bottom">
-        <div class="pos-tags" *ngIf="currentWord.part_of_speech">
-          <span class="pos-tag" *ngFor="let pos of currentWord.part_of_speech">{{ pos }}</span>
-        </div>
-        <!-- <button class="learned-dropdown" (click)="toggleLearned(currentWord)" [class.active]="currentWord.learned">
-          <ion-icon name="checkmark-outline" *ngIf="currentWord.learned"></ion-icon>
-          <span>Learned</span>
-          <ion-icon name="chevron-down-outline"></ion-icon>
-        </button> -->
-      </div>
-    </div>
-
-    <!-- Definitions Card -->
-    <div class="card definitions-card" *ngIf="currentWord.definitions && currentWord.definitions.length > 0">
-      <div class="card-header">
-        <h2>DEFINITIONS</h2>
-        <!-- <div class="card-actions header-actions">
-          <ion-button fill="clear" class="icon-btn"><ion-icon name="thumbs-up-outline" slot="icon-only"></ion-icon></ion-button>
-          <ion-button fill="clear" class="icon-btn"><ion-icon name="bookmark-outline" slot="icon-only"></ion-icon></ion-button>
-        </div> -->
-      </div>
-      
-      <div class="definition-list">
-        <div class="definition-item" *ngFor="let def of currentWord.definitions; let i = index">
-          <div class="def-number">{{ i + 1 }}</div>
-          <div class="def-content">
-            <div class="def-top">
-              <span class="def-pos" *ngIf="def.part_of_speech">{{ def.part_of_speech }}</span>
+  <div class="words-slider" *ngIf="!isLoading && words.length > 0" (scroll)="onScroll($event)" #slider>
+    <div class="word-slide" *ngFor="let currentWord of words; let wordIndex = index">
+      <div class="vocabulary-container">
+        <!-- Main Word Card -->
+        <div class="card word-card">
+          <div class="word-card-top">
+            <div class="word-title-group">
+              <h1>{{ currentWord.word }}</h1>
+              <ion-button fill="clear" (click)="playAudio(currentWord)" class="pronounce-icon-btn">
+                <ion-icon name="volume-high-outline" slot="icon-only"></ion-icon>
+              </ion-button>
             </div>
-            <p class="def-text">{{ def.definition }}</p>
-            <div class="example-box" *ngIf="def.example">
-              <div class="example-title">
-                <div class="quote-icon-container">
-                    <span class="quote-icon">“</span>
+            <span class="difficulty-tag" [ngClass]="currentWord.difficulty?.toLowerCase()">{{ currentWord.difficulty | uppercase }}</span>
+          </div>
+          <p class="pronunciation" *ngIf="currentWord.pronunciation">{{ currentWord.pronunciation }}</p>
+          
+          <div class="word-card-bottom">
+            <div class="pos-tags" *ngIf="currentWord.part_of_speech">
+              <span class="pos-tag" *ngFor="let pos of currentWord.part_of_speech">{{ pos }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Definitions Card -->
+        <div class="card definitions-card" *ngIf="currentWord.definitions && currentWord.definitions.length > 0">
+          <div class="card-header">
+            <h2>DEFINITIONS</h2>
+          </div>
+          
+          <div class="definition-list">
+            <div class="definition-item" *ngFor="let def of currentWord.definitions; let i = index">
+              <div class="def-number">{{ i + 1 }}</div>
+              <div class="def-content">
+                <div class="def-top">
+                  <span class="def-pos" *ngIf="def.part_of_speech">{{ def.part_of_speech }}</span>
                 </div>
-                <h3>Example</h3>
+                <p class="def-text">{{ def.definition }}</p>
+                <div class="example-box" *ngIf="def.example">
+                  <div class="example-title">
+                    <div class="quote-icon-container">
+                        <span class="quote-icon">“</span>
+                    </div>
+                    <h3>Example</h3>
+                  </div>
+                  <p>“{{ def.example }}”</p>
+                </div>
               </div>
-              <p>“{{ def.example }}”</p>
             </div>
           </div>
         </div>
+
+        <!-- Synonyms & Antonyms Card -->
+        <div class="card synonyms-antonyms-card" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) || (currentWord.antonyms && currentWord.antonyms.length > 0)">
+          <h2>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="swap-icon">
+                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            SYNONYMS & ANTONYMS
+          </h2>
+          
+          <div class="sa-grid">
+            <!-- Synonyms -->
+            <div class="sa-column synonyms" [class.full-width]="!currentWord.antonyms || currentWord.antonyms.length === 0">
+              <h3><span class="dot green"></span> Synonyms</h3>
+              <div class="pill-container" *ngIf="currentWord.synonyms && currentWord.synonyms.length > 0">
+                <span class="pill green" *ngFor="let syn of currentWord.synonyms">{{ syn }}</span>
+              </div>
+            </div>
+            
+            <!-- Divider for desktop -->
+            <div class="divider" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) && (currentWord.antonyms && currentWord.antonyms.length > 0)"></div>
+
+            <!-- Antonyms -->
+            <div class="sa-column antonyms" *ngIf="currentWord.antonyms && currentWord.antonyms.length > 0">
+              <h3><span class="dot red"></span> Antonyms</h3>
+              <div class="pill-container">
+                <span class="pill red" *ngFor="let ant of currentWord.antonyms">{{ ant }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- Synonyms & Antonyms Card -->
-    <div class="card synonyms-antonyms-card" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) || (currentWord.antonyms && currentWord.antonyms.length > 0)">
-      <h2>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="swap-icon">
-            <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        SYNONYMS & ANTONYMS
-      </h2>
-      
-      <div class="sa-grid">
-        <!-- Synonyms -->
-        <div class="sa-column synonyms" [class.full-width]="!currentWord.antonyms || currentWord.antonyms.length === 0">
-          <h3><span class="dot green"></span> Synonyms</h3>
-          <div class="pill-container" *ngIf="currentWord.synonyms && currentWord.synonyms.length > 0">
-            <span class="pill green" *ngFor="let syn of currentWord.synonyms">{{ syn }}</span>
-          </div>
-          <a href="#" class="view-all green" *ngIf="currentWord.synonyms && currentWord.synonyms.length > 0" (click)="$event.preventDefault()">View all synonyms <ion-icon name="arrow-forward-outline"></ion-icon></a>
-        </div>
-        
-        <!-- Divider for desktop -->
-        <div class="divider" *ngIf="(currentWord.synonyms && currentWord.synonyms.length > 0) && (currentWord.antonyms && currentWord.antonyms.length > 0)"></div>
-
-        <!-- Antonyms -->
-        <div class="sa-column antonyms" *ngIf="currentWord.antonyms && currentWord.antonyms.length > 0">
-          <h3><span class="dot red"></span> Antonyms</h3>
-          <div class="pill-container">
-            <span class="pill red" *ngFor="let ant of currentWord.antonyms">{{ ant }}</span>
-          </div>
-          <a href="#" class="view-all red" (click)="$event.preventDefault()">View all antonyms <ion-icon name="arrow-forward-outline"></ion-icon></a>
-        </div>
-      </div>
-    </div>
-
   </div>
 </ion-content>
 

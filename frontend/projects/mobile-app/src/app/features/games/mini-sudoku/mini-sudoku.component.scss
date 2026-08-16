@@ -47,14 +47,20 @@ ion-content {
 .sudoku-grid {
   display: flex;
   flex-direction: column;
-  background: #333;
-  padding: 2px;
+  background: white;
+  border: 3px solid #333;
+  padding: 0;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .grid-row {
   display: flex;
+  
+  &:last-child .sudoku-cell {
+    border-bottom: none;
+  }
 }
 
 .sudoku-cell {
@@ -67,8 +73,15 @@ ion-content {
   font-weight: 500;
   color: var(--ion-color-primary);
   background: white;
-  margin: 1px;
+  margin: 0;
+  box-sizing: border-box;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
   transition: all 0.2s ease;
+  
+  &:last-child {
+    border-right: none;
+  }
   
   &.fixed {
     font-weight: 800;
@@ -81,6 +94,7 @@ ion-content {
     transform: scale(1.05);
     z-index: 2;
     border-radius: 4px;
+    box-shadow: 0 0 0 1px var(--ion-color-primary);
   }
   
   &.error {
@@ -101,11 +115,11 @@ ion-content {
   }
   
   &.border-right {
-    margin-right: 3px;
+    border-right: 2px solid #333 !important;
   }
   
   &.border-bottom {
-    margin-bottom: 3px;
+    border-bottom: 2px solid #333 !important;
   }
 }
 
@@ -238,8 +252,23 @@ ion-content {
     color: #e5e5ea;
   }
   
+  .sudoku-grid {
+    border-color: #666;
+    background: #1c1c1e;
+  }
+  
   .sudoku-cell {
     background: #2c2c2e;
+    border-right-color: #444;
+    border-bottom-color: #444;
+    
+    &.border-right {
+      border-right-color: #666 !important;
+    }
+    
+    &.border-bottom {
+      border-bottom-color: #666 !important;
+    }
     
     &.fixed {
       background: #1c1c1e;

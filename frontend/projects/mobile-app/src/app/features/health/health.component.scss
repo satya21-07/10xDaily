@@ -518,6 +518,20 @@ ion-content {
     border-radius: 4px;
     background: $surface;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &.checked {
+      background: $green;
+      border-color: $green;
+      
+      ion-icon {
+        color: #ffffff;
+        font-size: 12px;
+      }
+    }
   }
 }
 
@@ -637,6 +651,11 @@ ion-content {
   .habit-card .checkbox-box {
     background: #1C1C1E;
     border-color: #555555;
+    
+    &.checked {
+      background: $green;
+      border-color: $green;
+    }
   }
   
   .source-card .retrieved {

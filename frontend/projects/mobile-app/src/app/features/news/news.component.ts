@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { NewsService } from '../../services/news.service';
@@ -19,6 +19,8 @@ import { AuthService } from '../../services/auth.service';
   host: { 'class': 'ion-page' }
 })
 export class NewsComponent implements OnInit {
+  @ViewChild('slider') slider?: ElementRef<HTMLElement>;
+  
   private newsService = inject(NewsService);
   private progressService = inject(ProgressService);
   private authService = inject(AuthService);
@@ -67,7 +69,28 @@ export class NewsComponent implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.loadNews(); // Refresh to get updated save states if changed elsewhere
+    this.loadNews();
+  }
+  
+  onScroll(event: Event) {
+    const el = event.target as HTMLElement;
+    const index = Math.round(el.scrollLeft / el.clientWidth);
+    const newSegment = this.categories[index].value;
+    
+    if (this.segment !== newSegment) {
+      this.segment = newSegment;
+      this.loadNews();
+      this.scrollToActiveTab();
+    }
+  }
+
+  scrollToActiveTab() {
+    setTimeout(() => {
+       const activeTab = document.querySelector('.category-tab.active');
+       if (activeTab) {
+          activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+       }
+    }, 50);
   }
 
   toggleSaveArticle(article: NewsArticle, event: Event) {
@@ -115,7 +138,19 @@ export class NewsComponent implements OnInit {
 
   segmentChanged(event: any) {
     this.segment = event.detail.value;
+    
+    // Sync slider position with segment change
+    const index = this.categories.findIndex(c => c.value === this.segment);
+    if (this.slider && this.slider.nativeElement && index !== -1) {
+      const el = this.slider.nativeElement;
+      el.scrollTo({
+        left: el.clientWidth * index,
+        behavior: 'smooth'
+      });
+    }
+    
     this.loadNews();
+    this.scrollToActiveTab();
   }
 
   openUrl(url: string | undefined) {

@@ -16,7 +16,7 @@
       <div *ngFor="let cat of categories" 
            class="category-tab" 
            [class.active]="segment === cat.value"
-           (click)="segment = cat.value; loadNews()">
+           (click)="segmentChanged({ detail: { value: cat.value } })">
         {{ cat.label }}
       </div>
     </div>
@@ -28,32 +28,40 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <app-loader *ngIf="isLoading" message="Fetching latest news..."></app-loader>
-
-  <div *ngIf="!isLoading" class="news-list">
-    <div class="news-item" *ngFor="let article of articles">
-      <!-- <div class="category-label">{{ article.category | uppercase }}</div> -->
+  <div class="horizontal-swiper" (scroll)="onScroll($event)" #slider>
+    <div class="swipe-slide" *ngFor="let cat of categories">
       
-      <div class="item-body">
-        <div class="item-main" (click)="openUrl(article.url)">
-          <h2 class="title">{{ article.title }}</h2>
-          <div class="meta">
-            <span class="source">{{ article.source }}</span>
-            <span class="dot">•</span>
-            <span class="date">{{ article.published_at | date:'short' }}</span>
+      <!-- Only render content if this slide is the active segment -->
+      <div *ngIf="segment === cat.value" class="slide-content-wrapper">
+        <app-loader *ngIf="isLoading" message="Fetching latest news..."></app-loader>
+
+        <div *ngIf="!isLoading" class="news-list">
+          <div class="news-item" *ngFor="let article of articles">
+            
+            <div class="item-body">
+              <div class="item-main" (click)="openUrl(article.url)">
+                <h2 class="title">{{ article.title }}</h2>
+                <div class="meta">
+                  <span class="source">{{ article.source }}</span>
+                  <span class="dot">•</span>
+                  <span class="date">{{ article.published_at | date:'short' }}</span>
+                </div>
+                <p class="summary">{{ article.summary }}</p>
+              </div>
+              <div class="item-actions">
+                <ion-icon 
+                  [name]="article.is_saved ? 'bookmark' : 'bookmark-outline'" 
+                  class="action-icon bookmark"
+                  [class.saved]="article.is_saved"
+                  (click)="toggleSaveArticle(article, $event)">
+                </ion-icon>
+                <ion-icon name="chevron-forward-outline" class="action-icon" (click)="openUrl(article.url)"></ion-icon>
+              </div>
+            </div>
           </div>
-          <p class="summary">{{ article.summary }}</p>
-        </div>
-        <div class="item-actions">
-          <ion-icon 
-            [name]="article.is_saved ? 'bookmark' : 'bookmark-outline'" 
-            class="action-icon bookmark"
-            [class.saved]="article.is_saved"
-            (click)="toggleSaveArticle(article, $event)">
-          </ion-icon>
-          <ion-icon name="chevron-forward-outline" class="action-icon" (click)="openUrl(article.url)"></ion-icon>
         </div>
       </div>
+      
     </div>
   </div>
 </ion-content>

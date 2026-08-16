@@ -9,6 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class ProgressService {
   private visitedModulesSubject = new BehaviorSubject<Set<string>>(new Set());
+  private completedHabitsSubject = new BehaviorSubject<Set<string>>(new Set());
   private authService = inject(AuthService);
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl || 'http://localhost:8000/api/v1';
@@ -18,6 +19,7 @@ export class ProgressService {
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user ? user.id || null : null;
       this.loadState();
+      this.loadHabitState();
     });
   }
   
@@ -25,6 +27,12 @@ export class ProgressService {
     const today = new Date();
     const userIdPrefix = this.currentUserId ? `${this.currentUserId}_` : '';
     return `10xdaily_progress_${userIdPrefix}${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+  }
+
+  private getTodayHabitsKey(): string {
+    const today = new Date();
+    const userIdPrefix = this.currentUserId ? `${this.currentUserId}_` : '';
+    return `10xdaily_habits_${userIdPrefix}${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
   }
 
   private loadState() {
@@ -115,5 +123,84 @@ export class ProgressService {
   
   get currentExploredCount(): number {
     return this.visitedModulesSubject.value.size;
+  }
+
+  // --- Habits Progress ---
+  private loadHabitState() {
+    if (this.currentUserId !== null) {
+      if (this.authService.isLoggedIn) {
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${this.authService.getToken()}`
+        });
+        this.http.get<{completed_habits: string[]}>(`${this.apiUrl}/users/me/progress/habits`, { headers }).pipe(
+          catchError(() => {
+            this.loadHabitStateFromStorage();
+            return of({completed_habits: []});
+          })
+        ).subscribe(res => {
+          if (res && res.completed_habits && res.completed_habits.length > 0) {
+            this.completedHabitsSubject.next(new Set(res.completed_habits));
+          } else {
+            this.loadHabitStateFromStorage();
+          }
+        });
+      } else {
+        this.loadHabitStateFromStorage();
+      }
+    } else {
+      this.completedHabitsSubject.next(new Set());
+    }
+  }
+
+  private loadHabitStateFromStorage() {
+    if (typeof window !== 'undefined' && window.localStorage && this.currentUserId !== null) {
+      const todayKey = this.getTodayHabitsKey();
+      const stored = localStorage.getItem(todayKey);
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          this.completedHabitsSubject.next(new Set(arr));
+        } catch(e) {
+          console.error("Failed to parse habits", e);
+        }
+      } else {
+        this.completedHabitsSubject.next(new Set());
+      }
+    } else {
+      this.completedHabitsSubject.next(new Set());
+    }
+  }
+
+  private saveHabitState(habits: Set<string>) {
+    if (typeof window !== 'undefined' && window.localStorage && this.currentUserId !== null) {
+      const todayKey = this.getTodayHabitsKey();
+      localStorage.setItem(todayKey, JSON.stringify(Array.from(habits)));
+    }
+    
+    if (this.authService.isLoggedIn) {
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      });
+      this.http.post(`${this.apiUrl}/users/me/progress/habits`, { completed_habits: Array.from(habits) }, { headers })
+        .subscribe({
+          error: (err) => console.error('Failed to sync habits progress', err)
+        });
+    }
+  }
+
+  toggleHabit(habitTitle: string) {
+    if (this.currentUserId === null) return;
+    const currentSet = this.completedHabitsSubject.value;
+    if (currentSet.has(habitTitle)) {
+      currentSet.delete(habitTitle);
+    } else {
+      currentSet.add(habitTitle);
+    }
+    this.saveHabitState(currentSet);
+    this.completedHabitsSubject.next(new Set(currentSet));
+  }
+
+  isHabitCompleted(habitTitle: string): boolean {
+    return this.completedHabitsSubject.value.has(habitTitle);
   }
 }

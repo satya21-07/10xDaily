@@ -8,7 +8,7 @@ import {
   arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
   chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
   leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
-  documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline
+  documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline, checkmark
 } from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
@@ -43,7 +43,7 @@ export class HealthComponent implements OnInit {
       arrowBack, fitnessOutline, restaurantOutline, barbellOutline, waterOutline,
       chevronDownOutline, chevronUpOutline, bookmarkOutline, bookmark, bodyOutline,
       leafOutline, timeOutline, checkmarkCircleOutline, informationCircleOutline,
-      documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline
+      documentTextOutline, openOutline, bedOutline, pulseOutline, heartOutline, nutritionOutline,searchOutline, personCircleOutline, checkmark
     });
   }
 
@@ -123,5 +123,32 @@ export class HealthComponent implements OnInit {
 
   markCompleted() {
     this.progressService.markVisited('health');
+  }
+
+  formatMacro(value: any): string {
+    if (value === undefined || value === null) return '-';
+    if (typeof value === 'number') {
+      return (Math.round(value * 100) / 100).toString();
+    }
+    if (typeof value === 'string') {
+      const match = value.match(/^([\d.]+)\s*(.*)$/);
+      if (match) {
+        const num = parseFloat(match[1]);
+        const unit = match[2];
+        if (!isNaN(num)) {
+          const formattedNum = Math.round(num * 100) / 100;
+          return unit ? `${formattedNum}${unit}` : `${formattedNum}`;
+        }
+      }
+    }
+    return String(value);
+  }
+
+  toggleHabit(habitTitle: string) {
+    this.progressService.toggleHabit(habitTitle);
+  }
+
+  isHabitCompleted(habitTitle: string): boolean {
+    return this.progressService.isHabitCompleted(habitTitle);
   }
 }

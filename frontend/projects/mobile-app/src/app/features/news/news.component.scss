@@ -210,3 +210,26 @@ ion-header {
     }
   }
 }
+
+.horizontal-swiper {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  height: 100%;
+  scrollbar-width: none; 
+  &::-webkit-scrollbar {
+    display: none; 
+  }
+}
+
+.swipe-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: center;
+  
+  .slide-content-wrapper {
+    height: 100%;
+  }
+}

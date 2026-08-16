@@ -145,6 +145,9 @@ from pydantic import BaseModel
 class ModulesProgressUpdate(BaseModel):
     visited_modules: List[str]
 
+class HabitsProgressUpdate(BaseModel):
+    completed_habits: List[str]
+
 @router.get("/me/progress/modules")
 def get_today_modules_progress(
     db: Session = Depends(deps.get_db),
@@ -191,3 +194,48 @@ def update_today_modules_progress(
     
     return {"message": "Modules progress saved!"}
 
+@router.get("/me/progress/habits")
+def get_today_habits_progress(
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "completed_habits",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    return {
+        "completed_habits": progress.game_data.get("completed_habits", []) if progress and progress.game_data else []
+    }
+
+@router.post("/me/progress/habits")
+def update_today_habits_progress(
+    request: HabitsProgressUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    today_str = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+    progress = db.query(GameProgress).filter(
+        GameProgress.user_id == current_user.id,
+        GameProgress.game_name == "completed_habits",
+        GameProgress.completion_date == today_str
+    ).first()
+    
+    if progress:
+        progress.game_data = {"completed_habits": request.completed_habits}
+        db.commit()
+        return {"message": "Habits progress updated!"}
+        
+    new_progress = GameProgress(
+        user_id=current_user.id,
+        game_name="completed_habits",
+        completion_date=today_str,
+        score=0,
+        game_data={"completed_habits": request.completed_habits}
+    )
+    db.add(new_progress)
+    db.commit()
+    
+    return {"message": "Habits progress saved!"}

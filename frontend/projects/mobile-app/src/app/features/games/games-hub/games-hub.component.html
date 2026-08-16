@@ -29,9 +29,9 @@
       </div> -->
       <h1>Keep the streak<br/>Sharpen your mind</h1>
       <p>Play daily, improve daily!</p>
-      <button class="daily-challenge-btn">
+      <!-- <button class="daily-challenge-btn">
         Daily Challenge <ion-icon name="arrow-forward"></ion-icon>
-      </button>
+      </button> -->
     </div>
     <div class="hero-graphics">
       <!-- Approximating 3D graphics with large icon -->
@@ -59,7 +59,7 @@
   <div class="games-list">
     
     <!-- Word Search Card -->
-    <div class="game-card">
+    <div class="game-card" routerLink="/games/word-search">
       <div class="card-left word-search-bg">
         <div class="ws-icon">
           <div class="ws-grid">
@@ -85,14 +85,14 @@
             <span class="stat-val">{{ wordSearchTime }}</span>
           </div>
         </div>
-        <button class="play-btn" [class.btn-primary]="!wordSearchCompleted" [class.btn-success]="wordSearchCompleted" routerLink="/games/word-search">
+        <button class="play-btn" [class.btn-primary]="!wordSearchCompleted" [class.btn-success]="wordSearchCompleted">
           {{ wordSearchCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!wordSearchCompleted"></ion-icon>
         </button>
       </div>
     </div>
 
     <!-- Mini Sudoku Card -->
-    <div class="game-card">
+    <div class="game-card" routerLink="/games/mini-sudoku">
       <div class="card-left sudoku-bg">
         <div class="sudoku-icon">
           <div class="su-grid">
@@ -120,14 +120,14 @@
             <span class="stat-val">{{ miniSudokuTime }}</span>
           </div>
         </div>
-        <button class="play-btn" [class.btn-primary]="!miniSudokuCompleted" [class.btn-success]="miniSudokuCompleted" routerLink="/games/mini-sudoku">
+        <button class="play-btn" [class.btn-primary]="!miniSudokuCompleted" [class.btn-success]="miniSudokuCompleted">
           {{ miniSudokuCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!miniSudokuCompleted"></ion-icon>
         </button>
       </div>
     </div>
 
     <!-- Flow Free Card -->
-    <div class="game-card">
+    <div class="game-card" routerLink="/games/flow">
       <div class="card-left flow-bg">
         <div class="flow-icon">
           <div class="fl-grid">
@@ -153,14 +153,14 @@
             <span class="stat-val">{{ flowTime }}</span>
           </div>
         </div>
-        <button class="play-btn" [class.btn-primary]="!flowCompleted" [class.btn-success]="flowCompleted" routerLink="/games/flow">
+        <button class="play-btn" [class.btn-primary]="!flowCompleted" [class.btn-success]="flowCompleted">
           {{ flowCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!flowCompleted"></ion-icon>
         </button>
       </div>
     </div>
 
     <!-- Sliding Puzzle Card -->
-    <div class="game-card">
+    <div class="game-card" routerLink="/games/sliding-puzzle">
       <div class="card-left sliding-puzzle-bg">
         <div class="sliding-puzzle-icon">
           <div class="sp-grid">
@@ -186,14 +186,14 @@
             <span class="stat-val">{{ slidingPuzzleTime }}</span>
           </div>
         </div>
-        <button class="play-btn" [class.btn-primary]="!slidingPuzzleCompleted" [class.btn-success]="slidingPuzzleCompleted" routerLink="/games/sliding-puzzle">
+        <button class="play-btn" [class.btn-primary]="!slidingPuzzleCompleted" [class.btn-success]="slidingPuzzleCompleted">
           {{ slidingPuzzleCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!slidingPuzzleCompleted"></ion-icon>
         </button>
       </div>
     </div>
 
     <!-- KenKen Card -->
-    <div class="game-card">
+    <div class="game-card" routerLink="/games/kenken">
       <div class="card-left kenken-bg">
         <div class="sliding-puzzle-icon">
           <div class="sp-grid">
@@ -219,7 +219,7 @@
             <span class="stat-val">{{ kenkenTime }}</span>
           </div>
         </div>
-        <button class="play-btn" [class.btn-primary]="!kenkenCompleted" [class.btn-success]="kenkenCompleted" routerLink="/games/kenken">
+        <button class="play-btn" [class.btn-primary]="!kenkenCompleted" [class.btn-success]="kenkenCompleted">
           {{ kenkenCompleted ? 'See You Tomorrow' : 'Play Now' }} <ion-icon name="arrow-forward" *ngIf="!kenkenCompleted"></ion-icon>
         </button>
       </div>

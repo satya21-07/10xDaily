@@ -67,10 +67,38 @@ ion-content {
   }
 }
 
+.words-slider {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  height: 100%;
+  scrollbar-width: none; 
+  &::-webkit-scrollbar {
+    display: none; 
+  }
+}
+
+.word-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .vocabulary-container {
   padding: 4px 16px;
   max-width: 800px;
   margin: 0 auto;
+  padding-bottom: 24px;
 }
 
 /* Common Card Styles */

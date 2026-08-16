@@ -14,9 +14,9 @@ ion-content {
   display: flex;
   justify-content: space-between;
   background: white;
-  padding: 16px 24px;
+  padding: 10px 20px;
   border-radius: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   
   .stat {
@@ -107,7 +107,7 @@ ion-content {
   
   .word-item {
     background: white;
-    padding: 8px 14px;
+    padding: 4px 8px;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;

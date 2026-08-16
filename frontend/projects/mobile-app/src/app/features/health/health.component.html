@@ -120,11 +120,11 @@
           <div class="food-item" *ngFor="let food of lesson.nutrition_tip.featured_foods">
             <h4>{{ food.name }}</h4>
             <div class="macros">
-              <div class="macro"><span class="value">{{ food.calories }}</span><span class="label">Cal</span></div>
-              <div class="macro"><span class="value">{{ food.protein }}</span><span class="label">Protein</span></div>
-              <div class="macro"><span class="value">{{ food.carbs }}</span><span class="label">Carbs</span></div>
-              <div class="macro"><span class="value">{{ food.fat }}</span><span class="label">Fat</span></div>
-              <div class="macro"><span class="value">{{ food.fiber }}</span><span class="label">Fiber</span></div>
+              <div class="macro"><span class="value">{{ formatMacro(food.calories) }}</span><span class="label">Cal</span></div>
+              <div class="macro"><span class="value">{{ formatMacro(food.protein) }}</span><span class="label">Protein</span></div>
+              <div class="macro"><span class="value">{{ formatMacro(food.carbs) }}</span><span class="label">Carbs</span></div>
+              <div class="macro"><span class="value">{{ formatMacro(food.fat) }}</span><span class="label">Fat</span></div>
+              <div class="macro"><span class="value">{{ formatMacro(food.fiber) }}</span><span class="label">Fiber</span></div>
             </div>
           </div>
         </div>
@@ -136,9 +136,11 @@
           </div>
           <span class="bottom-label">Today's Habit</span>
         </div>
-        <div class="habit-check-row">
-          <div class="checkbox-box"></div>
-          <h3 style = "margin:0px">{{ lesson.daily_habit.title }}</h3>
+        <div class="habit-check-row" (click)="toggleHabit(lesson.daily_habit.title)">
+          <div class="checkbox-box" [class.checked]="isHabitCompleted(lesson.daily_habit.title)">
+            <ion-icon name="checkmark" *ngIf="isHabitCompleted(lesson.daily_habit.title)"></ion-icon>
+          </div>
+          <h3 style="margin:0px; cursor: pointer;">{{ lesson.daily_habit.title }}</h3>
         </div>
         <p>{{ lesson.daily_habit.description }}</p>
       </div>

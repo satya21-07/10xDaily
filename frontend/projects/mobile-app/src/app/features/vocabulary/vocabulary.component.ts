@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { VocabularyService } from '../../services/vocabulary.service';
@@ -25,6 +25,8 @@ export class VocabularyComponent implements OnInit, OnDestroy {
   private bookmarkService = inject(BookmarkService);
   private authService = inject(AuthService);
   
+  @ViewChild('slider') slider?: ElementRef<HTMLElement>;
+
   words: VocabularyWord[] = [];
   currentIndex: number = 0;
   savedBookmarks: Bookmark[] = [];
@@ -144,19 +146,45 @@ export class VocabularyComponent implements OnInit, OnDestroy {
 
   next() {
     if (this.currentIndex < this.words.length - 1) {
-      this.currentIndex++;
-      if (this.currentWord) {
-        const todayWords = this.getStoredViewedWords();
-        if (!todayWords.has(this.currentWord.word)) {
-          this.sessionViewedWords.add(this.currentWord.word);
-        }
-      }
+      this.scrollToIndex(this.currentIndex + 1);
     }
   }
 
   previous() {
     if (this.currentIndex > 0) {
-      this.currentIndex--;
+      this.scrollToIndex(this.currentIndex - 1);
+    }
+  }
+
+  scrollToIndex(index: number) {
+    if (this.slider && this.slider.nativeElement) {
+      const el = this.slider.nativeElement;
+      el.scrollTo({
+        left: el.clientWidth * index,
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  onScroll(event: Event) {
+    const el = event.target as HTMLElement;
+    const index = Math.round(el.scrollLeft / el.clientWidth);
+    if (this.currentIndex !== index) {
+      this.currentIndex = index;
+      
+      // Scroll the new slide to the top
+      const slides = el.querySelectorAll('.word-slide');
+      if (slides[index]) {
+        (slides[index] as HTMLElement).scrollTop = 0;
+      }
+      
+      const currentWordObj = this.words[this.currentIndex];
+      if (currentWordObj) {
+        const todayWords = this.getStoredViewedWords();
+        if (!todayWords.has(currentWordObj.word)) {
+          this.sessionViewedWords.add(currentWordObj.word);
+        }
+      }
     }
   }
 

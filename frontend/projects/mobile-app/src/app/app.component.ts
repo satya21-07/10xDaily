@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
+import { RouterOutlet, Router, ChildrenOutletContexts } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
+import { routeTransitionAnimations } from './shared/animations/route.animations';
 import { ThemeService } from './services/theme.service';
 import { AuthService } from './services/auth.service';
 import { Subscription } from 'rxjs';
@@ -10,13 +11,15 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [RouterOutlet, IonicModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
+  animations: [routeTransitionAnimations]
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'mobile-app';
   private themeService = inject(ThemeService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private contexts = inject(ChildrenOutletContexts);
   
   private timeTrackerInterval: any;
   private inactivityTimeout: any;
@@ -83,5 +86,9 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
+  }
+
+  getRouteAnimationData() {
+    return this.contexts.getContext('primary')?.route?.snapshot?.url?.join('/') || 'default';
   }
 }
