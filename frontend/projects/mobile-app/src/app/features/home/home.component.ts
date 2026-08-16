@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { notificationsOutline, flame, bookOutline, newspaperOutline, codeSlashOutline, fitnessOutline, medkitOutline, walletOutline, rocket, refreshOutline, chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline, personCircleOutline } from 'ionicons/icons';
+import { notificationsOutline, flame, flameOutline, bookOutline, newspaperOutline, codeSlashOutline, fitnessOutline, medkitOutline, walletOutline, rocket, refreshOutline, chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline, personCircleOutline, sunnyOutline, moonOutline } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { QuoteService, DailyQuote } from '../../services/quote.service';
@@ -29,11 +29,11 @@ export class HomeComponent implements OnInit {
 
   constructor() {
     addIcons({ 
-      notificationsOutline, flame, bookOutline, 
+      notificationsOutline, flame, flameOutline, bookOutline, 
       newspaperOutline, codeSlashOutline, fitnessOutline, 
       medkitOutline, walletOutline, rocket, refreshOutline,
       chatboxEllipsesOutline, chevronForwardOutline, helpCircleOutline, playCircleOutline, arrowForwardOutline,
-      personCircleOutline
+      personCircleOutline, sunnyOutline, moonOutline
     });
   }
 
@@ -77,5 +77,27 @@ export class HomeComponent implements OnInit {
   getFirstName(name?: string): string {
     if (!name) return 'Explorer';
     return name.split(' ')[0];
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return 'EX';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
+  getGreeting(): string {
+    const hour = this.currentDate.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  getGreetingIcon(): string {
+    const hour = this.currentDate.getHours();
+    if (hour < 18) return 'sunny-outline';
+    return 'moon-outline';
   }
 }

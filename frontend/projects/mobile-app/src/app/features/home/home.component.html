@@ -13,15 +13,32 @@
 
 <ion-content>
   <div class="home-container">
-    <!-- Welcome Header -->
-    <div class="welcome-header">
-      <div class="greeting-content">
-        <h1>Hello, <span class="highlight">{{ getFirstName((authService.currentUser$ | async)?.name) }}</span> 👋</h1>
-        <p class="date">{{ currentDate | date:'EEEE, MMMM d' }}</p>
+    <!-- Custom Top Header -->
+    <div class="custom-home-header">
+      <div class="header-top-row">
+        <div class="greeting-time">
+          <ion-icon [name]="getGreetingIcon()"></ion-icon>
+          <span>{{ getGreeting() }}</span>
+        </div>
+        <div class="streak-pill-new">
+          <ion-icon name="flame-outline"></ion-icon>
+          <span>{{ (authService.currentUser$ | async)?.streak || 0 }} day streak</span>
+        </div>
       </div>
-      <div class="streak-pill">
-        <ion-icon name="flame"></ion-icon>
-        {{ (authService.currentUser$ | async)?.streak || 0 }} Day Streak
+      
+      <div class="header-bottom-row" routerLink="/profile/personal-information">
+        <ng-container *ngIf="(authService.currentUser$ | async) as user">
+          <div class="profile-picture">
+            <img *ngIf="user.avatarUrl && !user.avatarUrl.includes('dicebear')" [src]="user.avatarUrl" alt="Profile Picture" class="avatar-img" />
+            <div *ngIf="!user.avatarUrl || user.avatarUrl.includes('dicebear')" class="avatar-initials">
+              {{ getInitials(user.name) }}
+            </div>
+          </div>
+          <div class="user-details">
+            <h2>{{ getFirstName(user.name) }}</h2>
+            <p>{{ currentDate | date:'EEEE, MMMM d' }}</p>
+          </div>
+        </ng-container>
       </div>
     </div>
 
@@ -92,69 +109,64 @@
     </div>
 
     <!-- Explore Topics -->
-    <div class="section-header">
-      <h2>Explore Topics</h2>
+    <div class="section-header explore-header">
+      <h2>EXPLORE TOPICS</h2>
+      <!-- <a class="see-all-btn">See all</a> -->
     </div>
 
     <div class="topics-grid">
       <!-- Vocabulary -->
-      <div class="topic-card" routerLink="/vocabulary">
-        <div class="topic-icon green-light-bg"><ion-icon name="book-outline" class="green-text"></ion-icon></div>
+      <div class="topic-card blue-card" routerLink="/vocabulary">
+        <ion-icon name="book-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
           <h3>Vocabulary</h3>
-          <p>10 New Words</p>
+          <p>10 new words</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
 
       <!-- News -->
-      <div class="topic-card" routerLink="/news">
-        <div class="topic-icon blue-light-bg"><ion-icon name="newspaper-outline" class="blue-text"></ion-icon></div>
+      <div class="topic-card peach-card" routerLink="/news">
+        <ion-icon name="newspaper-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
-          <h3>Daily News</h3>
-          <p>India & World</p>
+          <h3>Daily news</h3>
+          <p>India and world</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
 
       <!-- Coding -->
-      <div class="topic-card" routerLink="/coding">
-        <div class="topic-icon purple-light-bg"><ion-icon name="code-slash-outline" class="purple-text"></ion-icon></div>
+      <div class="topic-card purple-card" routerLink="/coding">
+        <ion-icon name="code-slash-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
           <h3>Coding</h3>
-          <p>DSA Mastery</p>
+          <p>DSA mastery</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
 
       <!-- Finance -->
-      <div class="topic-card" routerLink="/finance">
-        <div class="topic-icon orange-light-bg"><ion-icon name="wallet-outline" class="orange-text"></ion-icon></div>
+      <div class="topic-card yellow-card" routerLink="/finance">
+        <ion-icon name="wallet-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
           <h3>Finance</h3>
-          <p>Markets & Tips</p>
+          <p>Markets and tips</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
 
       <!-- Health -->
-      <div class="topic-card" routerLink="/health">
-        <div class="topic-icon red-light-bg"><ion-icon name="fitness-outline" class="red-text"></ion-icon></div>
+      <div class="topic-card pink-card" routerLink="/health">
+        <ion-icon name="fitness-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
           <h3>Health</h3>
-          <p>Daily Fitness</p>
+          <p>Daily fitness</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
 
       <!-- Spiritual -->
-      <div class="topic-card" routerLink="/spiritual">
-        <div class="topic-icon teal-light-bg"><ion-icon name="medkit-outline" class="teal-text"></ion-icon></div>
+      <div class="topic-card mint-card" routerLink="/spiritual">
+        <ion-icon name="medkit-outline" class="topic-icon"></ion-icon>
         <div class="topic-info">
           <h3>Spiritual</h3>
           <p>Mindfulness</p>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
       </div>
     </div>
     <div style="height: 40px;"></div>
