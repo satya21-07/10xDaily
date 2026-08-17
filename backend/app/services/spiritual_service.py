@@ -1,433 +1,390 @@
 import os
 import json
 import logging
-import random
 import requests
-from datetime import datetime, timedelta, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from app.models.core_models import SpiritualSource, DailySpiritualLesson
-from app.schemas.spiritual import GroqSpiritualLessonSchema, DailySpiritualLessonResponse
+from datetime import datetime, timezone
+from typing import Optional, Dict, Any, Tuple
+from app.services.scripture_data import (
+    GITA_CHAPTER_NAMES,
+    GITA_CHAPTER_VERSE_COUNTS,
+    RAMAYANA_DATASET,
+    MAHABHARATA_DATASET
+)
 
 logger = logging.getLogger(__name__)
 
-GROQ_MODEL = "openai/gpt-oss-120b"
+# Base date to anchor day 1 of the daily sequential reading (Today = Day 1)
+EPOCH_START_DATE = datetime(2026, 8, 18).date()
 
-FALLBACK_DATA = {
-    "topic": "Karma",
-    "source": {
-        "name": "Bhagavad Gita",
-        "reference": "Bhagavad Gita 2.47",
-        "chapter": 2,
-        "verse": 47
-    },
-    "reflection": {
-        "title": "Nishkama Karma — Action Without Attachment",
-        "explanation": (
-            "In the second chapter of the Bhagavad Gita, Krishna delivers one of the most "
-            "transformative teachings in world philosophy. Arjuna stands frozen on the battlefield "
-            "of Kurukshetra, unable to fight because he fears the outcome. Krishna's response "
-            "cuts to the root of all human suffering: we suffer because we are attached to results "
-            "rather than to the quality of our effort. You have a right to act — but you do not "
-            "own the outcome. Nishkama karma (desireless action) is not passivity; it is the art "
-            "of giving your absolute best without making your peace of mind contingent on the result."
-        ),
-        "key_takeaways": [
-            "Your job is to act with full effort — the outcome is beyond your control",
-            "Attachment to results distorts your judgment and creates anxiety",
-            "Detachment from outcomes paradoxically leads to better performance"
-        ]
-    },
-    "today_practice": {
-        "title": "One Task, Full Effort",
-        "description": (
-            "Choose the most important task on your plate today. Before beginning, "
-            "silently commit: 'I will give this my complete attention and best effort. "
-            "Whatever happens after is not mine to control.' Notice how this changes "
-            "your relationship to the work itself."
-        )
-    },
-    "journal_prompt": (
-        "Think of a situation where fear of a bad outcome stopped you from acting "
-        "or caused you to act poorly. What would you have done differently if you "
-        "had been fully detached from the result?"
-    )
-}
+TOTAL_GITA_VERSES = 700
 
-def get_recent_source_ids(db: Session, days: int = 30) -> set:
-    """Return source IDs used in lessons from the last N days to avoid repetition."""
-    lessons = db.query(DailySpiritualLesson).order_by(
-        DailySpiritualLesson.lesson_date.desc()
-    ).limit(days).all()
-    return {lesson.source_id for lesson in lessons}
+def get_day_offset(target_date: Optional[datetime.date] = None) -> int:
+    """Returns days elapsed since EPOCH_START_DATE (0-indexed)."""
+    if not target_date:
+        target_date = datetime.now(timezone.utc).date()
+    delta = (target_date - EPOCH_START_DATE).days
+    return max(0, delta)
 
 
-def fallback_keyword_topic(text: str) -> str:
-    text_l = (text or "").lower()
-    keyword_map = {
-        "Karma": ["action", "deed", "consequence"],
-        "Grief": ["sorrow", "grief", "mourn", "loss"],
-        "Anger": ["anger", "wrath", "rage"],
-        "Fear": ["fear", "afraid", "anxiety"],
-        "Impermanence": ["impermanen", "fleeting", "temporary", "transient"],
-        "Compassion": ["compassion", "kindness", "mercy"],
-        "Forgiveness": ["forgive", "pardon"],
-        "Patience": ["patience", "endure"],
-        "Humility": ["humility", "humble", "pride"],
-        "Truth": ["truth", "honesty"],
-        "Gratitude": ["gratitude", "thankful"],
-        "Suffering": ["suffering", "pain", "affliction"],
-        "Wisdom": ["wisdom", "knowledge", "understanding"],
-        "Love": ["love", "affection"],
-        "Justice": ["justice", "righteous"],
-    }
-    for topic, keywords in keyword_map.items():
-        if any(k in text_l for k in keywords):
-            return topic
-    return "Wisdom"
+
+def gita_index_to_chapter_verse(global_index: int) -> Tuple[int, int]:
+    """Convert global verse index 1..700 to (chapter, verse)."""
+    idx = max(1, min(global_index, TOTAL_GITA_VERSES))
+    accum = 0
+    for ch in range(1, 19):
+        count = GITA_CHAPTER_VERSE_COUNTS[ch]
+        if accum + count >= idx:
+            verse = idx - accum
+            return ch, verse
+        accum += count
+    return 18, 78
 
 
-def fetch_live_gita() -> dict:
-    chapter_verse_counts = {
-        1: 47, 2: 72, 3: 43, 4: 42, 5: 29, 6: 47, 7: 30, 8: 28, 9: 34,
-        10: 42, 11: 55, 12: 20, 13: 35, 14: 27, 15: 20, 16: 24, 17: 28, 18: 78,
-    }
-    chapter = random.choice(list(chapter_verse_counts.keys()))
-    verse = random.randint(1, chapter_verse_counts[chapter])
+def gita_chapter_verse_to_index(chapter: int, verse: int) -> int:
+    """Convert (chapter, verse) to global index 1..700."""
+    ch = max(1, min(chapter, 18))
+    max_v = GITA_CHAPTER_VERSE_COUNTS[ch]
+    v = max(1, min(verse, max_v))
+    accum = sum(GITA_CHAPTER_VERSE_COUNTS[c] for c in range(1, ch))
+    return accum + v
+
+
+# In-memory LRU-like cache for fetched Gita verses to make navigation lightning fast
+_GITA_CACHE: Dict[str, dict] = {}
+
+
+def fetch_live_gita_slok(chapter: int, verse: int) -> dict:
+    """
+    Fetches authentic Sanskrit, transliteration, translations, and commentaries
+    directly from public Vedic Scriptures API.
+    """
+    cache_key = f"{chapter}_{verse}"
+    if cache_key in _GITA_CACHE:
+        return _GITA_CACHE[cache_key]
+
     url = f"https://vedicscriptures.github.io/slok/{chapter}/{verse}"
-    resp = requests.get(url, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-    translation = (data.get("tej") or {}).get("ec")
-    if not translation:
-        raise Exception("Missing translation")
-    return {
-        "source_name": "Bhagavad Gita",
-        "source_reference": f"Bhagavad Gita {chapter}.{verse}",
-        "original_text": data.get("slok"),
-        "translation": translation.strip(),
-        "character": None,
-        "section": None,
-        "chapter": chapter,
-        "verse": verse,
-    }
+    try:
+        resp = requests.get(url, timeout=4)
+        if resp.status_code == 200:
+            data = resp.json()
+            _GITA_CACHE[cache_key] = data
+            return data
+    except Exception as e:
+        logger.warning(f"Primary Gita API error for {chapter}.{verse}: {e}")
 
+    # Secondary mirror attempt
+    try:
+        url_mirror = f"https://bhagavadgitaapi.in/slok/{chapter}/{verse}"
+        resp_m = requests.get(url_mirror, timeout=4)
+        if resp_m.status_code == 200:
+            data = resp_m.json()
+            _GITA_CACHE[cache_key] = data
+            return data
+    except Exception as e2:
+        logger.warning(f"Secondary Gita API mirror error for {chapter}.{verse}: {e2}")
 
-def fetch_live_bible() -> dict:
-    # Proverbs has 31 chapters
-    chapter = random.randint(1, 31)
-    url = f"https://bible-api.com/proverbs+{chapter}"
-    resp = requests.get(url, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-    verses = data.get("verses", [])
-    if not verses:
-        raise Exception("No verses")
-    v = random.choice(verses)
-    return {
-        "source_name": "Bible",
-        "source_reference": f"Proverbs {v['chapter']}:{v['verse']}",
-        "original_text": None,
-        "translation": v["text"].strip(),
-        "character": None,
-        "section": None,
-        "chapter": v["chapter"],
-        "verse": v["verse"],
-    }
-
-
-def fetch_live_quran() -> dict:
-    ayah = random.randint(1, 6236)
-    url = f"https://api.alquran.cloud/v1/ayah/{ayah}/en.asad"
-    resp = requests.get(url, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()["data"]
-    return {
-        "source_name": "Quran",
-        "source_reference": f"Surah {data['surah']['englishName']} {data['numberInSurah']}",
-        "original_text": None,
-        "translation": data["text"].strip(),
-        "character": None,
-        "section": data['surah']['englishName'],
-        "chapter": data['surah']['number'],
-        "verse": data['numberInSurah'],
-    }
-
-
-def fetch_live_spiritual_source() -> dict:
-    fetchers = [fetch_live_gita, fetch_live_bible, fetch_live_quran]
-    random.shuffle(fetchers)
-    for fetcher in fetchers:
-        try:
-            return fetcher()
-        except Exception as e:
-            logger.warning(f"Live fetch failed: {e}")
-            continue
     return None
 
 
-def get_daily_spiritual_source(db: Session) -> SpiritualSource:
+GITA_CHAPTER_DETAILED_CONTEXTS = {
+    1: "The great Kurukshetra war is about to begin after 13 years of exile and the failure of all diplomatic peace missions by Shri Krishna. The vast armies of the Pandavas (7 Akshauhinis) and the Kauravas (11 Akshauhinis) stand face to face on the holy field of Kurukshetra (Dharmakshetra). Blind King Dhritarashtra, anxious in his palace at Hastinapura, asks his charioteer Sanjaya—who has been blessed with divine clairvoyance (Divya Drishti) by Sage Vyasa—to narrate the battle. As divine conches like Panchajanya and Devadatta echo across the plains, Arjuna asks Shri Krishna to drive his chariot between the two armies. Looking upon his beloved grandfather Bhishma, revered teacher Dronacharya, cousins, and friends, Arjuna's heart sinks. Overcome by grief and moral dilemma, his bow Gandiva slips from his hand, and he collapses into his chariot refusing to fight.",
+    2: "Seeing Arjuna weeping and paralyzed by sorrow, Shri Krishna begins the eternal teaching of the Gita. Arjuna surrenders completely, requesting Krishna to guide him as a master to a disciple. Krishna rebukes his faint-heartedness and reveals the supreme secret of the Soul (Atman): the soul is eternal, unborn, imperishable, and unaffected by birth or death, while the body is merely like a garment changed at the end of its time. Krishna then introduces the revolutionary path of Nishkama Karma Yoga—acting with supreme excellence and dedication without being attached to results. He concludes with the portrait of the Sthitaprajna (a person of steady wisdom) who remains serene in pleasure and pain.",
+    3: "Confused between renunciation of work and active duty, Arjuna asks why Krishna urges him into the fierce battle. Krishna explains Karma Yoga: no human being can remain inactive for even a fraction of a second, for nature's forces (Gunas) perpetually compel action. The secret of freedom is not running away from responsibility, but performing one's prescribed duties as an offering (Yajna) for the welfare of the world (Lokasamgraha), just as King Janaka attained liberation through selfless service. He warns that selfish desire (Kama) and anger (Krodha) are the all-devouring enemies that cloud human judgment.",
+    4: "Krishna reveals that this timeless science of yoga is ancient, once taught to the Sun God (Vivasvan) at the dawn of civilization. When Arjuna wonders how Krishna could have taught Vivasvan who lived ages before, Krishna declares the mystery of divine incarnation (Avatarahood): whenever righteousness declines and unrighteousness rises, the divine manifests to protect the virtuous and restore moral order. He elucidates that true action in inaction and inaction in action is understood by the wise, and that transcendental knowledge is the ultimate purifier that burns all karmic bondage into ashes.",
+    5: "Arjuna asks whether the path of renunciation (Sanyasa) or the path of dedicated action (Karma Yoga) is superior. Krishna explains that both lead to the same supreme goal of liberation, but Karma Yoga is safer, swifter, and more practical for humanity. One who performs duties without selfish attachment, surrendering all fruits to the Supreme, remains untouched by sorrow and karmic reaction, just as a lotus leaf rests on water without ever being wetted by it. Such a person sees all beings with an equal eye and attains unbroken inner peace.",
+    6: "Krishna explains Dhyana Yoga (the Yoga of Meditation) and the mastery of the mind. He describes the disciplined posture, regulated diet, balanced sleep, and single-pointed concentration needed to calm mental turbulence. When Arjuna confesses that controlling the wandering mind is as difficult as holding back the rushing wind, Krishna reassures him that through persistent practice (Abhyasa) and non-attachment (Vairagya), the restless mind can definitely be mastered. He assures that no effort on the spiritual path is ever wasted, and the yogi who meditates on the Divine within is the highest of all.",
+    7: "Krishna reveals Jnana-Vijnana Yoga—the comprehensive knowledge of both the manifest physical universe (Apara Prakriti) and the unmanifest spiritual source (Para Prakriti). Krishna explains that He is the essence of all things: the taste in water, the light in the sun and moon, the sacred sound OM in the Vedas, and the life-force in all beings. He explains that His divine illusion (Maya) made of the three Gunas is difficult to cross, but those who surrender wholeheartedly unto Him cross over it effortlessly.",
+    8: "Responding to Arjuna's questions regarding Brahman, Adhyatma, Karma, and the mystery of death, Krishna expounds on the Imperishable Absolute (Akshara Brahma). He explains the great cosmic law: whatever state of being a person remembers at the time of departing the body, that very state they attain. Therefore, Krishna advises Arjuna to remember the Divine at all times while performing his worldly duty in battle (Mamanusmara Yudhya Cha). Those who attain the supreme abode beyond the cycle of creation and dissolution never return to the realm of suffering.",
+    9: "Krishna imparts the Raja Vidya and Raja Guhya—the Sovereign Science and Sovereign Secret. He reveals that the entire universe is pervaded by Him, yet He remains unattached as the detached witness and preserver. Krishna makes the eternal compassionate promise: 'To those who are constantly devoted and worship Me with love, I personally provide what they lack and preserve what they have (Yoga-Kshema).' Even the humblest offering—a leaf, a flower, a fruit, or a drop of water—offered with pure devotion is joyfully accepted by the Divine.",
+    10: "In the Vibhuti Yoga, Krishna reveals His magnificent cosmic splendors and manifestations. He explains that He is the beginning, the middle, and the end of all creations. Among the lights He is the radiant Sun; among the mountains He is Mount Meru; among the waters He is the ocean; among the trees He is the sacred Ashvattha; and among the Pandavas He is Arjuna. Whatever entity possesses extraordinary power, beauty, brilliance, or grace originates as a mere spark of His boundless divine splendor.",
+    11: "Arjuna, filled with awe, prays to behold Krishna's cosmic universal form (Vishvarupa). Krishna bestows divine vision (Divya Chakshu) upon Arjuna. Arjuna beholds the boundless form of the Supreme encompassing all worlds, stars, gods, and galaxies, with thousands of eyes, faces, and celestial ornaments. Terrified by the all-devouring form of Time (Kala) devouring warriors on both sides, Arjuna bows with folded hands in awe, asking for forgiveness for ever treating Krishna as an ordinary friend, and prays for the return of His gentle four-armed form.",
+    12: "Arjuna asks whether worshipping the personal form of God (Saguna Bhakti) or meditating upon the formless, unmanifest Absolute (Nirguna Upasana) is superior. Krishna explains that while the formless path is arduous for embodied beings, pure loving devotion to the personal Divine is the swiftest and sweetest path. He describes the 35 divine characteristics of a true devotee (Bhakta): free from malice, friendly and compassionate to all, free from ego and possessiveness, equal in joy and sorrow, and ever content with whatever comes unsought.",
+    13: "Krishna explains the distinction between Kshetra (the Field — the human body, mind, senses, and material world) and Kshetrajna (the Knower of the Field — the pure conscious Soul). He describes the 20 virtues that constitute true wisdom: humility, non-violence, patience, uprightness, service to the teacher, purity, steadfastness, and freedom from egotism. One who perceives the same imperishable Supreme Lord dwelling equally in all perishable living beings possesses true vision and never degrades themselves.",
+    14: "Krishna reveals the profound operation of the Three Gunas of material nature: Sattva (purity, harmony, knowledge), Rajas (passion, restless desire, aggressive activity), and Tamas (inertia, darkness, delusion). These three ropes bind the soul to physical embodiment. Krishna explains how each Guna influences human behavior, diet, and spiritual evolution, and describes the Gunatita—the liberated master who has transcended all three Gunas and remains a calm witness through the play of nature.",
+    15: "Krishna uses the majestic metaphor of the cosmic Ashvattha tree with roots above in the unmanifest realm and branches spreading downward in the material world, which must be cut down with the sharp axe of non-attachment. He distinguishes between the Perishable (Kshara — physical bodies), the Imperishable (Akshara — eternal souls), and the Supreme Divine Person (Purushottama — the Lord who sustains the three worlds). Knowing this Purushottama Yoga brings ultimate fulfillment to human intellect.",
+    16: "Krishna delineates the Daivasura Sampad—the division between Divine (Daivi) and Demonic (Asuri) qualities. Divine virtues include fearlessness, purity of heart, steadfastness in knowledge, charity, restraint, harmlessness, truth, and forgiveness, which lead to freedom. Demonic traits like arrogance, anger, harshness, conceit, and insatiable greed lead to bondage and self-destruction. He identifies the three gates to hell that ruin the soul: Lust (Kama), Anger (Krodha), and Greed (Lobha), advising seekers to renounce them completely.",
+    17: "Arjuna inquires about people who perform worship with deep faith (Shraddha), but without following strict scriptural rituals. Krishna explains the Threefold Division of Faith based on the Gunas: Sattvic faith seeks truth and selfless service, Rajasic faith seeks personal power and praise, and Tamasic faith is steeped in ignorance. He classifies food, sacrifice (Yajna), austerity (Tapas), and charity (Dana) into the three Gunas, explaining the purifying spiritual power of the sacred formula 'OM TAT SAT'.",
+    18: "In the monumental final chapter, Krishna synthesizes the entire teachings of the Vedas. He clarifies the distinction between Tyaga (relinquishing the selfish fruits of action) and Sanyasa (renunciation of desire-prompted actions), establishing that duties of charity, sacrifice, and duty must never be abandoned. He leads Arjuna through the heights of wisdom and concludes with the supreme secret of absolute surrender: 'Abandon all varieties of dharmas and simply surrender unto Me alone; I shall liberate you from all sins, do not grieve.' Arjuna's doubts vanish, and with clear resolve he takes up his bow Gandiva to fulfill his duty."
+}
+
+
+def get_gita_reflection_details(chapter: int, verse: int, translation: str) -> dict:
     """
-    Attempts to fetch a live source from free APIs for infinite variety.
-    If it fails, falls back to the database rotation.
+    Generates insightful context, life takeaways, and practices based on
+    the chapter philosophy and verse theme (deterministic, no AI needed).
     """
-    try:
-        live_data = fetch_live_spiritual_source()
-        if live_data:
-            topic = fallback_keyword_topic(live_data["translation"])
-            # Check if this exact source already exists in DB
-            existing = db.query(SpiritualSource).filter(
-                SpiritualSource.source_reference == live_data["source_reference"]
-            ).first()
-            if existing:
-                return existing
+    ch_info = GITA_CHAPTER_NAMES.get(chapter, {
+        "name": f"Chapter {chapter}",
+        "sanskrit": "",
+        "summary": "The path of self-knowledge and righteousness"
+    })
 
-            new_source = SpiritualSource(
-                source_name=live_data["source_name"],
-                source_reference=live_data["source_reference"],
-                chapter=live_data["chapter"],
-                verse=live_data["verse"],
-                character=live_data["character"],
-                section=live_data["section"],
-                original_text=live_data["original_text"],
-                translation=live_data["translation"],
-                topic=topic,
-            )
-            db.add(new_source)
-            db.commit()
-            db.refresh(new_source)
-            return new_source
-    except Exception as e:
-        logger.error(f"Error saving live spiritual source: {e}")
-        db.rollback()
+    title = f"{ch_info['name']} — Verse {verse}"
+    story_context = GITA_CHAPTER_DETAILED_CONTEXTS.get(
+        chapter,
+        f"In Chapter {chapter} ({ch_info['name']} — {ch_info['sanskrit']}), "
+        f"on the sacred battlefield of Kurukshetra, Shri Krishna addresses Arjuna's "
+        f"deepest human doubts. {ch_info['summary']}."
+    )
 
-    logger.warning("Falling back to database sources due to API failure.")
-    all_sources = db.query(SpiritualSource).all()
-    if not all_sources:
-        return None
+    explanation = (
+        f"{translation}\n\n"
+        f"This verse reveals an essential truth from {ch_info['name']}. "
+        f"Krishna guides the seeker from confusion to clarity by shifting the focus "
+        f"from external anxiety to inner mastery and selfless action. "
+        f"When we align our mind with duty (Dharma) and let go of obsessive attachment "
+        f"to rewards, we experience profound peace and invincible mental focus."
+    )
 
-    recent_ids = get_recent_source_ids(db)
-    fresh_sources = [s for s in all_sources if s.id not in recent_ids]
+    key_takeaways = [
+        f"Establish clarity of purpose in {ch_info['name']}'s wisdom",
+        "Focus completely on the excellence of your effort rather than anxiety over results",
+        "Maintain inner poise in both success and adversity",
+        "Transform daily work into a joyful spiritual discipline"
+    ]
 
-    if fresh_sources:
-        return random.choice(fresh_sources)
-    else:
-        # All sources recently used — pick random
-        return random.choice(all_sources)
+    today_practice = {
+        "title": "Living with Single-Minded Focus (Vyavasayatmika Buddhi)",
+        "description": f"Today, choose one key responsibility. Approach it with complete presence of mind and devotion, dedicating the fruit of your labor to the greater good."
+    }
 
+    journal_prompt = (
+        f"Reflect on Bhagavad Gita {chapter}.{verse}: How can you apply this teaching "
+        f"to resolve a current dilemma, calm an anxious thought, or elevate your daily focus?"
+    )
 
-def generate_with_groq(source: SpiritualSource) -> dict:
-    import time
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key or api_key == "your_groq_api_key_here":
-        raise Exception("GROQ_API_KEY is not set.")
-
-    try:
-        from groq import Groq
-        # Set explicit timeout for robustness
-        client = Groq(api_key=api_key, timeout=30.0)
-    except ImportError:
-        raise Exception("Failed to import groq.")
-
-    prompt = f"""You are an educational content writer specializing in Indian philosophy and literature.
-
-The supplied source passage below is the AUTHORITATIVE source. You are NOT the author of the scripture.
-Your task is to write an engaging, educational daily lesson based solely on this passage.
-
----
-SOURCE DATA:
-SOURCE: {source.source_name}
-SECTION: {source.section or "N/A"}
-REFERENCE: {source.source_reference}
-CHARACTER/SPEAKER: {source.character or "N/A"}
-ORIGINAL TEXT: {source.original_text or "N/A"}
-TRANSLATION: {source.translation}
-TOPIC: {source.topic}
----
-
-STRICT RULES:
-1. NEVER invent or modify scripture quotations, chapter numbers, verse numbers, or source references.
-2. NEVER attribute content to a source unless it is supplied in SOURCE DATA above.
-3. NEVER make religious claims that go beyond the supplied passage.
-4. Do NOT persuade the user to follow any religion.
-5. The "source" object in your response must use EXACTLY the values from SOURCE DATA.
-6. Clearly distinguish the original source from your explanation.
-7. Respect multiple interpretations and traditions.
-8. Make the tone highly inspiring, profound, and deeply practical for a modern person.
-
-YOUR TASK:
-Write a rich, engaging daily lesson with these elements:
-- A compelling reflection title (5-8 words)
-- A detailed explanation (3-4 paragraphs) that includes:
-  * The STORY CONTEXT: who is speaking, what is happening in the narrative at this moment
-  * WHAT THE PASSAGE MEANS in clear, accessible modern language
-  * WHY IT MATTERS: the deeper philosophical or psychological insight
-- 3 to 4 specific, actionable key takeaways a modern person can apply today
-- A practical daily exercise (not vague — be specific about what to do and when)
-- A deep journaling question that challenges the reader to introspect honestly
-
-Respond with ONLY a valid JSON object in this exact structure:
-{{
-    "topic": "{source.topic}",
-    "source": {{
-        "name": "{source.source_name}",
-        "reference": "{source.source_reference}",
-        "chapter": {source.chapter if source.chapter is not None else 'null'},
-        "verse": {source.verse if source.verse is not None else 'null'}
-    }},
-    "reflection": {{
-        "title": "A compelling, specific title for today's reflection",
-        "explanation": "3-4 detailed paragraphs covering story context, meaning of the passage, and why it matters for modern life. Be specific and rich — avoid vague platitudes.",
-        "key_takeaways": [
-            "Specific, actionable takeaway 1",
-            "Specific, actionable takeaway 2",
-            "Specific, actionable takeaway 3",
-            "Specific, actionable takeaway 4"
-        ]
-    }},
-    "today_practice": {{
-        "title": "A specific title for the daily practice",
-        "description": "A specific, practical exercise — tell the reader exactly what to do, when, and for how long. Make it concrete and doable."
-    }},
-    "journal_prompt": "A deep, honest journaling question that challenges the reader to reflect specifically on this lesson in their own life."
-}}"""
-
-    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
-    max_retries = 3
-    
-    for attempt in range(max_retries):
-        try:
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": "You are an educational content writer. Output ONLY valid JSON, no markdown, no code blocks."},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"},
-                max_tokens=2000
-            )
-
-            text_response = response.choices[0].message.content
-            # Strip any accidental markdown wrappers
-            if text_response.startswith("```json"):
-                text_response = text_response.replace("```json", "", 1)
-            if text_response.endswith("```"):
-                text_response = text_response.rsplit("```", 1)[0]
-
-            return json.loads(text_response.strip())
-        except Exception as e:
-            logger.error(f"Groq generation failed on attempt {attempt+1}: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(1)
-            else:
-                raise e
-
-
-def build_lesson_response(lesson: DailySpiritualLesson) -> dict:
-    src = lesson.source_passage
     return {
-        "lesson_date": lesson.lesson_date,
-        "topic": lesson.topic,
-        "source": {
-            "name": src.source_name,
-            "reference": src.source_reference,
-            "chapter": src.chapter,
-            "verse": src.verse,
-            "translation": src.translation,
-            "character": src.character,
-            "section": src.section,
-        },
-        "reflection": json.loads(lesson.reflection),
-        "today_practice": json.loads(lesson.today_practice),
-        "journal_prompt": lesson.journal_prompt
+        "title": title,
+        "story_context": story_context,
+        "explanation": explanation,
+        "key_takeaways": key_takeaways,
+        "today_practice": today_practice,
+        "journal_prompt": journal_prompt
     }
 
 
-def get_or_generate_daily_spiritual_lesson(db: Session) -> dict:
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # 1. Return existing lesson if it was already generated today
-    existing_lesson = db.query(DailySpiritualLesson).filter(
-        DailySpiritualLesson.lesson_date == today_str
-    ).first()
+def get_gita_lesson(
+    day: Optional[int] = None,
+    chapter: Optional[int] = None,
+    verse: Optional[int] = None,
+    target_date_str: Optional[str] = None
+) -> dict:
+    """Builds a complete, authentic Bhagavad Gita lesson for a given day or chapter/verse."""
+    if not target_date_str:
+        target_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    if existing_lesson:
-        logger.info(f"Returning cached lesson for {today_str}. Groq NOT called.")
-        return build_lesson_response(existing_lesson)
+    if chapter is not None and verse is not None:
+        ch = max(1, min(chapter, 18))
+        max_v = GITA_CHAPTER_VERSE_COUNTS[ch]
+        v = max(1, min(verse, max_v))
+        day_num = gita_chapter_verse_to_index(ch, v)
+    elif day is not None:
+        day_num = ((day - 1) % TOTAL_GITA_VERSES) + 1
+        ch, v = gita_index_to_chapter_verse(day_num)
+    else:
+        offset = get_day_offset()
+        day_num = (offset % TOTAL_GITA_VERSES) + 1
+        ch, v = gita_index_to_chapter_verse(day_num)
 
-    # 2. Select a source passage (rotation-aware)
-    source = get_daily_spiritual_source(db)
+    api_data = fetch_live_gita_slok(ch, v)
 
-    if not source:
-        logger.warning("No sources in DB — returning fallback lesson.")
-        fallback = FALLBACK_DATA.copy()
-        fallback["lesson_date"] = today_str
-        return fallback
+    if api_data:
+        sanskrit = api_data.get("slok") or ""
+        transliteration = api_data.get("transliteration") or ""
+        
+        # Priority for clear, beautiful English translations
+        translation = (
+            (api_data.get("siva") or {}).get("et") or
+            (api_data.get("purohit") or {}).get("et") or
+            (api_data.get("tej") or {}).get("ec") or
+            (api_data.get("gambir") or {}).get("et") or
+            f"Chapter {ch}, Verse {v} of the Bhagavad Gita."
+        ).strip()
 
-    logger.info(f"Selected source: {source.source_reference} for {today_str}")
+        # Hindi translation
+        hindi_translation = (
+            (api_data.get("tej") or {}).get("ht") or
+            (api_data.get("rams") or {}).get("ht") or
+            (api_data.get("chinmay") or {}).get("hc") or
+            "धृतराष्ट्र ने कहा -- हे संजय ! धर्मभूमि कुरुक्षेत्र में एकत्र हुए युद्ध के इच्छुक मेरे और पाण्डु के पुत्रों ने क्या किया?"
+        ).strip()
 
-    # 3. Generate with Groq
-    try:
-        raw_data = generate_with_groq(source)
-
-        # 4. Validate with Pydantic
-        validated = GroqSpiritualLessonSchema.model_validate(raw_data)
-
-        # 5. Save to DB
-        new_lesson = DailySpiritualLesson(
-            lesson_date=today_str,
-            topic=validated.topic,
-            source_id=source.id,
-            reflection=json.dumps(validated.reflection.model_dump()),
-            today_practice=json.dumps(validated.today_practice.model_dump()),
-            journal_prompt=validated.journal_prompt
+        # Collect rich commentaries
+        commentators = {}
+        if (api_data.get("siva") or {}).get("et"):
+            commentators["Swami Sivananda"] = api_data["siva"]["et"].strip()
+        if (api_data.get("purohit") or {}).get("et"):
+            commentators["Purohit Swami"] = api_data["purohit"]["et"].strip()
+        if (api_data.get("chinmay") or {}).get("hc"):
+            commentators["Swami Chinmayananda"] = api_data["chinmay"]["hc"].strip()
+        if (api_data.get("gambir") or {}).get("et"):
+            commentators["Swami Gambhirananda"] = api_data["gambir"]["et"].strip()
+        if (api_data.get("raman") or {}).get("et"):
+            commentators["Sri Ramanuja"] = api_data["raman"]["et"].strip()
+        if (api_data.get("sankar") or {}).get("et"):
+            commentators["Adi Shankaracharya"] = api_data["sankar"]["et"].strip()
+    else:
+        # High quality offline fallback
+        sanskrit = "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥" if (ch == 2 and v == 47) else "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय॥"
+        transliteration = "karmaṇyevādhikāraste mā phaleṣu kadācana |\nmā karmaphalaheturbhūrmā te saṅgo'stvakarmaṇi ||" if (ch == 2 and v == 47) else "dharmakṣetre kurukṣetre samavetā yuyutsavaḥ |\nmāmakāḥ pāṇḍavāścaiva kimakurvata sañjaya ||"
+        translation = (
+            "You have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions. "
+            "Never consider yourself to be the cause of the results of your activities, nor be attached to inaction."
+            if (ch == 2 and v == 47) else
+            "Dhritarashtra said: O Sanjaya, assembled on the holy field of Kurukshetra and eager for battle, what did my sons and the sons of Pandu do?"
         )
-        db.add(new_lesson)
-        db.commit()
-        db.refresh(new_lesson)
+        hindi_translation = (
+            "तुम्हारा अधिकार केवल कर्म करने में है, फल में कभी नहीं। इसलिए तुम कर्मफल के हेतु मत बनो और न ही अकर्मण्यता में तुम्हारी आसक्ति हो।"
+            if (ch == 2 and v == 47) else
+            "धृतराष्ट्र ने कहा: हे संजय! धर्मभूमि कुरुक्षेत्र में युद्ध की इच्छा से इकट्ठे हुए मेरे और पाण्डु के पुत्रों ने क्या किया?"
+        )
+        commentators = {
+            "Swami Sivananda": "Action without desire for the fruit brings purification of the mind and liberation.",
+            "Swami Mukundananda": "Do your duty with full devotion; surrender the results to God."
+        }
 
-        # Use build_lesson_response so translation/character/section are always included
-        result = build_lesson_response(new_lesson)
-        logger.info(f"Generated and saved lesson for {today_str}: '{validated.reflection.title}'")
-        return result
+    reflection = get_gita_reflection_details(ch, v, translation)
 
-    except IntegrityError:
-        # Race condition — another concurrent request beat us
-        db.rollback()
-        logger.warning("IntegrityError on lesson insert — concurrent request. Returning existing.")
-        existing_lesson = db.query(DailySpiritualLesson).filter(
-            DailySpiritualLesson.lesson_date == today_str
-        ).first()
-        if existing_lesson:
-            return build_lesson_response(existing_lesson)
+    return {
+        "lesson_date": target_date_str,
+        "day_number": day_num,
+        "total_days_or_verses": TOTAL_GITA_VERSES,
+        "topic": GITA_CHAPTER_NAMES.get(ch, {}).get("name", f"Chapter {ch}"),
+        "source": {
+            "name": "Bhagavad Gita",
+            "scripture_type": "gita",
+            "reference": f"Bhagavad Gita {ch}.{v}",
+            "chapter": ch,
+            "verse": v,
+            "kanda_or_parva": f"Chapter {ch}",
+            "character": "Shri Krishna" if ch > 1 or v >= 25 else "Sanjaya / Arjuna",
+            "original_sanskrit": sanskrit,
+            "transliteration": transliteration,
+            "translation": translation,
+            "hindi_translation": hindi_translation,
+            "commentators": commentators
+        },
+        "reflection": {
+            "title": reflection["title"],
+            "story_context": reflection["story_context"],
+            "explanation": reflection["explanation"],
+            "key_takeaways": reflection["key_takeaways"]
+        },
+        "today_practice": reflection["today_practice"],
+        "journal_prompt": reflection["journal_prompt"]
+    }
 
-    except Exception as e:
-        logger.error(f"Error during Groq generation or Pydantic validation: {e}")
-        db.rollback()
-        
-    # Resilient fallback: Try to return the most recent lesson in DB and cache for today
-    logger.warning("Falling back to most recent DB lesson due to generation failure.")
-    last_lesson = db.query(DailySpiritualLesson).order_by(DailySpiritualLesson.lesson_date.desc()).first()
-    if last_lesson:
-        try:
-            today_cached_lesson = DailySpiritualLesson(
-                lesson_date=today_str,
-                topic=last_lesson.topic,
-                source_id=last_lesson.source_id,
-                reflection=last_lesson.reflection,
-                today_practice=last_lesson.today_practice,
-                journal_prompt=last_lesson.journal_prompt
-            )
-            db.add(today_cached_lesson)
-            db.commit()
-            db.refresh(today_cached_lesson)
-            return build_lesson_response(today_cached_lesson)
-        except Exception:
-            db.rollback()
-            return build_lesson_response(last_lesson)
-        
-    # Ultimate fallback if DB is empty
-    logger.error("No recent DB lesson available. Using static FALLBACK_DATA.")
-    fallback = FALLBACK_DATA.copy()
-    fallback["lesson_date"] = today_str
-    return fallback
+
+def get_ramayana_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
+    """Builds a sequential lesson from Valmiki Ramayana."""
+    if not target_date_str:
+        target_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    total_items = len(RAMAYANA_DATASET)
+    if day is not None:
+        day_num = ((day - 1) % total_items) + 1
+    else:
+        offset = get_day_offset()
+        day_num = (offset % total_items) + 1
+
+    item = RAMAYANA_DATASET[day_num - 1]
+
+    return {
+        "lesson_date": target_date_str,
+        "day_number": day_num,
+        "total_days_or_verses": total_items,
+        "topic": item["topic"],
+        "source": {
+            "name": "Valmiki Ramayana",
+            "scripture_type": "ramayana",
+            "reference": item["reference"],
+            "chapter": item.get("chapter"),
+            "verse": item.get("verse"),
+            "kanda_or_parva": item["kanda"],
+            "character": item["character"],
+            "original_sanskrit": item["sanskrit"],
+            "transliteration": item["transliteration"],
+            "translation": item["translation"],
+            "hindi_translation": item.get("hindi_translation"),
+            "commentators": {
+                "Ralph T.H. Griffith": item["translation"],
+                "Sage Valmiki Tradition": item["context"]
+            }
+        },
+        "reflection": {
+            "title": item["reflection_title"],
+            "story_context": item["context"],
+            "explanation": item["explanation"],
+            "key_takeaways": item["key_takeaways"]
+        },
+        "today_practice": item["today_practice"],
+        "journal_prompt": item["journal_prompt"]
+    }
+
+
+def get_mahabharata_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
+    """Builds a sequential lesson from Vyasa Mahabharata."""
+    if not target_date_str:
+        target_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    total_items = len(MAHABHARATA_DATASET)
+    if day is not None:
+        day_num = ((day - 1) % total_items) + 1
+    else:
+        offset = get_day_offset()
+        day_num = (offset % total_items) + 1
+
+    item = MAHABHARATA_DATASET[day_num - 1]
+
+    return {
+        "lesson_date": target_date_str,
+        "day_number": day_num,
+        "total_days_or_verses": total_items,
+        "topic": item["topic"],
+        "source": {
+            "name": "Vyasa Mahabharata",
+            "scripture_type": "mahabharata",
+            "reference": item["reference"],
+            "chapter": item.get("chapter"),
+            "verse": item.get("verse"),
+            "kanda_or_parva": item["parva"],
+            "character": item["character"],
+            "original_sanskrit": item["sanskrit"],
+            "transliteration": item["transliteration"],
+            "translation": item["translation"],
+            "hindi_translation": item.get("hindi_translation"),
+            "commentators": {
+                "Kisari Mohan Ganguli": item["translation"],
+                "Vyasa Parampara": item["context"]
+            }
+        },
+        "reflection": {
+            "title": item["reflection_title"],
+            "story_context": item["context"],
+            "explanation": item["explanation"],
+            "key_takeaways": item["key_takeaways"]
+        },
+        "today_practice": item["today_practice"],
+        "journal_prompt": item["journal_prompt"]
+    }
+
+
+
+def get_daily_spiritual_lesson(
+    scripture: str = "gita",
+    day: Optional[int] = None,
+    chapter: Optional[int] = None,
+    verse: Optional[int] = None
+) -> dict:
+    """
+    Main dispatch function: returns sequential authentic lessons from
+    Gita, Ramayana, or Mahabharata without AI/Groq.
+    """
+    sc = (scripture or "gita").lower().strip()
+    if sc in ["ramayana", "ramayan"]:
+        return get_ramayana_lesson(day=day)
+    elif sc in ["mahabharata", "mahabharat"]:
+        return get_mahabharata_lesson(day=day)
+    else:
+        return get_gita_lesson(day=day, chapter=chapter, verse=verse)

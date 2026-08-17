@@ -1,19 +1,32 @@
-from typing import Any
-from fastapi import APIRouter, Depends
+from typing import Any, Optional
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.db.session import get_db
 from app.models.core_models import User
-from app.services.spiritual_service import get_or_generate_daily_spiritual_lesson
+from app.services.spiritual_service import get_daily_spiritual_lesson
 from app.schemas.spiritual import DailySpiritualLessonResponse
 
 router = APIRouter()
 
 @router.get("/daily", response_model=DailySpiritualLessonResponse)
 def get_daily_spiritual(
+    scripture: str = Query("gita", description="Scripture type: 'gita', 'ramayana', or 'mahabharata'"),
+    day: Optional[int] = Query(None, description="Sequential day or verse index"),
+    chapter: Optional[int] = Query(None, description="Chapter number (for Gita)"),
+    verse: Optional[int] = Query(None, description="Verse number (for Gita)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ) -> Any:
-    """Retrieve the daily AI generated spiritual lesson from the database."""
-    lesson_data = get_or_generate_daily_spiritual_lesson(db)
+    """
+    Retrieve authentic sequential lessons from Bhagavad Gita,
+    Valmiki Ramayana, or Vyasa Mahabharata without AI.
+    """
+    lesson_data = get_daily_spiritual_lesson(
+        scripture=scripture,
+        day=day,
+        chapter=chapter,
+        verse=verse
+    )
     return lesson_data
+

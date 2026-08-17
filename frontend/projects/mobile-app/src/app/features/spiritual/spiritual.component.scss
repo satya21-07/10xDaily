@@ -1,23 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Rozha+One&family=Yatra+One&display=swap');
 
-/* ─── Host / Page Setup ─────────────────────────────────────── */
+/* ─── Host / Global Theme Variables ────────────────────────── */
 :host {
-  --sp-bg: #FAFAF8;
-  --sp-card: #FFFFFF;
+  --sp-bg: #FAF7F2;
+  --sp-card-bg: #FFFFFF;
+  --sp-card-surface: #FCFAF6;
+  
+  --sp-text-primary: #1C1917;
+  --sp-text-secondary: #44403C;
+  --sp-text-muted: #78716C;
 
-  --sp-text-primary: #111111;
-  --sp-text-secondary: #4A4A4A;
-  --sp-text-muted: #999999;
+  --sp-accent-primary: #B45309;      /* rich saffron-terracotta */
+  --sp-accent-gold: #D97706;         /* radiant gold */
+  --sp-accent-light: #FEF3C7;        /* soft saffron glow */
+  --sp-accent-dim: rgba(217, 119, 6, 0.08);
+  --sp-accent-deep: #78350F;
 
-  --sp-accent: #B45309;          /* warm amber */
-  --sp-accent-light: #FEF3C7;
-  --sp-accent-dim: rgba(180, 83, 9, 0.08);
+  --sp-border: #E7E0D6;
+  --sp-border-gold: rgba(217, 119, 6, 0.25);
+  --sp-divider: #EDE7DD;
 
-  --sp-border: #E8E6E1;
-  --sp-divider: #EDEDEB;
-
-  --sp-font-serif: 'Lora', Georgia, 'Times New Roman', serif;
-  --sp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sp-font-serif: 'Lora', Georgia, serif;
+  --sp-font-cinzel: 'Cinzel', serif;
+  --sp-font-sans: 'Inter', -apple-system, sans-serif;
 
   display: flex;
   flex-direction: column;
@@ -30,323 +35,708 @@ ion-content {
   --background: var(--sp-bg);
 }
 
-/* ─── Header ─────────────────────────────────────────────────── */
-ion-header {
-  ion-toolbar {
-    --background: var(--sp-bg);
-    --border-width: 0;
-    --padding-top: 4px;
-    --padding-bottom: 4px;
-  }
+/* ─── Toolbar Header ─────────────────────────────────────────── */
+.spiritual-toolbar {
+  --background: var(--sp-bg);
+  --border-width: 0;
+  padding: 4px 6px;
 
-  .back-icon {
-    font-size: 22px;
-    color: var(--sp-text-secondary);
-  }
-
-  .bookmark-icon {
-    font-size: 20px;
-    color: var(--sp-text-secondary);
-    transition: color 0.2s ease;
-    &.saved { color: var(--sp-accent); }
-  }
-}
-
-/* ─── Container ──────────────────────────────────────────────── */
-.spiritual-container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 8px 24px 14px;
-}
-
-/* ─── Page Header ────────────────────────────────────────────── */
-.page-header {
-  padding: 10px 0 10px;
-
-  .page-date {
-    font-family: var(--sp-font-sans);
-    font-size: 8px;
-    font-weight: 600;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    color: var(--sp-text-muted);
-    margin: 0 0 6px;
-  }
-
-  .page-title {
-    font-family: var(--sp-font-serif);
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--sp-text-primary);
-    margin: 0 0 2px;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-  }
-
-  .page-subtitle {
-    font-family: var(--sp-font-sans);
-    font-size: 12px;
-    color: var(--sp-text-muted);
-    margin: 0;
-    font-style: italic;
-  }
-}
-
-/* ─── Divider ────────────────────────────────────────────────── */
-.divider {
-  height: 1px;
-  background: var(--sp-divider);
-  margin: 10px 0;
-}
-
-/* ─── Section ────────────────────────────────────────────────── */
-.section {
-  padding: 4px 0;
-}
-
-.section-label {
-  font-family: var(--sp-font-sans);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 2.2px;
-  text-transform: uppercase;
-  color: var(--sp-text-muted);
-  margin: 0 0 4px;
-}
-
-/* ─── Reflection Title ───────────────────────────────────────── */
-.reflection-title {
-  font-family: var(--sp-font-serif);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--sp-text-primary);
-  margin: 0 0 8px;
-  line-height: 1.35;
-  letter-spacing: -0.3px;
-}
-
-/* ─── Source Attribution ─────────────────────────────────────── */
-.source-attribution {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-
-  .source-book {
-    font-family: var(--sp-font-sans);
-    font-size: 11px;
+  .toolbar-title {
+    font-family: var(--sp-font-cinzel);
     font-weight: 700;
-    color: var(--sp-accent);
-    text-transform: uppercase;
+    font-size: 17px;
     letter-spacing: 0.5px;
+    color: var(--sp-accent-deep);
   }
 
-  .source-sep {
-    color: var(--sp-border);
-    font-size: 14px;
-    line-height: 1;
+  .nav-btn {
+    --padding-start: 8px;
+    --padding-end: 8px;
   }
 
-  .source-loc {
-    font-family: var(--sp-font-sans);
-    font-size: 11px;
-    color: var(--sp-text-muted);
-  }
-
-  .source-character {
-    font-family: var(--sp-font-sans);
-    font-size: 11px;
-    font-style: italic;
-    color: var(--sp-text-muted);
-  }
-}
-
-/* ─── Scripture Passage Blockquote ──────────────────────────── */
-.passage-block {
-  margin: 0;
-  padding: 10px;
-  border-left: 3px solid var(--sp-accent);
-  background: var(--sp-accent-light);
-  border-radius: 0 8px 8px 0;
-
-  .passage-text {
-    font-family: var(--sp-font-serif);
-    font-size: 12px;
-    font-style: italic;
-    line-height: 1.75;
-    color: var(--sp-text-primary);
-    margin: 0 0 2px;
-    white-space: pre-wrap;   /* respect newlines in multi-line passages */
-  }
-
-  .passage-cite {
-    font-family: var(--sp-font-sans);
-    font-size: 9px;
-    font-weight: 600;
-    color: var(--sp-accent);
-    font-style: normal;
-    letter-spacing: 0.3px;
-  }
-}
-
-/* ─── Explanation ────────────────────────────────────────────── */
-.explanation-body {
-  margin-bottom: 20px;
-
-  .explanation-paragraph {
-    font-family: var(--sp-font-sans);
-    font-size: 12px;
-    line-height: 1.8;
+  .toolbar-icon {
+    font-size: 21px;
     color: var(--sp-text-secondary);
-    margin: 0 0 14px;
+    transition: color 0.2s ease, transform 0.15s ease;
 
-    &:last-child { margin-bottom: 0; }
-  }
-}
+    &:active {
+      transform: scale(0.92);
+    }
 
-/* ─── Key Takeaways ──────────────────────────────────────────── */
-.takeaways {
-  padding: 10px;
-  background: var(--sp-card);
-  border: 1px solid var(--sp-border);
-  border-radius: 8px;
-
-  .takeaways-label {
-    font-family: var(--sp-font-sans);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--sp-text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin: 0 0 8px;
-  }
-
-  .takeaways-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .takeaway-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    font-family: var(--sp-font-sans);
-    font-size: 10px;
-    line-height: 1.55;
-    color: var(--sp-text-secondary);
-
-    &::before {
-      content: '•';
-      color: var(--sp-accent);
-      font-size: 12px;
-      line-height: 1.4;
-      flex-shrink: 0;
+    &.bookmark-icon.saved {
+      color: var(--sp-accent-gold);
     }
   }
 }
 
-/* ─── Today's Practice ───────────────────────────────────────── */
-.practice-title {
-  font-family: var(--sp-font-serif);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--sp-text-primary);
-  margin: 0 0 10px;
-  letter-spacing: -0.2px;
-}
+/* ─── Epic Selector Switcher Tabs ────────────────────────────── */
+.epic-selector-wrapper {
+  background: var(--sp-bg);
+  padding: 0 16px 10px;
+  border-bottom: 1px solid var(--sp-border);
 
-.practice-description {
-  font-family: var(--sp-font-sans);
-  font-size: 12px;
-  line-height: 1.75;
-  color: var(--sp-text-secondary);
-  margin: 0;
-  padding: 10px;
-  background: var(--sp-card);
-  border: 1px solid var(--sp-border);
-  border-radius: 8px;
-}
+  .epic-tabs {
+    display: flex;
+    background: #EFECE6;
+    border-radius: 12px;
+    padding: 3px;
+    gap: 4px;
+  }
 
-/* ─── Journal ────────────────────────────────────────────────── */
-.journal-prompt {
-  font-family: var(--sp-font-serif);
-  font-size: 12px;
-  font-style: italic;
-  line-height: 1.65;
-  color: var(--sp-text-primary);
-  margin: 0 0 10px;
-}
+  .epic-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
-.journal-input-wrapper {
-  background: var(--sp-card);
-  border: 1px solid var(--sp-border);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    .tab-emoji {
+      font-size: 14px;
+    }
 
-  &:focus-within {
-    border-color: var(--sp-accent);
-    box-shadow: 0 0 0 3px var(--sp-accent-dim);
+    .tab-label {
+      font-family: var(--sp-font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--sp-text-muted);
+      letter-spacing: 0.2px;
+    }
+
+    &.active {
+      background: var(--sp-card-bg);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+      .tab-label {
+        color: var(--sp-accent-deep);
+        font-weight: 700;
+      }
+    }
   }
 }
 
-.journal-textarea {
-  width: 100%;
-  font-family: var(--sp-font-sans);
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--sp-text-primary);
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
-  padding: 16px;
-  box-sizing: border-box;
-  min-height: 120px;
-
-  &::placeholder {
-    color: var(--sp-text-muted);
-    font-style: italic;
-  }
-}
-
-/* ─── Source Footer ──────────────────────────────────────────── */
-.source-footer {
+/* ─── Main Container ─────────────────────────────────────────── */
+.spiritual-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 14px 16px 40px;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0px;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  .footer-icon {
-    font-size: 13px;
-    color: var(--sp-text-muted);
-    flex-shrink: 0;
+/* ─── Unified Sacred Sanskrit Shloka Card ────────────────────── */
+.sacred-shloka-card {
+  position: relative;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FDFBF7 100%);
+  border: 1.5px solid #F0E2C8;
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06);
+  text-align: center;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sp-accent-gold), var(--sp-accent-primary), var(--sp-accent-gold));
   }
 
-  .footer-source {
+  .card-meta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .daily-date-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--sp-text-muted);
+      font-family: var(--sp-font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+
+      .badge-icon {
+        font-size: 13px;
+        color: var(--sp-accent-gold);
+      }
+    }
+
+    .epic-badge {
+      font-family: var(--sp-font-cinzel);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sp-accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--sp-accent-light);
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+  }
+
+  .card-title-row {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--sp-divider);
+
+    .daily-verse-ref {
+      font-family: var(--sp-font-cinzel);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--sp-text-primary);
+      margin: 0 0 2px;
+      letter-spacing: 0.2px;
+    }
+
+    .daily-topic-subtitle {
+      font-family: var(--sp-font-sans);
+      font-size: 12.5px;
+      color: var(--sp-accent-deep);
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  .card-ornament {
+    margin-bottom: 8px;
+
+    .om-symbol {
+      font-family: 'Yatra One', serif;
+      font-size: 24px;
+      color: var(--sp-accent-gold);
+      opacity: 0.85;
+      text-shadow: 0 0 12px rgba(217, 119, 6, 0.2);
+    }
+  }
+
+
+  .speaker-tag-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+
+    .speaker-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--sp-accent-light);
+      color: var(--sp-accent-deep);
+      font-family: var(--sp-font-cinzel);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 16px;
+
+      .speaker-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--sp-accent-gold);
+      }
+    }
+  }
+
+  .sanskrit-container {
+    margin-bottom: 12px;
+
+    .sanskrit-text {
+      font-family: var(--sp-font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.8;
+      color: #78350F;
+      white-space: pre-wrap;
+      margin: 8px 0;
+      letter-spacing: 0.3px;
+    }
+  }
+
+
+  .transliteration-box {
+    background: rgba(254, 243, 199, 0.4);
+    border: 1px dashed var(--sp-border-gold);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+
+    .transliteration-text {
+      font-family: var(--sp-font-serif);
+      font-size: 13px;
+      font-style: italic;
+      color: var(--sp-text-secondary);
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  }
+
+  .shloka-card-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #F5EDDF;
+
+    .action-pill-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #F9F5EE;
+      border: 1px solid #EADBCA;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: var(--sp-font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--sp-text-secondary);
+      cursor: pointer;
+      transition: all 0.18s ease;
+
+      &:hover {
+        background: var(--sp-accent-light);
+        color: var(--sp-accent-deep);
+        border-color: var(--sp-accent-gold);
+      }
+
+      &.playing {
+        background: #FEE2E2;
+        color: #B91C1C;
+        border-color: #F87171;
+      }
+    }
+  }
+}
+
+/* ─── Generic Section Cards ──────────────────────────────────── */
+.card-section {
+  background: var(--sp-card-bg);
+  border: 1px solid var(--sp-border);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .section-icon-badge {
+        font-size: 15px;
+      }
+
+      .section-heading {
+        font-family: var(--sp-font-cinzel);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--sp-text-primary);
+        margin: 0;
+      }
+    }
+  }
+}
+
+/* ─── Unified Meaning Toggle Card ───────────────────────────── */
+.meaning-toggle-card {
+  border-color: #FDE68A;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF8 100%);
+
+  .meaning-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .lang-segmented-control {
+      display: inline-flex;
+      background: #F2ECE1;
+      border-radius: 20px;
+      padding: 3px;
+      gap: 3px;
+
+      .lang-pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: transparent;
+        border: none;
+        border-radius: 16px;
+        padding: 5px 12px;
+        font-family: var(--sp-font-sans);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sp-text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        .flag-icon {
+          font-size: 13px;
+        }
+
+        &.active {
+          background: #FFFFFF;
+          color: var(--sp-accent-deep);
+          font-weight: 700;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+      }
+    }
+
+    .audio-listen-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--sp-accent-light);
+      border: 1px solid var(--sp-border-gold);
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-family: var(--sp-font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sp-accent-deep);
+      cursor: pointer;
+      transition: all 0.18s ease;
+
+      &:hover {
+        background: #FDE68A;
+      }
+
+      &.playing {
+        background: #FEE2E2;
+        color: #B91C1C;
+        border-color: #F87171;
+      }
+    }
+  }
+
+  .meaning-body {
+    .hindi-text {
+      font-family: var(--sp-font-serif);
+      font-size: 13px;
+      line-height: 1.85;
+      color: #451A03;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .english-text {
+      font-family: var(--sp-font-serif);
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--sp-text-primary);
+      margin: 0;
+    }
+  }
+}
+
+
+/* ─── Story Accordion Card ───────────────────────────────────── */
+.story-accordion-card {
+  padding: 0;
+  overflow: hidden;
+
+  .accordion-header-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    padding: 16px 18px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s ease;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .section-title-wrap {
+      .section-heading {
+        font-family: var(--sp-font-cinzel);
+        font-size: 13.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--sp-text-primary);
+        margin: 0;
+      }
+    }
+
+    .accordion-arrow-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .accordion-hint {
+        font-family: var(--sp-font-sans);
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--sp-accent-primary);
+      }
+
+      .chevron-icon {
+        font-size: 16px;
+        color: var(--sp-accent-primary);
+        transition: transform 0.2s ease;
+      }
+    }
+  }
+
+  .accordion-content-body {
+    padding: 0 18px 18px;
+    border-top: 1px dashed var(--sp-divider);
+
+    .narrative-text {
+      font-family: var(--sp-font-sans);
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--sp-text-secondary);
+      margin: 12px 0 0;
+      white-space: pre-wrap;
+    }
+  }
+}
+
+
+/* ─── Takeaways List ─────────────────────────────────────────── */
+.takeaways-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .takeaway-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--sp-card-surface);
+    border: 1px solid var(--sp-divider);
+    border-radius: 10px;
+    padding: 8px;
+
+    .takeaway-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--sp-accent-light);
+      color: var(--sp-accent-deep);
+      font-family: var(--sp-font-sans);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .takeaway-text {
+      font-family: var(--sp-font-sans);
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--sp-text-secondary);
+      font-weight: 500;
+    }
+  }
+}
+
+/* ─── Sadhana / Practice Card ────────────────────────────────── */
+.sadhana-card {
+  border-color: #FDE68A;
+  background: linear-gradient(180deg, #FFFDF8 0%, #FEF9EE 100%);
+
+  .practice-title {
+    font-family: var(--sp-font-serif);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sp-accent-deep);
+    margin: 0 0 6px;
+  }
+
+  .practice-description {
     font-family: var(--sp-font-sans);
     font-size: 11px;
-    color: var(--sp-text-muted);
+    line-height: 1.7;
+    color: var(--sp-text-secondary);
     margin: 0;
-    letter-spacing: 0.2px;
   }
 }
 
-/* ─── Dark Mode ──────────────────────────────────────────────── */
-:host-context(.ion-palette-dark) {
-    --sp-bg: #131312;
-    --sp-card: #1E1D1B;
-    --sp-text-primary: #F0EDE8;
-    --sp-text-secondary: #A8A09A;
-    --sp-text-muted: #666360;
-    --sp-accent: #D97706;
-    --sp-accent-light: rgba(217, 119, 6, 0.07);
-    --sp-accent-dim: rgba(217, 119, 6, 0.1);
-    --sp-border: #2A2826;
-    --sp-divider: #252321;
+/* ─── Journal Section ────────────────────────────────────────── */
+.journal-card {
+  .journal-prompt {
+    font-family: var(--sp-font-serif);
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--sp-accent-deep);
+    line-height: 1.65;
+    margin: 0 0 12px;
   }
+
+  .journal-input-wrapper {
+    background: var(--sp-card-surface);
+    border: 1px solid var(--sp-border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 10px;
+
+    &:focus-within {
+      border-color: var(--sp-accent-gold);
+      box-shadow: 0 0 0 3px var(--sp-accent-dim);
+    }
+  }
+
+  .journal-textarea {
+    width: 100%;
+    font-family: var(--sp-font-sans);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--sp-text-primary);
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 12px;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: var(--sp-text-muted);
+      font-style: italic;
+    }
+  }
+
+  .journal-action-row {
+    display: flex;
+    justify-content: flex-end;
+
+    .save-journal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--sp-accent-deep);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-family: var(--sp-font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+
+      &:hover {
+        background: #5A2306;
+      }
+    }
+  }
+}
+
+/* ─── Dark Mode Overrides ────────────────────────────────────── */
+:host-context(.ion-palette-dark) {
+  --sp-bg: #141210;
+  --sp-card-bg: #1E1B17;
+  --sp-card-surface: #27231E;
+
+  --sp-text-primary: #F7F5F0;
+  --sp-text-secondary: #D4CEBE;
+  --sp-text-muted: #8E8679;
+
+  --sp-accent-primary: #F59E0B;
+  --sp-accent-gold: #FBBF24;
+  --sp-accent-light: rgba(245, 158, 11, 0.12);
+  --sp-accent-dim: rgba(245, 158, 11, 0.15);
+  --sp-accent-deep: #FCD34D;
+
+  --sp-border: #332E27;
+  --sp-border-gold: rgba(245, 158, 11, 0.25);
+  --sp-divider: #2C2721;
+
+  .epic-selector-wrapper {
+    .epic-tabs {
+      background: #141210;
+    }
+    .epic-tab.active {
+      background: #2A251F;
+    }
+  }
+
+  .daily-header-card {
+    background: linear-gradient(135deg, #24201A 0%, #1A1713 100%);
+  }
+
+  .sacred-shloka-card {
+    background: linear-gradient(180deg, #221E19 0%, #1A1713 100%);
+    border-color: #3D352B;
+
+    .sanskrit-container .sanskrit-text {
+      color: #FCD34D;
+    }
+    .transliteration-box {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+    .shloka-card-actions .action-pill-btn {
+      background: #2C2620;
+      border-color: #443B30;
+      color: #D4CEBE;
+    }
+  }
+
+  .meaning-toggle-card {
+    background: linear-gradient(180deg, #231F19 0%, #1E1A14 100%);
+    border-color: #4A3E2D;
+
+    .meaning-header-row {
+      .lang-segmented-control {
+        background: #191612;
+        .lang-pill-btn {
+          color: #8E8679;
+          &.active {
+            background: #2C2620;
+            color: #FCD34D;
+          }
+        }
+      }
+      .audio-listen-pill {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #FCD34D;
+      }
+    }
+
+    .hindi-text {
+      color: #FDE68A;
+    }
+  }
+
+  .sadhana-card {
+    background: linear-gradient(180deg, #231F19 0%, #1D1A14 100%);
+    border-color: #4A3E2D;
+  }
+}
+

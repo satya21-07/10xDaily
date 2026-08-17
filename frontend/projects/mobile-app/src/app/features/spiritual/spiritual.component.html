@@ -1,22 +1,52 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
+  <ion-toolbar class="spiritual-toolbar">
     <ion-buttons slot="start">
-      <ion-button routerLink="/home" fill="clear" id="back-btn">
-        <ion-icon slot="icon-only" name="arrow-back" class="back-icon"></ion-icon>
+      <ion-button routerLink="/home" fill="clear" id="back-btn" class="nav-btn">
+        <ion-icon slot="icon-only" name="arrow-back" class="toolbar-icon"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Spiritual</ion-title>
+    <ion-title class="toolbar-title">Spiritual Wisdom</ion-title>
     <ion-buttons slot="end" *ngIf="lesson">
-      <ion-button fill="clear" (click)="toggleSaveLesson($event)" id="bookmark-btn">
+      <ion-button fill="clear" (click)="copyVerseCard()" id="share-btn" class="nav-btn" title="Copy Shloka">
+        <!-- <ion-icon slot="icon-only" [name]="copiedToast ? 'checkmark-outline' : 'copy-outline'" class="toolbar-icon"></ion-icon> -->
+      </ion-button>
+      <ion-button fill="clear" (click)="toggleSaveLesson($event)" id="bookmark-btn" class="nav-btn" title="Bookmark Shloka">
         <ion-icon
           slot="icon-only"
           [name]="isLessonSaved ? 'bookmark' : 'bookmark-outline'"
-          class="bookmark-icon"
+          class="toolbar-icon bookmark-icon"
           [class.saved]="isLessonSaved">
         </ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- ── Epic Switcher Tabs ───────────────────────────── -->
+  <div class="epic-selector-wrapper">
+    <div class="epic-tabs">
+      <button
+        class="epic-tab"
+        [class.active]="selectedScripture === 'gita'"
+        (click)="selectScripture('gita')">
+        <!-- <span class="tab-emoji">🕉️</span> -->
+        <span class="tab-label">Gita</span>
+      </button>
+      <button
+        class="epic-tab"
+        [class.active]="selectedScripture === 'ramayana'"
+        (click)="selectScripture('ramayana')">
+        <!-- <span class="tab-emoji">🏹</span> -->
+        <span class="tab-label">Ramayana</span>
+      </button>
+      <button
+        class="epic-tab"
+        [class.active]="selectedScripture === 'mahabharata'"
+        (click)="selectScripture('mahabharata')">
+        <!-- <span class="tab-emoji">📜</span> -->
+        <span class="tab-label">Mahabharat</span>
+      </button>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content>
@@ -24,100 +54,190 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <app-loader *ngIf="isLoading" message="Preparing today's reflection..."></app-loader>
+  <app-loader *ngIf="isLoading" message="Fetching today's sacred shloka..."></app-loader>
 
   <div *ngIf="!isLoading && lesson" class="spiritual-container">
 
-    <!-- ── Page Header ─────────────────────────────── -->
-    <div class="page-header">
-      <p class="page-date">{{ formattedDate }}</p>
-      <h1 class="page-title">Spirituality</h1>
-      <p class="page-subtitle">A moment to pause and reflect.</p>
+    <!-- ── Unified Sacred Sanskrit Shloka & Header Card ── -->
+    <div class="sacred-shloka-card" id="scripture-passage">
+      <!-- Card Top Meta Header -->
+      <div class="card-meta-header">
+        <div class="daily-date-label">
+          <ion-icon name="calendar-outline" class="badge-icon"></ion-icon>
+          <span>{{ formattedDate }}</span>
+        </div>
+        <div class="epic-badge">{{ lesson.source.name }}</div>
+      </div>
+
+      <!-- Title & Topic Header -->
+      <div class="card-title-row">
+        <h1 class="daily-verse-ref">{{ lesson.source.reference }}</h1>
+        <p class="daily-topic-subtitle">{{ lesson.topic }}</p>
+      </div>
+
+      <!-- Card Ornament / Divider -->
+      <div class="card-ornament top-ornament">
+        <span class="om-symbol">ॐ</span>
+      </div>
+
+      <!-- Speaker Tag -->
+      <div class="speaker-tag-row" *ngIf="lesson.source.character">
+        <span class="speaker-pill">
+          <span class="speaker-dot"></span>
+          {{ lesson.source.character }}
+        </span>
+      </div>
+
+      <!-- Sanskrit Devanagari Verses -->
+      <div class="sanskrit-container" *ngIf="lesson.source.original_sanskrit">
+        <p class="sanskrit-text">{{ lesson.source.original_sanskrit }}</p>
+      </div>
+
+      <!-- Roman Transliteration -->
+      <div class="transliteration-box" *ngIf="showTransliteration && lesson.source.transliteration">
+        <p class="transliteration-text">{{ lesson.source.transliteration }}</p>
+      </div>
+
+      <!-- Sanskrit Card Utility Actions -->
+      <div class="shloka-card-actions">
+        <button
+          class="action-pill-btn"
+          *ngIf="lesson.source.transliteration"
+          (click)="toggleTransliteration()">
+          <ion-icon name="list-outline"></ion-icon>
+          <span>{{ showTransliteration ? 'Hide Roman' : 'Show Roman' }}</span>
+        </button>
+
+        <button class="action-pill-btn" (click)="copyVerseCard()">
+          <ion-icon name="copy-outline"></ion-icon>
+          <span>Copy Shloka</span>
+        </button>
+      </div>
     </div>
 
-    <div class="divider"></div>
 
-    <!-- ── Today's Reflection Header ──────────────── -->
-    <section class="section">
-      <p class="section-label">TODAY'S REFLECTION</p>
-      <h2 class="reflection-title">{{ lesson.reflection.title }}</h2>
+    <!-- ── Unified Meaning Card with Language Toggle & In-Place Audio ── -->
+    <section class="card-section meaning-toggle-card">
+      <div class="meaning-header-row">
+        <!-- Language Switcher Tabs -->
+        <div class="lang-segmented-control">
+          <button
+            class="lang-pill-btn"
+            [class.active]="selectedMeaningLanguage === 'hindi'"
+            (click)="setMeaningLanguage('hindi')">
+            <!-- <span class="flag-icon">🇮🇳</span> -->
+            <span>हिन्दी</span>
+          </button>
+          <button
+            class="lang-pill-btn"
+            [class.active]="selectedMeaningLanguage === 'english'"
+            (click)="setMeaningLanguage('english')">
+            <!-- <span class="flag-icon">🇬🇧</span> -->
+            <span>English</span>
+          </button>
+        </div>
 
-      <!-- Source Attribution Line -->
-      <div class="source-attribution">
-        <span class="source-book">{{ lesson.source.name }}</span>
-        <span class="source-sep">·</span>
-        <span class="source-loc">{{ sourceSubtitle }}</span>
-        <span *ngIf="lesson.source.character" class="source-sep">·</span>
-        <span *ngIf="lesson.source.character" class="source-character">{{ lesson.source.character }}</span>
+        <!-- In-Place Audio Button for Active Language -->
+        <button
+          class="audio-listen-pill"
+          [class.playing]="isPlayingAudio && audioLanguage === selectedMeaningLanguage"
+          (click)="toggleChantingAudio(selectedMeaningLanguage)"
+          [title]="selectedMeaningLanguage === 'hindi' ? 'Listen in Hindi' : 'Listen in English'">
+          <ion-icon [name]="(isPlayingAudio && audioLanguage === selectedMeaningLanguage) ? 'volume-mute-outline' : 'volume-high-outline'"></ion-icon>
+          <span *ngIf="selectedMeaningLanguage === 'hindi'">
+            {{ (isPlayingAudio && audioLanguage === 'hindi') ? 'रोकें' : ' सुनें' }}
+          </span>
+          <span *ngIf="selectedMeaningLanguage === 'english'">
+            {{ (isPlayingAudio && audioLanguage === 'english') ? 'Stop' : 'Listen Audio' }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Hindi Meaning View -->
+      <div class="meaning-body hindi-view" *ngIf="selectedMeaningLanguage === 'hindi'">
+        <p class="hindi-text">{{ lesson.source.hindi_translation || 'भावार्थ उपलब्ध हो रहा है...' }}</p>
+      </div>
+
+      <!-- English Meaning View -->
+      <div class="meaning-body english-view" *ngIf="selectedMeaningLanguage === 'english'">
+        <p class="english-text">{{ lesson.source.translation }}</p>
       </div>
     </section>
 
-    <!-- ── Scripture Passage ───────────────────────── -->
-    <section *ngIf="passageText" class="section">
-      <p class="section-label">SCRIPTURE PASSAGE</p>
-      <blockquote class="passage-block" id="scripture-passage">
-        <p class="passage-text">{{ passageText }}</p>
-        <cite class="passage-cite">
-          — {{ lesson.source.name }}
-          <span *ngIf="lesson.source.character">, {{ lesson.source.character }}</span>
-        </cite>
-      </blockquote>
-    </section>
+    <!-- ── Story Context & Narrative Accordion ────────── -->
+    <section class="card-section story-accordion-card" *ngIf="lesson.reflection.story_context">
+      <button class="accordion-header-btn" (click)="toggleStoryAccordion()" [attr.aria-expanded]="isStoryExpanded">
+        <div class="section-title-wrap">
+          <h2 class="section-heading">Story & Epic Context</h2>
+        </div>
+        <div class="accordion-arrow-wrap">
+          <span class="accordion-hint">{{ isStoryExpanded ? 'Hide' : 'Read Story' }}</span>
+          <ion-icon [name]="isStoryExpanded ? 'chevron-up-outline' : 'chevron-down-outline'" class="chevron-icon"></ion-icon>
+        </div>
+      </button>
 
-    <div class="divider"></div>
-
-    <!-- ── Reflection / Explanation ────────────────── -->
-    <section class="section">
-      <p class="section-label">REFLECTION</p>
-      <div class="explanation-body">
-        <p *ngFor="let para of explanationParagraphs" class="explanation-paragraph">{{ para }}</p>
-      </div>
-
-      <!-- Key Takeaways -->
-      <div class="takeaways" *ngIf="lesson.reflection.key_takeaways?.length">
-        <p class="takeaways-label">Key takeaways</p>
-        <ul class="takeaways-list">
-          <li *ngFor="let takeaway of lesson.reflection.key_takeaways" class="takeaway-item">
-            {{ takeaway }}
-          </li>
-        </ul>
+      <div class="accordion-content-body" *ngIf="isStoryExpanded">
+        <p class="narrative-text">{{ lesson.reflection.story_context }}</p>
       </div>
     </section>
 
-    <div class="divider"></div>
 
-    <!-- ── Today's Practice ────────────────────────── -->
-    <section class="section">
-      <p class="section-label">TODAY'S PRACTICE</p>
+    <!-- ── Practical Wisdom & Key Takeaways ────────────── -->
+    <section class="card-section">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <!-- <span class="section-icon-badge">💡</span> -->
+          <h2 class="section-heading">Core Life Lessons</h2>
+        </div>
+      </div>
+
+      <div class="takeaways-list" *ngIf="lesson.reflection.key_takeaways?.length">
+        <div *ngFor="let takeaway of lesson.reflection.key_takeaways; let idx = index" class="takeaway-card">
+          <div class="takeaway-num">{{ idx + 1 }}</div>
+          <div class="takeaway-text">{{ takeaway }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Today's Practical Sadhana ───────────────────── -->
+    <section class="card-section sadhana-card">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <!-- <span class="section-icon-badge">⚡</span> -->
+          <h2 class="section-heading">Today's Daily Practice</h2>
+        </div>
+      </div>
       <h3 class="practice-title">{{ lesson.today_practice.title }}</h3>
       <p class="practice-description">{{ lesson.today_practice.description }}</p>
     </section>
 
-    <div class="divider"></div>
-
-    <!-- ── Journal ─────────────────────────────────── -->
-    <section class="section">
-      <p class="section-label">JOURNAL</p>
+    <!-- ── Self-Reflection Journal ─────────────────────── -->
+    <section class="card-section journal-card">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <!-- <span class="section-icon-badge">✍️</span> -->
+          <h2 class="section-heading">Introspective Journal</h2>
+        </div>
+      </div>
       <p class="journal-prompt">{{ lesson.journal_prompt }}</p>
+      
       <div class="journal-input-wrapper">
         <textarea
           id="journal-textarea"
           class="journal-textarea"
           [(ngModel)]="journalText"
-          placeholder="Write your reflection here..."
-          rows="5"
+          placeholder="Write your reflections, insights, or resolutions for today..."
+          rows="4"
         ></textarea>
+      </div>
+
+      <div class="journal-action-row">
+        <button class="save-journal-btn" (click)="saveJournal()">
+          <ion-icon [name]="journalSaved ? 'checkmark-circle-outline' : 'pencil-outline'"></ion-icon>
+          <span>{{ journalSaved ? 'Saved!' : 'Save Reflection' }}</span>
+        </button>
       </div>
     </section>
 
-    <div class="divider"></div>
-
-    <!-- ── Source Footer ───────────────────────────── -->
-    <footer class="source-footer">
-      <ion-icon name="book-outline" class="footer-icon"></ion-icon>
-      <p class="footer-source">{{ sourceDisplay }}</p>
-    </footer>
-
   </div>
-
 </ion-content>
