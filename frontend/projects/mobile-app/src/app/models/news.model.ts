@@ -9,6 +9,7 @@ export interface NewsArticle {
   language?: string;
   published_at?: string;
   ai_summary?: string;
+  content?: string;
   is_saved?: boolean;
 }
 

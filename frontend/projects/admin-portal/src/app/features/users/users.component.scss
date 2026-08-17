@@ -3,6 +3,10 @@
   max-width: 1200px;
   margin: 0 auto;
 
+  @media (max-width: 600px) {
+    padding: 16px 0;
+  }
+
   .header {
     margin-bottom: 24px;
 

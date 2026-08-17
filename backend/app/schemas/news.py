@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 class NewsArticleBase(BaseModel):
     title: str
@@ -12,6 +12,7 @@ class NewsArticleBase(BaseModel):
     language: Optional[str] = "en"
     published_at: Optional[datetime] = None
     ai_summary: Optional[str] = None
+    content: Optional[str] = None
 
 class NewsArticleCreate(NewsArticleBase):
     pass
@@ -24,10 +25,9 @@ class NewsArticle(NewsArticleBase):
         from_attributes = True
 
 class SavedNewsResponse(NewsArticleBase):
-    id: int # database ID
+    id: int  # database ID
     article_id: Optional[str] = None
     saved_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
-

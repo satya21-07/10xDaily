@@ -1,165 +1,323 @@
-import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { NewsService } from '../../services/news.service';
 import { NewsArticle } from '../../models/news.model';
 import { addIcons } from 'ionicons';
-import { shareOutline, bookmarkOutline, bookmark, openOutline, arrowBack, searchOutline, personCircleOutline, chevronForwardOutline } from 'ionicons/icons';
+import { 
+  shareSocialOutline, 
+  bookmarkOutline, 
+  bookmark, 
+  openOutline, 
+  arrowBack, 
+  timeOutline, 
+  newspaperOutline, 
+  personCircleOutline, 
+  chevronForwardOutline,
+  sparklesOutline,
+  refreshOutline,
+  globeOutline,
+  closeOutline,
+  closeCircle,
+  linkOutline,
+  bookOutline,
+  eyeOutline
+} from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
-import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-news',
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterLink, LoaderComponent],
+  imports: [IonicModule, CommonModule, RouterLink],
   templateUrl: './news.component.html',
   styleUrls: ['./news.component.scss'],
   host: { 'class': 'ion-page' }
 })
 export class NewsComponent implements OnInit {
-  @ViewChild('slider') slider?: ElementRef<HTMLElement>;
-  
   private newsService = inject(NewsService);
   private progressService = inject(ProgressService);
   private authService = inject(AuthService);
+  private toastCtrl = inject(ToastController);
+
+  // Category Cache: Stores loaded articles per category to avoid re-fetching and flicker
+  private articlesCache = new Map<string, NewsArticle[]>();
   
-  private currentUserId: number | string = 'guest';
-  
+  activeCategory: string = 'for you';
   articles: NewsArticle[] = [];
-  isLoading = true;
-  segment: string = 'for you';
-  
+  isLoading = false;
+  imageErrors = new Set<string>();
+
+  // In-App Article Reader State
+  selectedArticle: NewsArticle | null = null;
+  isReaderOpen: boolean = false;
+  isLoadingStory: boolean = false;
+
   categories = [
-    { value: 'for you', label: 'For You' },
-    { value: 'india', label: 'India' },
-    { value: 'world', label: 'World' },
-    { value: 'business', label: 'Business' },
-    { value: 'technology', label: 'Technology' },
-    { value: 'sports', label: 'Sports' },
-    { value: 'entertainment', label: 'Entertainment' },
-    { value: 'science', label: 'Science' },
-    { value: 'health', label: 'Health' }
+
+    { value: 'for you', label: 'For You', icon: 'newspaper-outline' },
+    { value: 'india', label: 'India', icon: 'newspaper-outline' },
+    { value: 'world', label: 'World', icon: 'globe-outline' },
+    { value: 'business', label: 'Business', icon: 'newspaper-outline' },
+    { value: 'technology', label: 'Technology', icon: 'newspaper-outline' },
+    { value: 'sports', label: 'Sports', icon: 'newspaper-outline' },
+    { value: 'entertainment', label: 'Entertainment', icon: 'newspaper-outline' },
+    { value: 'science', label: 'Science', icon: 'newspaper-outline' },
+    { value: 'health', label: 'Health', icon: 'newspaper-outline' }
   ];
 
   constructor() {
-    addIcons({ shareOutline, bookmarkOutline, bookmark, openOutline, arrowBack, searchOutline, personCircleOutline, chevronForwardOutline });
-  }
-
-  ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
-      const newUserId = user?.id || 'guest';
-      if (this.currentUserId !== newUserId) {
-        this.currentUserId = newUserId;
-        this.resetState();
-      }
-      this.loadData();
+    addIcons({ 
+      shareSocialOutline, 
+      bookmarkOutline, 
+      bookmark, 
+      openOutline, 
+      arrowBack, 
+      timeOutline, 
+      newspaperOutline, 
+      personCircleOutline, 
+      chevronForwardOutline,
+      sparklesOutline,
+      refreshOutline,
+      globeOutline,
+      closeOutline,
+      closeCircle,
+      linkOutline,
+      bookOutline,
+      eyeOutline
     });
   }
 
-  private loadData() {
+  ngOnInit() {
     this.progressService.markVisited('news');
-    this.loadNews();
+    this.selectCategory(this.activeCategory);
   }
 
-  private resetState() {
-    this.segment = 'for you';
-    this.articles = [];
-  }
+  selectCategory(category: string, forceRefresh = false, refresherEvent?: any) {
+    this.activeCategory = category;
+    this.scrollToActiveTab();
 
-  ionViewWillEnter() {
-    this.loadNews();
-  }
-  
-  onScroll(event: Event) {
-    const el = event.target as HTMLElement;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
-    const newSegment = this.categories[index].value;
-    
-    if (this.segment !== newSegment) {
-      this.segment = newSegment;
-      this.loadNews();
-      this.scrollToActiveTab();
+    // 1. Instant Render from Cache if available
+    if (!forceRefresh && this.articlesCache.has(category)) {
+      this.articles = this.articlesCache.get(category) || [];
+      this.isLoading = false;
+      if (refresherEvent) refresherEvent.target.complete();
+      return;
     }
+
+    // 2. Fetch if not in cache or user initiated refresh
+    if (!refresherEvent) {
+      this.articles = [];
+      this.isLoading = true;
+    }
+
+    this.newsService.getNews(category).subscribe({
+      next: (data) => {
+        const cleanedData = (data || []).map(item => ({
+          ...item,
+          summary: this.cleanSummary(item.summary || item.ai_summary || '')
+        }));
+        this.articlesCache.set(category, cleanedData);
+        this.articles = cleanedData;
+        this.isLoading = false;
+        if (refresherEvent) refresherEvent.target.complete();
+      },
+      error: (err) => {
+        console.error(`Failed to fetch news for category ${category}:`, err);
+        this.isLoading = false;
+        if (refresherEvent) refresherEvent.target.complete();
+      }
+    });
+  }
+
+  onRefresh(event: any) {
+    this.selectCategory(this.activeCategory, true, event);
   }
 
   scrollToActiveTab() {
     setTimeout(() => {
-       const activeTab = document.querySelector('.category-tab.active');
-       if (activeTab) {
-          activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-       }
-    }, 50);
+      const activeTab = document.querySelector('.category-pill.active');
+      if (activeTab) {
+        activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }, 60);
+  }
+
+  openArticleReader(article: NewsArticle, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selectedArticle = article;
+    this.isReaderOpen = true;
+
+    // Fetch full comprehensive story if not already cached
+    if (!article.content || article.content.length < 150) {
+      this.isLoadingStory = true;
+      this.newsService.getFullStory(article.url, article.title, article.summary, article.source).subscribe({
+        next: (res) => {
+          if (res && res.content) {
+            article.content = res.content;
+            if (this.selectedArticle && this.selectedArticle.id === article.id) {
+              this.selectedArticle.content = res.content;
+            }
+          }
+          this.isLoadingStory = false;
+        },
+        error: () => {
+          this.isLoadingStory = false;
+        }
+      });
+    }
+  }
+
+
+  closeArticleReader() {
+    this.isReaderOpen = false;
   }
 
   toggleSaveArticle(article: NewsArticle, event: Event) {
     event.stopPropagation();
     
-    // Optimistic UI update
     const previousState = article.is_saved;
     article.is_saved = !article.is_saved;
     
     if (!previousState) {
       this.newsService.saveArticle(article).subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: 'Article saved to bookmarks',
+            duration: 1500,
+            position: 'bottom',
+            color: 'dark'
+          });
+          toast.present();
+        },
         error: (err) => {
           console.error('Failed to save article', err);
-          article.is_saved = false; // Revert on failure
+          article.is_saved = false;
         }
       });
     } else {
       this.newsService.unsaveArticle(article.id, article.url).subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: 'Article removed from bookmarks',
+            duration: 1500,
+            position: 'bottom',
+            color: 'dark'
+          });
+          toast.present();
+        },
         error: (err) => {
           console.error('Failed to unsave article', err);
-          article.is_saved = true; // Revert on failure
+          article.is_saved = true;
         }
       });
     }
   }
 
-  loadNews(event?: any) {
-    if (!event) this.isLoading = true;
-    this.newsService.getNews(this.segment).subscribe({
-      next: (data) => {
-        this.articles = data;
-        this.isLoading = false;
-        if (event) {
-          event.target.complete();
-        }
-      },
-      error: () => {
-        this.isLoading = false;
-        if (event) {
-          event.target.complete();
-        }
+  async shareArticle(article: NewsArticle, event: Event) {
+    event.stopPropagation();
+    if (navigator.share && article.url) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.summary,
+          url: article.url
+        });
+      } catch (e) {
+        // Share dismissed
       }
-    });
-  }
-
-  segmentChanged(event: any) {
-    this.segment = event.detail.value;
-    
-    // Sync slider position with segment change
-    const index = this.categories.findIndex(c => c.value === this.segment);
-    if (this.slider && this.slider.nativeElement && index !== -1) {
-      const el = this.slider.nativeElement;
-      el.scrollTo({
-        left: el.clientWidth * index,
-        behavior: 'smooth'
-      });
+    } else {
+      // Fallback copy link
+      if (article.url && navigator.clipboard) {
+        await navigator.clipboard.writeText(article.url);
+        const toast = await this.toastCtrl.create({
+          message: 'Link copied to clipboard!',
+          duration: 2000,
+          position: 'bottom',
+          color: 'dark'
+        });
+        toast.present();
+      }
     }
-    
-    this.loadNews();
-    this.scrollToActiveTab();
   }
 
   openUrl(url: string | undefined) {
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   }
 
-  handleImageError(event: any) {
-    event.target.style.display = 'none';
+  handleImageError(articleId: string) {
+    this.imageErrors.add(articleId);
+  }
+
+  hasImageError(articleId: string): boolean {
+    return this.imageErrors.has(articleId);
+  }
+
+  getCategoryBadgeClass(category?: string): string {
+    const cat = (category || this.activeCategory || '').toLowerCase();
+    if (cat.includes('tech')) return 'badge-tech';
+    if (cat.includes('business')) return 'badge-biz';
+    if (cat.includes('sport')) return 'badge-sports';
+    if (cat.includes('health')) return 'badge-health';
+    if (cat.includes('science')) return 'badge-science';
+    if (cat.includes('world')) return 'badge-world';
+    if (cat.includes('india')) return 'badge-india';
+    return 'badge-general';
+  }
+
+  formatTimeAgo(dateStr?: string): string {
+    if (!dateStr) return 'Recent';
+    try {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (seconds < 60) return 'Just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return 'Yesterday';
+      if (days < 7) return `${days}d ago`;
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return 'Recent';
+    }
+  }
+
+  cleanSummary(text: string): string {
+    if (!text) return '';
+    const cleaned = text.replace(/<[^>]*>/g, '').trim();
+    return cleaned;
+  }
+
+  getArticleParagraphs(article: NewsArticle): string[] {
+    const raw = article.content || article.summary || article.title;
+    if (!raw) return [];
+    
+    // Split on double newlines or punctuation if single long text
+    const paragraphs = raw.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
+    if (paragraphs.length <= 1 && raw.length > 200) {
+      // Split on sentence clusters
+      const sentences = raw.match(/[^.!?]+[.!?]+/g) || [raw];
+      const chunks: string[] = [];
+      let current = '';
+      for (const s of sentences) {
+        current += ' ' + s.trim();
+        if (current.length > 180) {
+          chunks.push(current.trim());
+          current = '';
+        }
+      }
+      if (current.trim()) chunks.push(current.trim());
+      return chunks;
+    }
+    return paragraphs;
   }
 }

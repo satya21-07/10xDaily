@@ -1,5 +1,5 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #sidenav mode="side" opened class="sidenav" [fixedInViewport]="true">
+  <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile" class="sidenav" [fixedInViewport]="isMobile">
     <div class="sidenav-header">
       <div class="logo-container">
         <h2>10xDaily</h2>
@@ -11,7 +11,8 @@
       <a mat-list-item *ngFor="let item of menuItems" 
          [routerLink]="item.path" 
          routerLinkActive="active-route"
-         [class.disabled]="item.label.includes('Coming Soon')">
+         [class.disabled]="item.label.includes('Coming Soon')"
+         (click)="isMobile ? sidenav.close() : null">
         <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
         <div matListItemTitle>{{ item.label }}</div>
       </a>
@@ -20,16 +21,23 @@
 
   <mat-sidenav-content>
     <mat-toolbar class="top-toolbar">
-      <button mat-icon-button (click)="sidenav.toggle()">
+      <button mat-icon-button (click)="sidenav.toggle()" *ngIf="isMobile" style="margin-right: 16px;">
         <mat-icon>menu</mat-icon>
       </button>
       <span class="spacer"></span>
       <button mat-icon-button>
         <mat-icon>notifications</mat-icon>
       </button>
-      <button mat-icon-button class="profile-btn">
+      <button mat-icon-button class="profile-btn" [matMenuTriggerFor]="profileMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
+
+      <mat-menu #profileMenu="matMenu">
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
     </mat-toolbar>
 
     <div class="main-content">

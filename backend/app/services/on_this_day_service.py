@@ -154,7 +154,7 @@ def choose_and_enhance_with_groq(candidates: list) -> dict:
     try:
         completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
             temperature=0.3,
             max_tokens=512
         )

@@ -1,0 +1,100 @@
+<h2 mat-dialog-title>
+  <div class="dialog-header">
+    <div class="user-info-header">
+      <div class="avatar" *ngIf="user.avatar">
+        <img [src]="user.avatar" alt="Avatar">
+      </div>
+      <div class="avatar placeholder" *ngIf="!user.avatar">
+        {{ (user.full_name || user.email)?.charAt(0)?.toUpperCase() }}
+      </div>
+      <div class="title-text">
+        <span>{{ user.full_name || 'Unnamed User' }}</span>
+        <span class="status-badge" [class.active]="user.is_active" [class.inactive]="!user.is_active">
+          {{ user.is_active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+    </div>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</h2>
+
+<mat-dialog-content>
+  <div class="details-grid">
+    <!-- Basic Information -->
+    <div class="section">
+      <h3><mat-icon>person</mat-icon> Basic Information</h3>
+      <mat-divider></mat-divider>
+      <div class="info-row">
+        <span class="label">ID:</span>
+        <span class="value">{{ user.id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Email:</span>
+        <span class="value">{{ user.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Phone:</span>
+        <span class="value">{{ user.phone_number || 'N/A' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Date of Birth:</span>
+        <span class="value">{{ user.date_of_birth || 'N/A' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Joined:</span>
+        <span class="value">{{ user.created_at | date:'medium' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Last Login:</span>
+        <span class="value">{{ user.last_login_at ? (user.last_login_at | date:'medium') : 'Never' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Role:</span>
+        <span class="value">{{ user.is_superuser ? 'Superadmin' : 'User' }}</span>
+      </div>
+    </div>
+
+    <!-- Gamification & Stats -->
+    <div class="section">
+      <h3><mat-icon>sports_esports</mat-icon> Learning Statistics</h3>
+      <mat-divider></mat-divider>
+      <div class="info-row">
+        <span class="label">XP:</span>
+        <span class="value xp">{{ user.xp || 0 }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Current Streak:</span>
+        <span class="value streak">{{ user.current_streak || 0 }} days</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Words Learned:</span>
+        <span class="value">{{ user.words_learned || 0 }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Quiz Accuracy:</span>
+        <span class="value">
+          {{ user.quiz_total_answers ? ((user.quiz_correct_answers / user.quiz_total_answers) * 100).toFixed(1) + '%' : 'N/A' }}
+          <small class="text-muted">({{ user.quiz_correct_answers || 0 }}/{{ user.quiz_total_answers || 0 }})</small>
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Modules Completed:</span>
+        <span class="value">{{ user.modules_completed || 0 }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Modules Explored:</span>
+        <span class="value">{{ user.modules_explored || 0 }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Total Time Spent:</span>
+        <span class="value">{{ formatTime(user.total_time_spent_seconds) }}</span>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

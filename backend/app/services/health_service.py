@@ -180,7 +180,7 @@ You MUST respond with ONLY a valid JSON object matching this exact structure:
 Ensure the JSON is perfectly formatted and contains no markdown code blocks outside of the raw JSON itself.
 """
 
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
     
     for attempt in range(max_retries):

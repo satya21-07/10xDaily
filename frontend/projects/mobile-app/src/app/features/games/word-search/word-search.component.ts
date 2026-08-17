@@ -1,10 +1,11 @@
 import { Component, ElementRef, HostListener, OnInit, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { GamesService, WordSearchLevel, TodayWordSearchResponse } from '../../../services/games.service';
 import { AuthService } from '../../../services/auth.service';
 import { addIcons } from 'ionicons';
-import { refresh, checkmarkCircle, bulb } from 'ionicons/icons';
+import { refresh, checkmarkCircle, bulb, arrowBackOutline } from 'ionicons/icons';
 
 interface GridCell {
   x: number;
@@ -26,7 +27,7 @@ interface GridCell {
 export class WordSearchComponent implements OnInit {
   private gamesService = inject(GamesService);
   private authService = inject(AuthService);
-  private location = inject(Location);
+  private router = inject(Router);
   private toastCtrl = inject(ToastController);
 
   levelData: WordSearchLevel | null = null;
@@ -56,7 +57,7 @@ export class WordSearchComponent implements OnInit {
   colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#f97316', '#a855f7', '#06b6d4', '#ec4899', '#84cc16', '#14b8a6'];
 
   constructor() {
-    addIcons({ refresh, checkmarkCircle, bulb });
+    addIcons({ refresh, checkmarkCircle, bulb, arrowBackOutline });
   }
 
   ngOnInit() {
@@ -155,7 +156,7 @@ export class WordSearchComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigateByUrl('/games');
   }
 
   reset() {

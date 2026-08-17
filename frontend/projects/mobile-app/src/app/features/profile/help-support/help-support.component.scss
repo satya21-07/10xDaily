@@ -155,3 +155,59 @@ ion-content {
     }
   }
 }
+
+.feedback-cta-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+  border: 1.5px solid rgba(79, 70, 229, 0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .cta-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #4F46E5;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  .cta-content {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 2px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    p {
+      margin: 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  }
+
+  .cta-chevron {
+    font-size: 18px;
+    color: #4F46E5;
+  }
+}
+

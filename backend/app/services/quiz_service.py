@@ -327,7 +327,7 @@ RULES:
 }}
 """
 
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
 
     for attempt in range(max_retries):
@@ -380,11 +380,23 @@ RULES:
             if attempt < max_retries - 1:
                 await asyncio.sleep(1)
             
-    # If all attempts fail, resilient fallback to latest DB quiz
+    # If all attempts fail, resilient fallback to latest DB quiz and cache for today
     logger.warning("Groq quiz generation failed completely. Checking DB for most recent quiz.")
     last_quiz = db.query(DailyQuiz).order_by(DailyQuiz.lesson_date.desc()).first()
     if last_quiz and last_quiz.quiz_data:
-        return last_quiz.quiz_data
-        
-    logger.error("No recent quiz in DB. Using static FALLBACK_QUIZ.")
-    return FALLBACK_QUIZ
+        fallback_data = last_quiz.quiz_data
+    else:
+        logger.error("No recent quiz in DB. Using static FALLBACK_QUIZ.")
+        fallback_data = FALLBACK_QUIZ
+
+    try:
+        cached_today_quiz = DailyQuiz(
+            lesson_date=today_date,
+            quiz_data=fallback_data
+        )
+        db.add(cached_today_quiz)
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return fallback_data

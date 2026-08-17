@@ -1,10 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { GamesService, MiniSudokuLevel } from '../../../services/games.service';
 import { AuthService } from '../../../services/auth.service';
 import { addIcons } from 'ionicons';
-import { refresh, backspace, bulb } from 'ionicons/icons';
+import { refresh, backspace, bulb, arrowBackOutline } from 'ionicons/icons';
 
 interface SudokuCell {
   row: number;
@@ -27,7 +28,7 @@ interface SudokuCell {
 export class MiniSudokuComponent implements OnInit {
   private gamesService = inject(GamesService);
   private authService = inject(AuthService);
-  private location = inject(Location);
+  private router = inject(Router);
   private toastCtrl = inject(ToastController);
 
   levelData: MiniSudokuLevel | null = null;
@@ -46,7 +47,7 @@ export class MiniSudokuComponent implements OnInit {
   numpad = [1, 2, 3, 4, 5, 6];
 
   constructor() {
-    addIcons({ refresh, backspace, bulb });
+    addIcons({ refresh, backspace, bulb, arrowBackOutline });
   }
 
   ngOnInit() {
@@ -311,7 +312,7 @@ export class MiniSudokuComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigateByUrl('/games');
   }
 
   reset() {

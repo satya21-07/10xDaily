@@ -37,6 +37,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/help-support/help-support.component').then(m => m.HelpSupportComponent)
       },
       {
+        path: 'profile/feedback',
+        loadComponent: () => import('./features/profile/feedback/feedback.component').then(m => m.FeedbackComponent)
+      },
+
+      {
         path: 'games',
         loadComponent: () => import('./features/games/games-hub/games-hub.component').then(m => m.GamesHubComponent)
       },

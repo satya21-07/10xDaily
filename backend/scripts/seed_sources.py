@@ -38,7 +38,7 @@ from app.models.core_models import SpiritualSource
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("seed_sources")
 
-GROQ_MODEL = os.getenv("GROQ_SEED_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_SEED_MODEL", "openai/gpt-oss-120b")
 
 # A small fixed topic taxonomy keeps rotation logic sane later.
 # Feel free to expand, but keep it a closed set so filtering/UI stays simple.
@@ -311,24 +311,29 @@ Topic:"""
 
 
 def fallback_keyword_topic(text: str) -> str:
-    """Cheap heuristic so seeding never fully blocks on Groq rate limits."""
+    """Fast, local heuristic mapping so seeding never burns Groq API rate limits."""
     text_l = (text or "").lower()
     keyword_map = {
-        "Karma": ["action", "deed", "consequence"],
-        "Grief": ["sorrow", "grief", "mourn", "loss"],
-        "Anger": ["anger", "wrath", "rage"],
-        "Fear": ["fear", "afraid", "anxiety"],
-        "Impermanence": ["impermanen", "fleeting", "temporary", "transient"],
-        "Compassion": ["compassion", "kindness", "mercy"],
-        "Forgiveness": ["forgive", "pardon"],
-        "Patience": ["patience", "endure"],
-        "Humility": ["humility", "humble", "pride"],
-        "Truth": ["truth", "honesty"],
-        "Gratitude": ["gratitude", "thankful"],
-        "Suffering": ["suffering", "pain", "affliction"],
-        "Wisdom": ["wisdom", "knowledge", "understanding"],
-        "Love": ["love", "affection"],
-        "Justice": ["justice", "righteous"],
+        "Karma": ["karma", "action", "deed", "consequence", "fruits of action", "cause and effect", "destiny"],
+        "Duty": ["duty", "dharma", "responsibility", "obligation", "honor", "vocation", "calling", "caste"],
+        "Detachment": ["detach", "renounce", "renunciation", "desireless", "unattached", "equanimity", "indifference"],
+        "Grief": ["sorrow", "grief", "mourn", "loss", "weep", "lament", "tears", "sadness"],
+        "Anger": ["anger", "wrath", "rage", "fury", "irritation", "resentment"],
+        "Fear": ["fear", "afraid", "anxiety", "dread", "terror", "courage", "fearless"],
+        "Impermanence": ["impermanen", "fleeting", "temporary", "transient", "decay", "death", "passing", "ephemeral"],
+        "Compassion": ["compassion", "kindness", "mercy", "benevolence", "gentle", "empathy", "pity"],
+        "Forgiveness": ["forgive", "pardon", "forbearing", "absolution", "remission"],
+        "Patience": ["patience", "endure", "perseverance", "steadfast", "calm", "forbearance"],
+        "Humility": ["humility", "humble", "pride", "vanity", "arrogance", "meek", "modest"],
+        "Truth": ["truth", "honesty", "veracity", "sincerity", "integrity", "satya", "true"],
+        "Self-Discipline": ["discipline", "restraint", "control", "temperance", "fasting", "abstain", "chastity", "willpower"],
+        "Gratitude": ["gratitude", "thankful", "thanks", "grateful", "blessing", "appreciation"],
+        "Suffering": ["suffering", "pain", "affliction", "distress", "tribulation", "misery", "dukkha"],
+        "Wisdom": ["wisdom", "knowledge", "understanding", "discernment", "insight", "enlightenment", "intellect", "sage"],
+        "Faith": ["faith", "belief", "trust", "devotion", "bhakti", "reverence", "god", "divine", "prayer"],
+        "Love": ["love", "affection", "charity", "beloved", "devotion", "amity"],
+        "Justice": ["justice", "righteous", "fairness", "judgment", "equity", "upright"],
+        "Purpose": ["purpose", "meaning", "goal", "aim", "path", "destiny", "mission"],
     }
     for topic, keywords in keyword_map.items():
         if any(k in text_l for k in keywords):
@@ -340,7 +345,7 @@ def fallback_keyword_topic(text: str) -> str:
 # 3. DEDUP + BULK INSERT
 # ---------------------------------------------------------------------------
 
-def seed(db: Session, raw_verses: Iterator[dict], use_groq: bool = True, batch_size: int = 25):
+def seed(db: Session, raw_verses: Iterator[dict], use_groq: bool = False, batch_size: int = 25):
     groq_client = None
     if use_groq:
         api_key = os.getenv("GROQ_API_KEY")
@@ -349,6 +354,8 @@ def seed(db: Session, raw_verses: Iterator[dict], use_groq: bool = True, batch_s
             groq_client = Groq(api_key=api_key)
         else:
             logger.warning("No GROQ_API_KEY set — falling back to keyword tagging for all verses.")
+    else:
+        logger.info("Using fast local keyword tagging for topics (Groq API calls disabled).")
 
     existing_refs = {
         r[0] for r in db.query(SpiritualSource.source_reference).all()
@@ -429,7 +436,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tradition", choices=list(TRADITIONS.keys()))
     parser.add_argument("--all", action="store_true")
-    parser.add_argument("--no-groq", action="store_true", help="Use keyword tagging only (faster, free, less accurate)")
+    parser.add_argument("--use-groq", action="store_true", help="Enable AI Groq tagging (slow, uses API quota). By default, fast free keyword tagging is used.")
     args = parser.parse_args()
 
     db = SessionLocal()
@@ -437,9 +444,9 @@ def main():
         if args.all:
             for name, collector_fn in TRADITIONS.items():
                 logger.info(f"=== Seeding {name} ===")
-                seed(db, collector_fn(), use_groq=not args.no_groq)
+                seed(db, collector_fn(), use_groq=args.use_groq)
         elif args.tradition:
-            seed(db, TRADITIONS[args.tradition](), use_groq=not args.no_groq)
+            seed(db, TRADITIONS[args.tradition](), use_groq=args.use_groq)
         else:
             parser.error("Pass --tradition <name> or --all")
     finally:

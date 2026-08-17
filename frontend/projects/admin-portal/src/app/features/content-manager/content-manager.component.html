@@ -1,86 +1,345 @@
 <div class="content-container">
   <div class="header">
     <h1>Content Manager</h1>
-    <p>Manage daily modules and lessons.</p>
-    <button mat-raised-button color="primary">
-      <mat-icon>add</mat-icon>
-      Create New
-    </button>
+    <p>Manage all platform content, topic subscriptions, and gamification analytics.</p>
   </div>
 
-  <mat-card>
+  <mat-card class="manager-card">
     <mat-tab-group animationDuration="0ms">
       
+      <!-- Content Summary Tab -->
+      <mat-tab label="Overview">
+        <div class="tab-content summary-grid">
+          <div class="summary-item">
+            <div class="icon-box vocab"><mat-icon>sort_by_alpha</mat-icon></div>
+            <div class="item-details">
+              <h4>Vocabulary Words</h4>
+              <p>{{ contentSummary.vocabulary_words || 0 }}</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="icon-box news"><mat-icon>article</mat-icon></div>
+            <div class="item-details">
+              <h4>News Articles</h4>
+              <p>{{ contentSummary.saved_news || 0 }}</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="icon-box spirit"><mat-icon>self_improvement</mat-icon></div>
+            <div class="item-details">
+              <h4>Spiritual Lessons</h4>
+              <p>{{ contentSummary.spiritual_lessons || 0 }}</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="icon-box events"><mat-icon>event</mat-icon></div>
+            <div class="item-details">
+              <h4>On This Day Events</h4>
+              <p>{{ contentSummary.on_this_day_events || 0 }}</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="icon-box marks"><mat-icon>bookmarks</mat-icon></div>
+            <div class="item-details">
+              <h4>User Bookmarks</h4>
+              <p>{{ contentSummary.bookmarks || 0 }}</p>
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="icon-box notes"><mat-icon>notes</mat-icon></div>
+            <div class="item-details">
+              <h4>User Notes</h4>
+              <p>{{ contentSummary.notes || 0 }}</p>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Topics Tab -->
+      <mat-tab label="Topics">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="topics" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef> Topic Name </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.name}}</strong> </td>
+              </ng-container>
+
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef> Description </th>
+                <td mat-cell *matCellDef="let element"> {{element.description || 'N/A'}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="is_default">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let element"> 
+                  <mat-chip-set>
+                    <mat-chip [color]="element.is_default ? 'primary' : 'accent'" highlighted>
+                      {{ element.is_default ? 'System Default' : 'Custom' }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="subscribed_users">
+                <th mat-header-cell *matHeaderCellDef> Subscribers </th>
+                <td mat-cell *matCellDef="let element"> {{element.subscribed_users}} users </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="topicColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: topicColumns;"></tr>
+            </table>
+            <div *ngIf="topics.length === 0" class="empty-state">
+              No topics found.
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Gamification Tab -->
+      <mat-tab label="Gamification">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="gamification" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="full_name">
+                <th mat-header-cell *matHeaderCellDef> Name </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.full_name || 'N/A'}}</strong> </td>
+              </ng-container>
+
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef> Email </th>
+                <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="games_played">
+                <th mat-header-cell *matHeaderCellDef> Games Played </th>
+                <td mat-cell *matCellDef="let element"> {{element.games_played}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="last_played">
+                <th mat-header-cell *matHeaderCellDef> Last Played </th>
+                <td mat-cell *matCellDef="let element"> {{element.last_played ? (element.last_played | date:'mediumDate') : 'Never'}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef> Status </th>
+                <td mat-cell *matCellDef="let element"> 
+                  <mat-chip-set>
+                    <mat-chip [color]="element.has_played ? 'primary' : 'warn'" highlighted>
+                      {{ element.has_played ? 'Active Player' : 'Not Played' }}
+                    </mat-chip>
+                  </mat-chip-set>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="gamificationColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: gamificationColumns;"></tr>
+            </table>
+            <div *ngIf="gamification.length === 0" class="empty-state">
+              No user data found.
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
       <!-- Vocabulary Tab -->
       <mat-tab label="Vocabulary">
         <div class="tab-content">
-          <table mat-table [dataSource]="vocabWords" class="full-width">
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef> ID </th>
-              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
-            </ng-container>
+          <div class="table-container">
+            <table mat-table [dataSource]="vocabWords" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
 
-            <ng-container matColumnDef="word">
-              <th mat-header-cell *matHeaderCellDef> Word </th>
-              <td mat-cell *matCellDef="let element"> <strong>{{element.word}}</strong> </td>
-            </ng-container>
+              <ng-container matColumnDef="word">
+                <th mat-header-cell *matHeaderCellDef> Word </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.word}}</strong> </td>
+              </ng-container>
 
-            <ng-container matColumnDef="difficulty">
-              <th mat-header-cell *matHeaderCellDef> Difficulty </th>
-              <td mat-cell *matCellDef="let element"> 
-                <span class="badge" [ngClass]="element.difficulty?.toLowerCase()">{{element.difficulty}}</span>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="difficulty">
+                <th mat-header-cell *matHeaderCellDef> Difficulty </th>
+                <td mat-cell *matCellDef="let element"> 
+                  <span class="badge" [ngClass]="element.difficulty?.toLowerCase()">{{element.difficulty}}</span>
+                </td>
+              </ng-container>
 
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef> Actions </th>
-              <td mat-cell *matCellDef="let element">
-                <button mat-icon-button color="primary"><mat-icon>edit</mat-icon></button>
-                <button mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef> Source </th>
+                <td mat-cell *matCellDef="let element"> {{element.source}} </td>
+              </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="vocabColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: vocabColumns;"></tr>
-          </table>
-          <div *ngIf="vocabWords.length === 0" class="empty-state">
-            No vocabulary words found. Run the seed script.
+              <tr mat-header-row *matHeaderRowDef="vocabColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: vocabColumns;"></tr>
+            </table>
+            <div *ngIf="vocabWords.length === 0" class="empty-state">
+              No vocabulary words found.
+            </div>
           </div>
         </div>
       </mat-tab>
 
       <!-- News Tab -->
-      <mat-tab label="AI News">
+      <mat-tab label="News">
         <div class="tab-content">
-          <table mat-table [dataSource]="newsArticles" class="full-width">
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef> ID </th>
-              <td mat-cell *matCellDef="let element"> {{element.id}} </td>
-            </ng-container>
+          <div class="table-container">
+            <table mat-table [dataSource]="newsArticles" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
 
-            <ng-container matColumnDef="title">
-              <th mat-header-cell *matHeaderCellDef> Title </th>
-              <td mat-cell *matCellDef="let element"> {{element.title}} </td>
-            </ng-container>
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef> Title </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.title}}</strong> </td>
+              </ng-container>
 
-            <ng-container matColumnDef="category">
-              <th mat-header-cell *matHeaderCellDef> Category </th>
-              <td mat-cell *matCellDef="let element"> {{element.category}} </td>
-            </ng-container>
+              <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef> Category </th>
+                <td mat-cell *matCellDef="let element"> {{element.category}} </td>
+              </ng-container>
 
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef> Actions </th>
-              <td mat-cell *matCellDef="let element">
-                <button mat-icon-button color="primary"><mat-icon>edit</mat-icon></button>
-                <button mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
-              </td>
-            </ng-container>
+              <ng-container matColumnDef="user_name">
+                <th mat-header-cell *matHeaderCellDef> Saved By </th>
+                <td mat-cell *matCellDef="let element"> {{element.user_name}} </td>
+              </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="newsColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: newsColumns;"></tr>
-          </table>
-          <div *ngIf="newsArticles.length === 0" class="empty-state">
-            No news articles found.
+              <ng-container matColumnDef="saved_at">
+                <th mat-header-cell *matHeaderCellDef> Saved At </th>
+                <td mat-cell *matCellDef="let element"> {{element.saved_at | date:'medium'}} </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="newsColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: newsColumns;"></tr>
+            </table>
+            <div *ngIf="newsArticles.length === 0" class="empty-state">
+              No news articles found.
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Game History Tab -->
+      <mat-tab label="Game History">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="gameHistory" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="user_name">
+                <th mat-header-cell *matHeaderCellDef> Player </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.user_name}}</strong> </td>
+              </ng-container>
+
+              <ng-container matColumnDef="game_name">
+                <th mat-header-cell *matHeaderCellDef> Game </th>
+                <td mat-cell *matCellDef="let element"> {{element.game_name}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="score">
+                <th mat-header-cell *matHeaderCellDef> Score </th>
+                <td mat-cell *matCellDef="let element"> {{element.score}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="completion_date">
+                <th mat-header-cell *matHeaderCellDef> Completed At </th>
+                <td mat-cell *matCellDef="let element"> {{element.completion_date}} </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="gameHistoryColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: gameHistoryColumns;"></tr>
+            </table>
+            <div *ngIf="gameHistory.length === 0" class="empty-state">
+              No game history found.
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Bookmarks Tab -->
+      <mat-tab label="Bookmarks">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="bookmarks" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef> Title </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.title}}</strong> </td>
+              </ng-container>
+
+              <ng-container matColumnDef="content_type">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let element"> {{element.content_type}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="folder">
+                <th mat-header-cell *matHeaderCellDef> Folder </th>
+                <td mat-cell *matCellDef="let element"> {{element.folder}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="user_name">
+                <th mat-header-cell *matHeaderCellDef> Saved By </th>
+                <td mat-cell *matCellDef="let element"> {{element.user_name}} </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="bookmarkColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: bookmarkColumns;"></tr>
+            </table>
+            <div *ngIf="bookmarks.length === 0" class="empty-state">
+              No bookmarks found.
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Notes Tab -->
+      <mat-tab label="Notes">
+        <div class="tab-content">
+          <div class="table-container">
+            <table mat-table [dataSource]="notes" class="full-width">
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+              </ng-container>
+
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef> Title </th>
+                <td mat-cell *matCellDef="let element"> <strong>{{element.title}}</strong> </td>
+              </ng-container>
+
+              <ng-container matColumnDef="content">
+                <th mat-header-cell *matHeaderCellDef> Content Preview </th>
+                <td mat-cell *matCellDef="let element"> {{element.content?.substring(0, 50)}}... </td>
+              </ng-container>
+
+              <ng-container matColumnDef="user_name">
+                <th mat-header-cell *matHeaderCellDef> Author </th>
+                <td mat-cell *matCellDef="let element"> {{element.user_name}} </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="noteColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: noteColumns;"></tr>
+            </table>
+            <div *ngIf="notes.length === 0" class="empty-state">
+              No notes found.
+            </div>
           </div>
         </div>
       </mat-tab>

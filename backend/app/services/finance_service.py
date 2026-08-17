@@ -180,7 +180,7 @@ You MUST respond with a JSON object matching this schema:
 
 Do NOT include any explanation or markdown formatting (e.g. ```json) outside the JSON. Return only raw JSON."""
 
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
     
     for attempt in range(max_retries):
@@ -248,18 +248,19 @@ def get_or_generate_daily_finance_lesson(db: Session, country: str = "IN") -> Da
     if lesson_data:
         content_dict = lesson_data
     else:
-        # Resilient fallback: Get most recent lesson
+        # Resilient fallback: Get most recent lesson and cache it for today
         last_lesson = db.query(DailyFinanceLessonModel).filter(
             DailyFinanceLessonModel.country == country_code
         ).order_by(DailyFinanceLessonModel.lesson_date.desc()).first()
         
         if last_lesson:
-            logger.warning(f"Returning most recent finance lesson for {country_code} due to generation failure.")
-            return last_lesson
-            
-        logger.warning(f"Returning static fallback finance lesson for {country_code}.")
-        fallback_lesson = get_fallback_lesson(country_code, topic)
-        content_dict = DailyFinanceLessonContent.model_validate(fallback_lesson).model_dump()
+            logger.warning(f"Using most recent finance lesson for {country_code} as fallback for today.")
+            content_dict = last_lesson.content
+            topic = last_lesson.topic
+        else:
+            logger.warning(f"Using static fallback finance lesson for {country_code}.")
+            fallback_lesson = get_fallback_lesson(country_code, topic)
+            content_dict = DailyFinanceLessonContent.model_validate(fallback_lesson).model_dump()
         
     db_lesson = DailyFinanceLessonModel(
         lesson_date=today,

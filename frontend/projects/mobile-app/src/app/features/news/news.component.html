@@ -1,67 +1,257 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border news-header">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button routerLink="/home" fill="clear"><ion-icon slot="icon-only" name="arrow-back"></ion-icon></ion-button>
+      <ion-button routerLink="/home" fill="clear" color="dark">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
     </ion-buttons>
-    <ion-title>News</ion-title>
+    <ion-title class="header-title">News Feed</ion-title>
     <ion-buttons slot="end">
-      <!-- <ion-button fill="clear"><ion-icon slot="icon-only" name="search-outline"></ion-icon></ion-button> -->
-      <ion-button fill="clear" routerLink="/bookmarks"><ion-icon slot="icon-only" name="bookmark-outline"></ion-icon></ion-button>
-      <ion-button fill="clear" routerLink="/profile/personal-information"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
-    </ion-buttons>
+    <!-- <ion-button fill="clear"><ion-icon slot="icon-only" name="search-outline"></ion-icon></ion-button> -->
+    <ion-button fill="clear" routerLink="/bookmarks"><ion-icon slot="icon-only" name="bookmark-outline"></ion-icon></ion-button>
+    <ion-button fill="clear" routerLink="/profile/personal-information"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
+  </ion-buttons>
   </ion-toolbar>
-  
-  <div class="categories-container">
-    <div class="categories-scroll">
-      <div *ngFor="let cat of categories" 
-           class="category-tab" 
-           [class.active]="segment === cat.value"
-           (click)="segmentChanged({ detail: { value: cat.value } })">
-        {{ cat.label }}
+
+  <!-- Sticky Category Navigation Bar -->
+  <div class="categories-bar">
+    <div class="categories-scroll-wrapper">
+      <div 
+        *ngFor="let cat of categories" 
+        class="category-pill" 
+        [class.active]="activeCategory === cat.value"
+        (click)="selectCategory(cat.value)">
+        <ion-icon [name]="cat.icon" class="pill-icon"></ion-icon>
+        <span>{{ cat.label }}</span>
       </div>
     </div>
   </div>
 </ion-header>
 
-<ion-content>
-  <ion-refresher slot="fixed" (ionRefresh)="loadNews($event)">
-    <ion-refresher-content></ion-refresher-content>
+<ion-content class="news-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content pullingText="Pull down to refresh..." refreshingSpinner="crescent"></ion-refresher-content>
   </ion-refresher>
 
-  <div class="horizontal-swiper" (scroll)="onScroll($event)" #slider>
-    <div class="swipe-slide" *ngFor="let cat of categories">
-      
-      <!-- Only render content if this slide is the active segment -->
-      <div *ngIf="segment === cat.value" class="slide-content-wrapper">
-        <app-loader *ngIf="isLoading" message="Fetching latest news..."></app-loader>
+  <div class="news-container">
 
-        <div *ngIf="!isLoading" class="news-list">
-          <div class="news-item" *ngFor="let article of articles">
-            
-            <div class="item-body">
-              <div class="item-main" (click)="openUrl(article.url)">
-                <h2 class="title">{{ article.title }}</h2>
-                <div class="meta">
-                  <span class="source">{{ article.source }}</span>
-                  <span class="dot">•</span>
-                  <span class="date">{{ article.published_at | date:'short' }}</span>
-                </div>
-                <p class="summary">{{ article.summary }}</p>
-              </div>
-              <div class="item-actions">
-                <ion-icon 
-                  [name]="article.is_saved ? 'bookmark' : 'bookmark-outline'" 
-                  class="action-icon bookmark"
-                  [class.saved]="article.is_saved"
-                  (click)="toggleSaveArticle(article, $event)">
-                </ion-icon>
-                <ion-icon name="chevron-forward-outline" class="action-icon" (click)="openUrl(article.url)"></ion-icon>
-              </div>
-            </div>
-          </div>
+    <!-- Skeleton Loading State (Displayed only on initial category load) -->
+    <div *ngIf="isLoading" class="skeleton-list">
+      <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4]">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-badge"></div>
+          <div class="skeleton-title"></div>
+          <div class="skeleton-title short"></div>
+          <div class="skeleton-text"></div>
+          <div class="skeleton-text"></div>
         </div>
       </div>
-      
     </div>
+
+    <!-- Active News Feed -->
+    <div *ngIf="!isLoading && articles.length > 0" class="news-feed">
+      <article 
+        class="news-card" 
+        *ngFor="let article of articles"
+        (click)="openArticleReader(article)">
+        
+        <!-- Cover Image -->
+        <div class="card-media" *ngIf="article.image_url && !hasImageError(article.id)">
+          <img 
+            [src]="article.image_url" 
+            [alt]="article.title" 
+            loading="lazy" 
+            (error)="handleImageError(article.id)" />
+          <span class="source-overlay">{{ article.source || 'News' }}</span>
+        </div>
+
+        <div class="card-body">
+          
+          <!-- Category & Timestamp Row -->
+          <div class="meta-row">
+            <span class="category-tag" [ngClass]="getCategoryBadgeClass(article.category)">
+              {{ article.category || activeCategory | uppercase }}
+            </span>
+            <div class="time-wrapper">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ formatTimeAgo(article.published_at) }}</span>
+            </div>
+          </div>
+
+          <!-- Headline -->
+          <h2 class="article-title">{{ article.title }}</h2>
+
+          <!-- Clean Readable Summary -->
+          <p class="article-summary" *ngIf="article.summary">
+            {{ article.summary }}
+          </p>
+
+          <!-- Footer Actions & Source -->
+          <div class="card-footer" (click)="$event.stopPropagation()">
+            <div class="source-info">
+              <ion-icon name="newspaper-outline"></ion-icon>
+              <span class="source-name">{{ article.source || '10xDaily News' }}</span>
+            </div>
+
+            <div class="action-buttons">
+              <!-- Bookmark Button -->
+              <button 
+                class="action-btn bookmark-btn" 
+                [class.saved]="article.is_saved"
+                (click)="toggleSaveArticle(article, $event)"
+                aria-label="Bookmark article">
+                <ion-icon [name]="article.is_saved ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+              </button>
+
+              <!-- Share Button -->
+              <button 
+                class="action-btn share-btn" 
+                (click)="shareArticle(article, $event)"
+                aria-label="Share article">
+                <ion-icon name="share-social-outline"></ion-icon>
+              </button>
+
+              <!-- In-App Read Story Button -->
+              <button 
+                class="read-more-btn" 
+                (click)="openArticleReader(article, $event)">
+                <span>Read Story</span>
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </article>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && articles.length === 0" class="empty-state">
+      <div class="empty-icon-circle">
+        <ion-icon name="newspaper-outline"></ion-icon>
+      </div>
+      <h3>No articles available right now</h3>
+      <p>We couldn't load stories for this topic. Pull down to refresh or try another category.</p>
+      <button class="btn-retry" (click)="selectCategory(activeCategory, true)">
+        <ion-icon name="refresh-outline"></ion-icon>
+        <span>Refresh News</span>
+      </button>
+    </div>
+
   </div>
 </ion-content>
+
+<!-- ========================================== -->
+<!-- IN-APP ARTICLE READER MODAL (FULL STORY)  -->
+<!-- ========================================== -->
+<ion-modal [isOpen]="isReaderOpen" (didDismiss)="closeArticleReader()" class="article-reader-modal">
+  <ng-template>
+    <ion-header class="ion-no-border reader-modal-header">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="closeArticleReader()" fill="clear" color="dark">
+            <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title class="reader-header-title">{{ selectedArticle?.source || 'Story Details' }}</ion-title>
+        <ion-buttons slot="end" *ngIf="selectedArticle">
+          <ion-button fill="clear" (click)="toggleSaveArticle(selectedArticle, $event)">
+            <ion-icon slot="icon-only" [name]="selectedArticle.is_saved ? 'bookmark' : 'bookmark-outline'" [class.saved]="selectedArticle.is_saved"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="shareArticle(selectedArticle, $event)">
+            <ion-icon slot="icon-only" name="share-social-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="reader-modal-content" *ngIf="selectedArticle">
+      <div class="reader-body-container">
+        
+        <!-- Category & Time Row -->
+        <div class="reader-meta-header">
+          <span class="category-tag" [ngClass]="getCategoryBadgeClass(selectedArticle.category)">
+            {{ selectedArticle.category || activeCategory | uppercase }}
+          </span>
+          <span class="reader-time">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ formatTimeAgo(selectedArticle.published_at) }}
+          </span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="reader-title">{{ selectedArticle.title }}</h1>
+
+        <!-- Source Byline -->
+        <div class="reader-byline">
+          <div class="source-avatar">
+            <ion-icon name="newspaper-outline"></ion-icon>
+          </div>
+          <div class="byline-text">
+            <span class="byline-source">{{ selectedArticle.source || '10xDaily News Desk' }}</span>
+            <span class="byline-sub">Full In-App Coverage</span>
+          </div>
+        </div>
+
+        <!-- Hero Cover Image -->
+        <div class="reader-hero-media" *ngIf="selectedArticle.image_url && !hasImageError(selectedArticle.id)">
+          <img 
+            [src]="selectedArticle.image_url" 
+            [alt]="selectedArticle.title" 
+            (error)="handleImageError(selectedArticle.id)" />
+          <span class="reader-image-caption">Photo: {{ selectedArticle.source || 'Associated Press' }}</span>
+        </div>
+
+        <!-- Quick Summary Box -->
+        <div class="reader-summary-card">
+          <div class="summary-card-header">
+            <!-- <ion-icon name="sparkles-outline"></ion-icon> -->
+            <span>SUMMARY & KEY HIGHLIGHTS</span>
+          </div>
+          <p>{{ selectedArticle.summary }}</p>
+        </div>
+
+        <!-- Full Story Paragraphs -->
+        <div class="reader-story-section">
+          <div class="story-section-title">
+            <!-- <ion-icon name="book-outline"></ion-icon> -->
+            <span>FULL COVERAGE & BACKGROUND</span>
+          </div>
+
+          <!-- Loading Story State -->
+          <div *ngIf="isLoadingStory" class="story-loading-shimmer">
+            <div class="loading-label">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <span>Loading full in-depth coverage...</span>
+            </div>
+            <div class="shimmer-line"></div>
+            <div class="shimmer-line"></div>
+            <div class="shimmer-line short"></div>
+            <div class="shimmer-line"></div>
+            <div class="shimmer-line short"></div>
+          </div>
+
+          <!-- Loaded Story Paragraphs -->
+          <div class="reader-paragraphs" *ngIf="!isLoadingStory">
+            <p *ngFor="let p of getArticleParagraphs(selectedArticle)" class="story-p">
+              {{ p }}
+            </p>
+          </div>
+        </div>
+
+
+        <!-- Bottom Action Bar & External Link -->
+        <div class="reader-footer-box">
+          <p class="footer-note">Original coverage reported by <strong>{{ selectedArticle.source || 'Publisher' }}</strong>.</p>
+          <button class="btn-external-source" (click)="openUrl(selectedArticle.url)">
+            <span>View on Original Website</span>
+            <ion-icon name="open-outline"></ion-icon>
+          </button>
+        </div>
+
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

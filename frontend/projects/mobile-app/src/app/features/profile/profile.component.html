@@ -1,5 +1,10 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" color="dark" (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-title>Profile</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -155,7 +160,13 @@
           <span>Help & Support</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
         </div>
+        <div class="setting-row" routerLink="/profile/feedback">
+          <div class="setting-icon purple-light-bg"><ion-icon name="chatbubbles-outline" class="purple-text"></ion-icon></div>
+          <span>Send Feedback & Report Issue</span>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </div>
         <div class="setting-row" (click)="onLogout()">
+
           <div class="setting-icon red-light-bg"><ion-icon name="log-out-outline" class="red-text"></ion-icon></div>
           <span class="red-text" style="font-weight: 500;">Log Out</span>
           <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>

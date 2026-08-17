@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, HostListener, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { GamesService } from '../../../services/games.service';
@@ -24,7 +25,7 @@ interface Cage {
 })
 export class KenKenComponent implements OnInit, OnDestroy {
   private gamesService = inject(GamesService);
-  private location = inject(Location);
+  private router = inject(Router);
   private toastCtrl = inject(ToastController);
   
   Math = Math;
@@ -58,7 +59,7 @@ export class KenKenComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigateByUrl('/games');
   }
   
   loadPuzzle() {

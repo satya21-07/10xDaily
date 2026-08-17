@@ -1,0 +1,158 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/profile" fill="clear" color="dark">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="header-title">Send Feedback</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="feedback-content ion-padding">
+  <div class="feedback-container">
+
+    <!-- Success Confirmation State -->
+    <div *ngIf="submittedSuccess" class="success-card">
+      <div class="success-icon-wrapper">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <h2>Feedback Received!</h2>
+      <p class="success-desc">
+        Thank you for helping us improve 10xDaily! Our product & engineering team has received your submission directly via email and will review it promptly.
+      </p>
+      <div class="success-actions">
+        <button class="btn-primary" (click)="resetForm()">
+          <ion-icon name="sparkles-outline"></ion-icon>
+          Send Another Note
+        </button>
+        <button class="btn-secondary" (click)="goBack()">
+          Back to Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback Submission Form -->
+    <div *ngIf="!submittedSuccess" class="form-wrapper">
+      
+      <!-- Hero Intro Banner -->
+      <div class="intro-banner">
+        <div class="banner-icon">
+          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        </div>
+        <div class="banner-text">
+          <h3>We value your voice</h3>
+          <p>Encountered a bug, have an idea, or want to share your experience? We read every submission.</p>
+        </div>
+      </div>
+
+      <!-- Feedback Type Selector -->
+      <div class="section-group">
+        <label class="field-label">FEEDBACK TYPE</label>
+        <div class="type-grid">
+          <div 
+            *ngFor="let item of feedbackTypes" 
+            class="type-pill" 
+            [class.active]="selectedType === item.type"
+            [style.--active-color]="item.color"
+            (click)="selectType(item.type)">
+            <ion-icon [name]="item.icon"></ion-icon>
+            <span>{{ item.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Star Rating -->
+      <div class="section-group">
+        <div class="rating-header">
+          <label class="field-label">OVERALL EXPERIENCE</label>
+          <span class="rating-badge" *ngIf="rating">{{ getRatingLabel() }}</span>
+        </div>
+        <div class="stars-row">
+          <div 
+            *ngFor="let starVal of [1, 2, 3, 4, 5]" 
+            class="star-item" 
+            (click)="setRating(starVal)">
+            <ion-icon 
+              [name]="starVal <= rating ? 'star' : 'star-outline'"
+              [class.filled]="starVal <= rating">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category / Module Selector -->
+      <div class="section-group">
+        <label class="field-label" for="category-select">APP AREA / TOPIC</label>
+        <div class="select-wrapper">
+          <select id="category-select" [(ngModel)]="selectedCategory" class="custom-select">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Subject Input -->
+      <div class="section-group">
+        <label class="field-label" for="subject-input">SUBJECT / SUMMARY <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input 
+            id="subject-input" 
+            type="text" 
+            [(ngModel)]="subject" 
+            placeholder="e.g., Issue with quiz timer or Dark mode suggestion"
+            maxlength="100"
+            class="custom-input"
+          />
+        </div>
+      </div>
+
+      <!-- Detailed Description -->
+      <div class="section-group">
+        <div class="label-row">
+          <label class="field-label" for="message-input">DETAILED DESCRIPTION <span class="required">*</span></label>
+          <span class="char-count">{{ message.length }}/1000</span>
+        </div>
+        <div class="textarea-wrapper">
+          <textarea 
+            id="message-input" 
+            [(ngModel)]="message" 
+            rows="5" 
+            placeholder="Tell us what happened, steps to reproduce, or details of your suggestion..."
+            maxlength="1000"
+            class="custom-textarea">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Contact Email (Auto-filled) -->
+      <div class="section-group">
+        <label class="field-label" for="email-input">YOUR EMAIL FOR RESPONSE <span class="required">*</span></label>
+        <div class="input-wrapper">
+          <input 
+            id="email-input" 
+            type="email" 
+            [(ngModel)]="contactEmail" 
+            placeholder="name@example.com"
+            class="custom-input"
+          />
+        </div>
+        <p class="helper-text">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          We'll send issue updates and replies directly to this email.
+        </p>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="submit-container">
+        <button 
+          class="btn-submit" 
+          (click)="submitFeedback()" 
+          [disabled]="isSubmitting || !subject || !message || !contactEmail">
+          <ion-icon name="paper-plane-outline"></ion-icon>
+          <span>{{ isSubmitting ? 'Sending...' : 'Submit Feedback' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

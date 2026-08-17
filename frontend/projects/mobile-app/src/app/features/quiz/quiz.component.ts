@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { addIcons } from 'ionicons';
 import { 
-  checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, 
+  checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, arrowBack,
   refreshOutline, homeOutline, trophyOutline, listOutline, chevronBackOutline, 
   bookmarkOutline, shareOutline, bulbOutline, bookOutline, cashOutline, 
   newspaperOutline, codeSlashOutline, leafOutline, checkmarkCircle, closeCircle
@@ -51,7 +51,7 @@ export class QuizComponent implements OnInit {
 
   constructor() {
     addIcons({ 
-      checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, 
+      checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline, arrowBackOutline, arrowBack,
       refreshOutline, homeOutline, trophyOutline, listOutline, chevronBackOutline, 
       bookmarkOutline, shareOutline, bulbOutline, bookOutline, cashOutline, 
       newspaperOutline, codeSlashOutline, leafOutline, checkmarkCircle, closeCircle
@@ -352,7 +352,16 @@ export class QuizComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    if (this.isReviewing) {
+      this.isReviewing = false;
+      this.isFinished = true;
+      return;
+    }
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   goHome() {

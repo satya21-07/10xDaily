@@ -13,8 +13,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+@router.get("/full-story")
+def get_full_story(
+    url: str = Query(..., description="Article URL"),
+    title: str = Query(..., description="Article Headline"),
+    summary: Optional[str] = Query(None, description="Article Summary Snippet"),
+    source: Optional[str] = Query("News", description="Publisher source")
+) -> Any:
+    """Retrieve full story text / paragraphs for an in-app reading experience."""
+    from app.services.news_service import fetch_full_story
+    content = fetch_full_story(url=url, title=title, summary=summary or "", source=source or "News")
+    return {"content": content}
+
 @router.get("", response_model=List[NewsArticle])
 def get_news(
+
     db: Session = Depends(get_db),
     category: Optional[str] = None,
     skip: int = 0,

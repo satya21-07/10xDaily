@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonicModule, ActionSheetController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
 import { NewsService } from '../../services/news.service';
 import { addIcons } from 'ionicons';
-import { bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline } from 'ionicons/icons';
+import { arrowBack, bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-bookmarks',
@@ -32,9 +34,19 @@ export class BookmarksComponent implements OnInit {
   constructor(
     private bookmarkService: BookmarkService,
     private newsService: NewsService,
-    private actionSheetCtrl: ActionSheetController
+    private actionSheetCtrl: ActionSheetController,
+    private location: Location,
+    private router: Router
   ) {
-    addIcons({ bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline });
+    addIcons({ arrowBack, bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline });
+  }
+
+  goBack() {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   ngOnInit() {

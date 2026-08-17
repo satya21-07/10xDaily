@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { GamesService } from '../../../services/games.service';
 import { AuthService, UserProfile } from '../../../services/auth.service';
 import { addIcons } from 'ionicons';
@@ -17,7 +17,7 @@ import { colorFilter, checkmarkCircle, sparkles, arrowForward, grid, text, menuO
 export class GamesHubComponent implements OnInit {
   private gamesService = inject(GamesService);
   private authService = inject(AuthService);
-  private location = inject(Location);
+  private router = inject(Router);
   
   userProfile: UserProfile | null = null;
   
@@ -98,6 +98,6 @@ export class GamesHubComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigateByUrl('/home');
   }
 }

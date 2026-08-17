@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -14,8 +14,10 @@ import {
   bookOutline, locateOutline, starOutline, timeOutline, book, newspaperOutline,
   locate, chatboxEllipsesOutline, personOutline, shieldCheckmarkOutline,
   colorPaletteOutline, globeOutline, helpCircleOutline, chevronForwardOutline,
-  ribbon, sunnyOutline, phonePortraitOutline
+  ribbon, sunnyOutline, phonePortraitOutline, chatbubblesOutline, mailOutline,
+  arrowBack
 } from 'ionicons/icons';
+
 
 @Component({
   selector: 'app-profile',
@@ -27,6 +29,7 @@ import {
 export class ProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private location = inject(Location);
   private ngZone = inject(NgZone);
   private toastController = inject(ToastController);
   private actionSheetCtrl = inject(ActionSheetController);
@@ -45,8 +48,17 @@ export class ProfileComponent implements OnInit {
       bookOutline, locateOutline, starOutline, timeOutline, book, newspaperOutline,
       locate, chatboxEllipsesOutline, personOutline, shieldCheckmarkOutline,
       colorPaletteOutline, globeOutline, helpCircleOutline, chevronForwardOutline,
-      ribbon, sunnyOutline, phonePortraitOutline
+      ribbon, sunnyOutline, phonePortraitOutline, chatbubblesOutline, mailOutline,
+      arrowBack
     });
+  }
+
+  goBack() {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   ngOnInit() {

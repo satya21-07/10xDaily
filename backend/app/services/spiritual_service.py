@@ -11,7 +11,7 @@ from app.schemas.spiritual import GroqSpiritualLessonSchema, DailySpiritualLesso
 
 logger = logging.getLogger(__name__)
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "openai/gpt-oss-120b"
 
 FALLBACK_DATA = {
     "topic": "Karma",
@@ -292,7 +292,7 @@ Respond with ONLY a valid JSON object in this exact structure:
     "journal_prompt": "A deep, honest journaling question that challenges the reader to reflect specifically on this lesson in their own life."
 }}"""
 
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
     
     for attempt in range(max_retries):
@@ -405,11 +405,26 @@ def get_or_generate_daily_spiritual_lesson(db: Session) -> dict:
         logger.error(f"Error during Groq generation or Pydantic validation: {e}")
         db.rollback()
         
-    # Resilient fallback: Try to return the most recent lesson in DB
+    # Resilient fallback: Try to return the most recent lesson in DB and cache for today
     logger.warning("Falling back to most recent DB lesson due to generation failure.")
     last_lesson = db.query(DailySpiritualLesson).order_by(DailySpiritualLesson.lesson_date.desc()).first()
     if last_lesson:
-        return build_lesson_response(last_lesson)
+        try:
+            today_cached_lesson = DailySpiritualLesson(
+                lesson_date=today_str,
+                topic=last_lesson.topic,
+                source_id=last_lesson.source_id,
+                reflection=last_lesson.reflection,
+                today_practice=last_lesson.today_practice,
+                journal_prompt=last_lesson.journal_prompt
+            )
+            db.add(today_cached_lesson)
+            db.commit()
+            db.refresh(today_cached_lesson)
+            return build_lesson_response(today_cached_lesson)
+        except Exception:
+            db.rollback()
+            return build_lesson_response(last_lesson)
         
     # Ultimate fallback if DB is empty
     logger.error("No recent DB lesson available. Using static FALLBACK_DATA.")

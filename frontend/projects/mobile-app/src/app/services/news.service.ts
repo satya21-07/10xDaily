@@ -25,6 +25,18 @@ export class NewsService {
     );
   }
 
+  getFullStory(url: string, title: string, summary?: string, source?: string): Observable<{ content: string }> {
+    const params: any = { url, title };
+    if (summary) params.summary = summary;
+    if (source) params.source = source;
+    return this.http.get<{ content: string }>(`${this.apiUrl}/full-story`, { params }).pipe(
+      catchError(err => {
+        console.error('Error fetching full story:', err);
+        return of({ content: summary || title });
+      })
+    );
+  }
+
   getSavedNews(skip: number = 0, limit: number = 50): Observable<SavedNewsResponse[]> {
     return this.http.get<SavedNewsResponse[]>(`${this.apiUrl}/saved?skip=${skip}&limit=${limit}`);
   }

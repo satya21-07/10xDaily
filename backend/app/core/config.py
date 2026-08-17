@@ -14,11 +14,24 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     GEMINI_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     GOOGLE_CLIENT_ID: Optional[str] = None
     USDA_API_KEY: Optional[str] = None
+
+    # SMTP / Email Settings
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_TLS: bool = True
+    EMAILS_FROM_EMAIL: Optional[str] = None
+    EMAILS_FROM_NAME: str = "10xDaily Support"
+    FEEDBACK_RECIPIENT_EMAIL: Optional[str] = None
 
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "allow"
 
 settings = Settings()
+

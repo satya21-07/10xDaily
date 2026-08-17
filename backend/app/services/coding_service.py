@@ -142,7 +142,7 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
     
     CRITICAL REQUIREMENTS:
     1. Do NOT reproduce or closely paraphrase existing LeetCode problem statements. Generate original interview-style problems.
-    2. Generate exactly 4 concepts that progressively teach the topic.
+    2. Generate exactly 4 concepts that progressively teach the topic. Keep concept explanations concise (1-2 sentences).
     3. Generate exactly 5 coding questions with this difficulty distribution:
        - Q1: Easy
        - Q2: Easy
@@ -150,7 +150,8 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
        - Q4: Medium
        - Q5: Hard
     4. Do not generate five questions that test exactly the same technique. Questions should cover meaningful variations of the day's topic/pattern.
-    5. Provide valid solutions in Java, Python, JavaScript, and C++ as raw strings without markdown code fences.
+    5. Provide concise, clean standard solutions in Java, Python, JavaScript, and C++ as raw strings without markdown code fences or verbose comments.
+    6. Keep all fields compact and concise so the JSON response stays well within token constraints.
 
     You MUST respond with ONLY a valid JSON object matching this exact structure:
     {{
@@ -159,7 +160,7 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
       "concepts": [
         {{
           "title": "Concept 1",
-          "explanation": "Detailed but easy-to-understand explanation...",
+          "explanation": "Concise explanation...",
           "key_points": ["Point 1", "Point 2", "Point 3"],
           "example": "A small practical example..."
         }},
@@ -169,7 +170,7 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
         {{
           "id": "placeholder",
           "title": "Original Problem Title",
-          "description": "Full original problem description...",
+          "description": "Concise original problem description...",
           "difficulty": "Easy",
           "pattern": "{topic_seed}",
           "tags": ["{topic_seed}", "Array"],
@@ -187,10 +188,10 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
       ]
     }}
     
-    Ensure the JSON is perfectly formatted and contains no markdown code blocks outside of the raw JSON itself. Ensure code strings properly escape newlines and quotes.
+    Ensure the JSON is strictly valid, compact, and contains no markdown code blocks outside of the raw JSON itself.
     """
 
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
     
     for attempt in range(max_retries):
@@ -198,11 +199,11 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
             response = client.chat.completions.create(
                 model=model_name,
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
+                    {"role": "system", "content": "You are a helpful assistant that strictly outputs compact, valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 response_format={"type": "json_object"},
-                max_tokens=4000
+                max_tokens=6000
             )
             text_response = response.choices[0].message.content
             
@@ -266,15 +267,31 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
             else:
                 break
                 
-    # Fallback Mechanism: try to use the most recent lesson from DB
-    logger.warning("All Groq attempts failed. Attempting to use a previous lesson as fallback.")
+    # Fallback Mechanism: use most recent lesson from DB or static fallback, and cache for today
+    logger.warning("All Groq attempts failed. Storing fallback lesson in DB for today to prevent repeated API calls.")
     last_lesson = db.query(DailyCodingLesson).order_by(DailyCodingLesson.lesson_date.desc()).first()
     if last_lesson:
-        return {
+        fallback_payload = {
             "topic": last_lesson.topic,
             "learning_objective": last_lesson.learning_objective,
             "concepts": last_lesson.concepts,
             "questions": last_lesson.questions
         }
+    else:
+        fallback_payload = FALLBACK_DATA
+
+    try:
+        fallback_db_lesson = DailyCodingLesson(
+            lesson_date=today_str,
+            topic=fallback_payload["topic"],
+            learning_objective=fallback_payload["learning_objective"],
+            concepts=fallback_payload["concepts"],
+            questions=fallback_payload["questions"]
+        )
+        db.add(fallback_db_lesson)
+        db.commit()
+    except Exception as save_err:
+        db.rollback()
+        logger.warning(f"Could not persist fallback coding lesson for today: {save_err}")
     
-    return FALLBACK_DATA
+    return fallback_payload

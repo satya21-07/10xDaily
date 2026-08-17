@@ -1,7 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/games"></ion-back-button>
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
     <ion-title>LEVEL {{ levelData?.grid_size || 5 }}x{{ levelData?.grid_size || 5 }}</ion-title>
     <ion-buttons slot="end">

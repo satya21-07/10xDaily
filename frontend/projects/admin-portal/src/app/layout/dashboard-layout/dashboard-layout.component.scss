@@ -70,4 +70,8 @@
   padding: 32px;
   background: var(--10x-bg);
   min-height: calc(100vh - 64px);
+  
+  @media (max-width: 600px) {
+    padding: 16px;
+  }
 }

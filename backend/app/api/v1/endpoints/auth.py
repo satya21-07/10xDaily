@@ -44,6 +44,42 @@ def update_user_streak(db: Session, user: User) -> int:
     db.refresh(user)
     return user.current_streak
 
+@router.post("/admin/login/access-token", response_model=Token)
+def admin_login_access_token(
+    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+) -> Any:
+    """OAuth2 compatible token login specifically for admins, get an access token for future requests"""
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not security.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    elif not user.is_superuser:
+        raise HTTPException(status_code=403, detail="You do not have admin privileges")
+        
+    current_streak = update_user_streak(db, user)
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return {
+        "access_token": security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        ),
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "streak": current_streak,
+            "xp": user.xp,
+            "words_learned": user.words_learned,
+            "quiz_correct_answers": user.quiz_correct_answers,
+            "quiz_total_answers": user.quiz_total_answers,
+            "modules_completed": user.modules_completed,
+            "modules_explored": user.modules_explored,
+            "total_time_spent_seconds": user.total_time_spent_seconds
+        }
+    }
+
 @router.post("/login/access-token", response_model=Token)
 def login_access_token(
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()

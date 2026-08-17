@@ -1,10 +1,11 @@
 import { Component, ElementRef, HostListener, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { GamesService, FlowLevel, TodayFlowResponse } from '../../../services/games.service';
 import { AuthService } from '../../../services/auth.service';
 import { addIcons } from 'ionicons';
-import { refresh, arrowUndo, bulb } from 'ionicons/icons';
+import { refresh, arrowUndo, bulb, arrowBackOutline } from 'ionicons/icons';
 
 interface Cell {
   x: number;
@@ -31,11 +32,11 @@ interface Cell {
 export class FlowPuzzleComponent implements OnInit, OnDestroy {
   private gamesService = inject(GamesService);
   private authService = inject(AuthService);
-  private location = inject(Location);
+  private router = inject(Router);
   private toastCtrl = inject(ToastController);
 
   constructor() {
-    addIcons({ refresh, arrowUndo, bulb });
+    addIcons({ refresh, arrowUndo, bulb, arrowBackOutline });
   }
 
   levelData: FlowLevel | null = null;
@@ -150,7 +151,7 @@ export class FlowPuzzleComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.location.back();
+    this.router.navigateByUrl('/games');
   }
 
   reset() {

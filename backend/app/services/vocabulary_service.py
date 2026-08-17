@@ -78,7 +78,7 @@ def fallback_groq_completion(word: str, needs_example: bool, needs_synonyms: boo
         prompt += "'antonyms' (list of strings). "
     prompt += "Do NOT wrap in markdown. Output ONLY valid JSON."
     
-    model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     max_retries = 3
     
     for attempt in range(max_retries):

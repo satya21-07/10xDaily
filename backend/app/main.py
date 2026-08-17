@@ -16,6 +16,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8100",
         "http://localhost:4200",
+        "http://localhost:4201",
         "https://one0xdaily-web.onrender.com"
     ],
     allow_credentials=True,

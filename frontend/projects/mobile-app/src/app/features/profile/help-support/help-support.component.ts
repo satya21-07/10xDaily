@@ -11,8 +11,10 @@ import {
   barChartOutline, 
   chevronForwardOutline, 
   searchOutline,
-  arrowBack
+  arrowBack,
+  chatbubblesOutline
 } from 'ionicons/icons';
+
 
 @Component({
   selector: 'app-help-support',
@@ -42,8 +44,10 @@ export class HelpSupportComponent {
       barChartOutline, 
       chevronForwardOutline, 
       searchOutline,
-      arrowBack
+      arrowBack,
+      chatbubblesOutline
     });
+
   }
 
   async openArticle(title: string) {

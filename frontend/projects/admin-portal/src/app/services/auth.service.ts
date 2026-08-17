@@ -25,7 +25,7 @@ export class AuthService {
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
-    return this.http.post<any>(`${this.apiUrl}/auth/login/access-token`, body.toString(), { headers }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/auth/admin/login/access-token`, body.toString(), { headers }).pipe(
       tap(response => {
         if (response && response.access_token) {
           localStorage.setItem(this.tokenKey, response.access_token);
