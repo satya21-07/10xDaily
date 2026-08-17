@@ -189,8 +189,8 @@ export class VocabularyComponent implements OnInit, OnDestroy {
   }
 
   loadBookmarks() {
-    this.bookmarkService.getBookmarks().subscribe(data => {
-      this.savedBookmarks = data.filter(b => b.content_type === 'vocabulary');
+    this.bookmarkService.getBookmarks(true).subscribe(data => {
+      this.savedBookmarks = (data || []).filter(b => b.content_type === 'vocabulary');
     });
   }
 
@@ -207,10 +207,11 @@ export class VocabularyComponent implements OnInit, OnDestroy {
         this.loadBookmarks();
       });
     } else {
+      const def = word.definitions?.[0]?.definition || word.meaning || '';
       this.bookmarkService.saveBookmark({
         title: word.word,
         content_type: 'vocabulary',
-        url: word.meaning,
+        url: def,
         details: JSON.stringify(word)
       }).subscribe(() => {
         this.loadBookmarks();

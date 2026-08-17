@@ -10,6 +10,9 @@ export interface NewsArticle {
   published_at?: string;
   ai_summary?: string;
   content?: string;
+  key_highlights?: string[];
+  full_coverage?: string[];
+  why_it_matters?: string;
   is_saved?: boolean;
 }
 

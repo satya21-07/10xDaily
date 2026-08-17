@@ -14,10 +14,9 @@ class BookmarkCreate(BookmarkBase):
     pass
 
 class BookmarkResponse(BookmarkBase):
-    id: int
-    user_id: int
-    created_at: datetime
+    id: Optional[int] = None
+    user_id: Optional[int] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
-

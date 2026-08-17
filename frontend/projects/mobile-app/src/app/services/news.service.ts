@@ -25,14 +25,27 @@ export class NewsService {
     );
   }
 
-  getFullStory(url: string, title: string, summary?: string, source?: string): Observable<{ content: string }> {
+  getFullStory(url: string, title: string, summary?: string, source?: string, category?: string): Observable<{
+    content: string;
+    summary?: string;
+    key_highlights?: string[];
+    full_coverage?: string[];
+    why_it_matters?: string;
+  }> {
     const params: any = { url, title };
     if (summary) params.summary = summary;
     if (source) params.source = source;
-    return this.http.get<{ content: string }>(`${this.apiUrl}/full-story`, { params }).pipe(
+    if (category) params.category = category;
+    return this.http.get<{
+      content: string;
+      summary?: string;
+      key_highlights?: string[];
+      full_coverage?: string[];
+      why_it_matters?: string;
+    }>(`${this.apiUrl}/full-story`, { params }).pipe(
       catchError(err => {
         console.error('Error fetching full story:', err);
-        return of({ content: summary || title });
+        return of({ content: summary || title, summary: summary || title });
       })
     );
   }

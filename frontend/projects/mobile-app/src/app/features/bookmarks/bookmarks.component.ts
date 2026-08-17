@@ -71,9 +71,9 @@ export class BookmarksComponent implements OnInit {
       }
     };
 
-    this.bookmarkService.getBookmarks().subscribe({
+    this.bookmarkService.getBookmarks(true).subscribe({
       next: (data) => {
-        generalBookmarks = data;
+        generalBookmarks = data || [];
         checkCompletion();
       },
       error: (err) => {
@@ -85,7 +85,7 @@ export class BookmarksComponent implements OnInit {
     this.newsService.getSavedNews().subscribe({
       next: (data) => {
         // Transform SavedNewsResponse into Bookmark-like format for grouping
-        savedNewsBookmarks = data.map(news => ({
+        savedNewsBookmarks = (data || []).map(news => ({
           id: news.id,
           title: news.title,
           url: news.url,
@@ -112,10 +112,37 @@ export class BookmarksComponent implements OnInit {
         this.groupedBookmarks[type] = [];
       }
       if (!b.is_saved_news_record) {
-        try {
-          b.parsed_data = b.details ? JSON.parse(b.details) : null;
-        } catch (e) {
-          b.parsed_data = null;
+        if (b.parsed_data && typeof b.parsed_data === 'object') {
+          // Already an object
+        } else if (b.details) {
+          if (typeof b.details === 'object') {
+            b.parsed_data = b.details;
+          } else if (typeof b.details === 'string') {
+            try {
+              b.parsed_data = JSON.parse(b.details);
+            } catch (e) {
+              b.parsed_data = {
+                title: b.title,
+                summary: b.details,
+                explanation: b.details,
+                word: b.title
+              };
+            }
+          }
+        }
+        
+        // Guarantee parsed_data is non-null for all rendering templates
+        if (!b.parsed_data) {
+          b.parsed_data = {
+            title: b.title,
+            word: b.title,
+            topic: b.title,
+            meaning: b.url || '',
+            explanation: b.url || '',
+            summary: b.url || '',
+            description: b.url || '',
+            definitions: [{ definition: b.url || '' }]
+          };
         }
       }
       this.groupedBookmarks[type].push(b);

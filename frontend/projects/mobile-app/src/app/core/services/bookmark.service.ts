@@ -22,10 +22,11 @@ export interface Bookmark {
 export class BookmarkService {
   private apiUrl = `${environment.apiUrl}/bookmarks`;
   private bookmarksSubject = new BehaviorSubject<Bookmark[] | null>(null);
+  public bookmarks$ = this.bookmarksSubject.asObservable();
 
   constructor(private http: HttpClient) { }
 
-  getBookmarks(forceRefresh: boolean = false): Observable<Bookmark[]> {
+  getBookmarks(forceRefresh: boolean = true): Observable<Bookmark[]> {
     if (!forceRefresh && this.bookmarksSubject.value !== null) {
       return of(this.bookmarksSubject.value);
     }
@@ -38,7 +39,8 @@ export class BookmarkService {
     return this.http.post<Bookmark>(this.apiUrl, bookmark).pipe(
       tap(newBookmark => {
         const current = this.bookmarksSubject.value || [];
-        this.bookmarksSubject.next([newBookmark, ...current.filter(b => b.id !== newBookmark.id)]);
+        const filtered = current.filter(b => b.id !== newBookmark.id && !(b.title === newBookmark.title && b.content_type === newBookmark.content_type));
+        this.bookmarksSubject.next([newBookmark, ...filtered]);
       })
     );
   }

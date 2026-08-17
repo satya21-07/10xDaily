@@ -18,12 +18,19 @@ def get_full_story(
     url: str = Query(..., description="Article URL"),
     title: str = Query(..., description="Article Headline"),
     summary: Optional[str] = Query(None, description="Article Summary Snippet"),
-    source: Optional[str] = Query("News", description="Publisher source")
+    source: Optional[str] = Query("News", description="Publisher source"),
+    category: Optional[str] = Query(None, description="Article Category")
 ) -> Any:
-    """Retrieve full story text / paragraphs for an in-app reading experience."""
-    from app.services.news_service import fetch_full_story
-    content = fetch_full_story(url=url, title=title, summary=summary or "", source=source or "News")
-    return {"content": content}
+    """Retrieve full story text, key highlights, and in-depth background for in-app reading."""
+    from app.services.news_service import fetch_full_story_details
+    details = fetch_full_story_details(
+        url=url,
+        title=title,
+        summary=summary or "",
+        source=source or "News",
+        category=category or ""
+    )
+    return details
 
 @router.get("", response_model=List[NewsArticle])
 def get_news(

@@ -69,8 +69,8 @@ export class CodingComponent implements OnInit {
   }
 
   loadBookmarks() {
-    this.bookmarkService.getBookmarks().subscribe(data => {
-      this.savedBookmarks = data.filter(b => b.content_type === 'coding');
+    this.bookmarkService.getBookmarks(true).subscribe(data => {
+      this.savedBookmarks = (data || []).filter(b => b.content_type === 'coding');
     });
   }
 
@@ -90,7 +90,7 @@ export class CodingComponent implements OnInit {
       this.bookmarkService.saveBookmark({
         title: question.title,
         content_type: 'coding',
-        url: question.description,
+        url: question.description || '',
         details: JSON.stringify(question)
       }).subscribe(() => {
         this.loadBookmarks();

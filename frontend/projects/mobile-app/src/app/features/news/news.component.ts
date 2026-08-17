@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { NewsService } from '../../services/news.service';
@@ -21,7 +21,8 @@ import {
   closeCircle,
   linkOutline,
   bookOutline,
-  eyeOutline
+  eyeOutline,
+  bulbOutline
 } from 'ionicons/icons';
 import { RouterLink } from '@angular/router';
 import { ProgressService } from '../../services/progress.service';
@@ -35,7 +36,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./news.component.scss'],
   host: { 'class': 'ion-page' }
 })
-export class NewsComponent implements OnInit {
+export class NewsComponent implements OnInit, OnDestroy {
   private newsService = inject(NewsService);
   private progressService = inject(ProgressService);
   private authService = inject(AuthService);
@@ -85,7 +86,8 @@ export class NewsComponent implements OnInit {
       closeCircle,
       linkOutline,
       bookOutline,
-      eyeOutline
+      eyeOutline,
+      bulbOutline
     });
   }
 
@@ -144,6 +146,19 @@ export class NewsComponent implements OnInit {
     }, 60);
   }
 
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event: PopStateEvent) {
+    if (this.isReaderOpen) {
+      this.isReaderOpen = false;
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.isReaderOpen && window.history.state?.modal === 'news-reader') {
+      window.history.back();
+    }
+  }
+
   openArticleReader(article: NewsArticle, event?: Event) {
     if (event) {
       event.stopPropagation();
@@ -151,15 +166,27 @@ export class NewsComponent implements OnInit {
     this.selectedArticle = article;
     this.isReaderOpen = true;
 
+    // Push browser history state so mousepad/swipe-back or browser Back closes modal instead of exiting news
+    if (window.history.state?.modal !== 'news-reader') {
+      window.history.pushState({ modal: 'news-reader' }, '', window.location.href);
+    }
+
     // Fetch full comprehensive story if not already cached
-    if (!article.content || article.content.length < 150) {
+    if (!article.content || article.content.length < 200 || !article.key_highlights || article.key_highlights.length === 0) {
       this.isLoadingStory = true;
-      this.newsService.getFullStory(article.url, article.title, article.summary, article.source).subscribe({
+      this.newsService.getFullStory(article.url, article.title, article.summary, article.source, article.category || this.activeCategory).subscribe({
         next: (res) => {
-          if (res && res.content) {
-            article.content = res.content;
+          if (res) {
+            article.content = res.content || article.content;
+            if (res.summary && res.summary.length > (article.summary ? article.summary.length : 0)) {
+              article.summary = res.summary;
+            }
+            article.key_highlights = res.key_highlights || article.key_highlights;
+            article.full_coverage = res.full_coverage || article.full_coverage;
+            article.why_it_matters = res.why_it_matters || article.why_it_matters;
+            
             if (this.selectedArticle && this.selectedArticle.id === article.id) {
-              this.selectedArticle.content = res.content;
+              this.selectedArticle = { ...article };
             }
           }
           this.isLoadingStory = false;
@@ -171,9 +198,13 @@ export class NewsComponent implements OnInit {
     }
   }
 
-
   closeArticleReader() {
-    this.isReaderOpen = false;
+    if (this.isReaderOpen) {
+      this.isReaderOpen = false;
+      if (window.history.state?.modal === 'news-reader') {
+        window.history.back();
+      }
+    }
   }
 
   toggleSaveArticle(article: NewsArticle, event: Event) {
@@ -298,6 +329,9 @@ export class NewsComponent implements OnInit {
   }
 
   getArticleParagraphs(article: NewsArticle): string[] {
+    if (article.full_coverage && Array.isArray(article.full_coverage) && article.full_coverage.length > 0) {
+      return article.full_coverage;
+    }
     const raw = article.content || article.summary || article.title;
     if (!raw) return [];
     
@@ -310,7 +344,7 @@ export class NewsComponent implements OnInit {
       let current = '';
       for (const s of sentences) {
         current += ' ' + s.trim();
-        if (current.length > 180) {
+        if (current.length > 220) {
           chunks.push(current.trim());
           current = '';
         }

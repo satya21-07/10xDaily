@@ -1,7 +1,10 @@
+import os
+import json
 import httpx
 import logging
 import xml.etree.ElementTree as ET
 import hashlib
+import html
 import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -172,53 +175,127 @@ def get_or_fetch_daily_news(category: str, limit: int = 15) -> list[dict]:
     return all_articles[:limit]
 
 
-def fetch_full_story(url: str, title: str, summary: str = "", source: str = "News") -> str:
+def extract_key_highlights_from_text(paragraphs: list[str], title: str, summary: str) -> list[str]:
+    """Extract key informative sentences from genuine article text as highlights."""
+    highlights = []
+    
+    # Check paragraphs for solid, informative sentences
+    candidates = []
+    combined_source = " ".join(paragraphs[:4]) if paragraphs else summary
+    if combined_source:
+        # Split into sentences
+        sentences = re.split(r'(?<=[.!?])\s+', combined_source)
+        for s in sentences:
+            cleaned = s.strip()
+            # Filter out boilerplate, short phrases, questions
+            if 30 <= len(cleaned) <= 220 and not cleaned.endswith('?') and not any(k in cleaned.lower() for k in [
+                "read also", "click here", "subscribe", "newsletter", "copyright", "photo by", "image source"
+            ]):
+                candidates.append(cleaned)
+
+    # Pick up to 4 unique highlights
+    seen = set()
+    for c in candidates:
+        if c.lower() not in seen:
+            seen.add(c.lower())
+            highlights.append(c)
+            if len(highlights) >= 4:
+                break
+
+    if not highlights:
+        if summary and len(summary) > 20:
+            highlights.append(summary)
+        highlights.append(f"Official reporting published by original source regarding {title}.")
+
+    return highlights
+
+
+def fetch_full_story_details(url: str, title: str, summary: str = "", source: str = "News", category: str = "") -> dict:
     """
-    Fetches the genuine news story paragraphs directly from the original news publisher.
-    Uses 100% real journalistic content without any AI generation.
+    Fetches genuine news story paragraphs directly from the original news publisher website.
+    100% real journalistic content without any Groq or AI API calls.
     """
-    cache_key = f"news:full:{hashlib.md5((url or title).encode('utf-8')).hexdigest()}"
+    cache_key = f"news:details:{hashlib.md5((url or title).encode('utf-8')).hexdigest()}"
     from app.core.cache import get_cache, set_cache
     cached = get_cache(cache_key)
-    if cached and isinstance(cached, str) and len(cached) > 60:
+    if cached and isinstance(cached, dict) and cached.get("full_coverage"):
         return cached
 
     extracted_paragraphs = []
 
-    # Direct extraction of genuine article paragraphs from the original publisher website
+    # Direct genuine article extraction from publisher website
     if url and url.startswith("http"):
         try:
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"Windows"',
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-User": "?1"
             }
             resp = httpx.get(url, headers=headers, timeout=8.0, follow_redirects=True)
             if resp.status_code == 200:
-                html = resp.text
-                # Remove scripts, styles, header, nav, footer, ads
-                html_clean = re.sub(r'<(script|style|nav|header|footer|aside)[^>]*>.*?</\1>', '', html, flags=re.DOTALL | re.IGNORECASE)
+                html_raw = resp.text
+                # Unescape HTML entities
+                html_raw = html.unescape(html_raw)
+                # Strip scripts, styles, nav, header, footer, ads, forms
+                html_clean = re.sub(r'<(script|style|nav|header|footer|aside|form|noscript|iframe|svg|button)[^>]*>.*?</\1>', '', html_raw, flags=re.DOTALL | re.IGNORECASE)
                 
-                # Find all paragraph tags
-                matches = re.findall(r'<p[^>]*>(.*?)</p>', html_clean, flags=re.DOTALL | re.IGNORECASE)
+                # Check for main article container if present
+                article_match = re.search(r'<article[^>]*>(.*?)</article>', html_clean, flags=re.DOTALL | re.IGNORECASE)
+                content_target = article_match.group(1) if article_match else html_clean
+
+                matches = re.findall(r'<p[^>]*>(.*?)</p>', content_target, flags=re.DOTALL | re.IGNORECASE)
                 for m in matches:
                     clean_p = clean_html_summary(m)
-                    # Filter out cookie notices, disclaimers, tiny strings, or spam
-                    if len(clean_p) > 50 and not any(k in clean_p.lower() for k in [
+                    if len(clean_p) > 40 and not any(k in clean_p.lower() for k in [
                         "cookie", "privacy policy", "all rights reserved", "subscribe now",
-                        "terms of use", "advertisement", "sign up", "read also", "click here", "newsletter"
+                        "terms of use", "advertisement", "sign up", "read also", "click here",
+                        "newsletter", "download our app", "copyright", "photo by", "follow us on",
+                        "share this story", "also read:", "watch live", "listen live"
                     ]):
                         extracted_paragraphs.append(clean_p)
-
-                if extracted_paragraphs:
-                    full_text = "\n\n".join(extracted_paragraphs[:10])
-                    set_cache(cache_key, full_text, expire=86400)
-                    return full_text
         except Exception as e:
             logger.debug(f"Direct article scraping failed for {url}: {e}")
 
-    # Fallback to the authentic RSS summary provided by the publisher
-    fallback_text = summary if (summary and len(summary) > 20) else title
-    set_cache(cache_key, fallback_text, expire=86400)
-    return fallback_text
+    # Build genuine journalistic structure from scraped content
+    if extracted_paragraphs and len(extracted_paragraphs) >= 2:
+        lead_summary = "\n\n".join(extracted_paragraphs[:2])
+        coverage_paragraphs = extracted_paragraphs[1:15] if len(extracted_paragraphs) > 2 else extracted_paragraphs
+        highlights = extract_key_highlights_from_text(extracted_paragraphs, title, summary)
+    else:
+        clean_summ = clean_html_summary(summary) if summary else title
+        lead_summary = clean_summ if len(clean_summ) > 30 else f"{title}. Reported by {source}."
+        coverage_paragraphs = [
+            lead_summary,
+            f"Original reporting provided by {source}. For comprehensive live multimedia updates and related investigations, please view the full story directly on the publisher's website."
+        ]
+        highlights = extract_key_highlights_from_text([], title, clean_summ)
+
+    result = {
+        "title": title,
+        "summary": lead_summary,
+        "key_highlights": highlights,
+        "full_coverage": coverage_paragraphs,
+        "content": "\n\n".join(coverage_paragraphs),
+        "why_it_matters": f"Authentic news coverage reported by {source}."
+    }
+
+    set_cache(cache_key, result, expire=86400)
+    return result
+
+
+def fetch_full_story(url: str, title: str, summary: str = "", source: str = "News") -> str:
+    """
+    Backward-compatible wrapper returning string content.
+    """
+    details = fetch_full_story_details(url=url, title=title, summary=summary, source=source)
+    return details.get("content") or details.get("summary") or title
+
 
 

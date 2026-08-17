@@ -203,27 +203,47 @@
           <span class="reader-image-caption">Photo: {{ selectedArticle.source || 'Associated Press' }}</span>
         </div>
 
-        <!-- Quick Summary Box -->
+        <!-- Comprehensive Summary & Highlights Card -->
         <div class="reader-summary-card">
           <div class="summary-card-header">
             <!-- <ion-icon name="sparkles-outline"></ion-icon> -->
             <span>SUMMARY & KEY HIGHLIGHTS</span>
           </div>
-          <p>{{ selectedArticle.summary }}</p>
+          
+          <p class="summary-text">{{ selectedArticle.summary }}</p>
+
+          <!-- Key Highlights Bullet Points -->
+          <div class="highlights-container" *ngIf="selectedArticle.key_highlights && selectedArticle.key_highlights.length > 0">
+            <div class="highlights-title">Key Takeaways:</div>
+            <ul class="highlights-list">
+              <li *ngFor="let highlight of selectedArticle.key_highlights" class="highlight-item">
+                {{ highlight }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- Why It Matters Section -->
+          <!-- <div class="why-it-matters-box" *ngIf="selectedArticle.why_it_matters">
+            <div class="why-header">
+              <ion-icon name="bulb-outline"></ion-icon>
+              <span>WHY IT MATTERS</span>
+            </div>
+            <p class="why-text">{{ selectedArticle.why_it_matters }}</p>
+          </div> -->
         </div>
 
         <!-- Full Story Paragraphs -->
         <div class="reader-story-section">
           <div class="story-section-title">
             <!-- <ion-icon name="book-outline"></ion-icon> -->
-            <span>FULL COVERAGE & BACKGROUND</span>
+            <span>FULL COVERAGE & IN-DEPTH BACKGROUND</span>
           </div>
 
           <!-- Loading Story State -->
           <div *ngIf="isLoadingStory" class="story-loading-shimmer">
             <div class="loading-label">
               <ion-spinner name="crescent" color="primary"></ion-spinner>
-              <span>Loading full in-depth coverage...</span>
+              <span>Analyzing and generating in-depth coverage...</span>
             </div>
             <div class="shimmer-line"></div>
             <div class="shimmer-line"></div>

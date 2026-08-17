@@ -73,8 +73,8 @@ export class HealthComponent implements OnInit {
   }
 
   loadBookmarks() {
-    this.bookmarkService.getBookmarks().subscribe(data => {
-      this.savedBookmarks = data.filter(b => b.content_type === 'health');
+    this.bookmarkService.getBookmarks(true).subscribe(data => {
+      this.savedBookmarks = (data || []).filter(b => b.content_type === 'health');
     });
   }
 
@@ -94,7 +94,7 @@ export class HealthComponent implements OnInit {
       this.bookmarkService.saveBookmark({
         title: fact.title,
         content_type: 'health',
-        url: fact.explanation,
+        url: fact.explanation || '',
         details: JSON.stringify(fact)
       }).subscribe(() => {
         this.loadBookmarks();

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, catchError, of, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { BookmarkService } from '../core/services/bookmark.service';
 
 export interface UserProfile {
   id?: number;
@@ -51,6 +52,7 @@ export class AuthService {
   private readonly TOKEN_KEY = '10xdaily_access_token';
   
   private http = inject(HttpClient);
+  private bookmarkService = inject(BookmarkService);
   private apiUrl = environment.apiUrl || 'http://localhost:8000/api/v1';
 
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);
@@ -233,6 +235,7 @@ export class AuthService {
       localStorage.setItem(this.AUTH_KEY, JSON.stringify(profile));
       localStorage.setItem(this.TOKEN_KEY, res.access_token);
     }
+    this.bookmarkService.clearCache();
     this.currentUserSubject.next(profile);
   }
 
@@ -247,6 +250,7 @@ export class AuthService {
         localStorage.setItem('10xdaily_theme_pref', themePref);
       }
     }
+    this.bookmarkService.clearCache();
     this.currentUserSubject.next(null);
   }
 

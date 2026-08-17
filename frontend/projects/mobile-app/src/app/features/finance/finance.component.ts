@@ -236,8 +236,8 @@ export class FinanceComponent implements OnInit {
   }
 
   loadBookmarks() {
-    this.bookmarkService.getBookmarks().subscribe(data => {
-      this.savedBookmarks = data.filter(b => b.content_type === 'finance');
+    this.bookmarkService.getBookmarks(true).subscribe(data => {
+      this.savedBookmarks = (data || []).filter(b => b.content_type === 'finance');
     });
   }
 
@@ -257,7 +257,7 @@ export class FinanceComponent implements OnInit {
       this.bookmarkService.saveBookmark({
         title: concept.title,
         content_type: 'finance',
-        url: concept.explanation,
+        url: concept.explanation || concept.description || '',
         details: JSON.stringify(concept)
       }).subscribe(() => {
         this.loadBookmarks();

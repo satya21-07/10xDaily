@@ -69,8 +69,8 @@ export class SpiritualComponent implements OnInit {
   }
 
   loadBookmarks() {
-    this.bookmarkService.getBookmarks().subscribe(data => {
-      this.savedBookmarks = data.filter(b => b.content_type === 'spiritual');
+    this.bookmarkService.getBookmarks(true).subscribe(data => {
+      this.savedBookmarks = (data || []).filter(b => b.content_type === 'spiritual');
       this.isLessonSaved = this.lesson
         ? this.savedBookmarks.some(b => b.title === this.lesson?.topic)
         : false;
@@ -87,7 +87,7 @@ export class SpiritualComponent implements OnInit {
       this.bookmarkService.saveBookmark({
         title: this.lesson.topic,
         content_type: 'spiritual',
-        url: this.lesson.source.reference,
+        url: this.lesson.source?.reference || '',
         details: JSON.stringify(this.lesson)
       }).subscribe(() => this.loadBookmarks());
     }
