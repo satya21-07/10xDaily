@@ -145,7 +145,7 @@ class EmailService:
         resend_sender = os.getenv("RESEND_FROM_EMAIL")
         if resend_sender:
             from_email = f"{sender_name} <{resend_sender}>"
-        elif sender.endswith("@gmail.com") or sender.endswith("@yahoo.com"):
+        elif not sender or "@gmail.com" in sender or "@yahoo.com" in sender:
             from_email = f"{sender_name} <onboarding@resend.dev>"
         else:
             from_email = f"{sender_name} <{sender}>"
@@ -154,9 +154,13 @@ class EmailService:
             "from": from_email,
             "to": [recipient],
             "subject": subject,
-            "html": html_body,
-            "reply_to": reply_to
+            "html": html_body
         }
+        
+        # Resend sometimes throws errors if the reply_to domain isn't verified or is a strict DMARC domain like gmail.com
+        if reply_to and "@gmail.com" not in reply_to and "@yahoo.com" not in reply_to:
+            payload["reply_to"] = reply_to
+
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=10)
             if response.status_code in (200, 201):
@@ -177,7 +181,7 @@ class EmailService:
         smtp_user = os.getenv("SMTP_USER", settings.SMTP_USER)
         smtp_password = os.getenv("SMTP_PASSWORD", settings.SMTP_PASSWORD)
         recipient = os.getenv("FEEDBACK_RECIPIENT_EMAIL", settings.FEEDBACK_RECIPIENT_EMAIL) or smtp_user
-        sender = os.getenv("EMAILS_FROM_EMAIL", settings.EMAILS_FROM_EMAIL) or smtp_user or "onexDaily@gmail.com"
+        sender = os.getenv("EMAILS_FROM_EMAIL", settings.EMAILS_FROM_EMAIL) or smtp_user or "onboarding@resend.dev"
         sender_name = os.getenv("EMAILS_FROM_NAME", settings.EMAILS_FROM_NAME) or "10xDaily Support"
         resend_api_key = os.getenv("RESEND_API_KEY")
 
