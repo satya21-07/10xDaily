@@ -133,13 +133,25 @@ class EmailService:
     @classmethod
     def send_via_resend(cls, api_key: str, sender: str, sender_name: str, recipient: str, subject: str, html_body: str, reply_to: str) -> bool:
         import requests
+        import os
         url = "https://api.resend.com/emails"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
+        
+        # Resend blocks sending from unverified domains (like @gmail.com).
+        # We auto-fallback to onboarding@resend.dev if a custom domain isn't provided.
+        resend_sender = os.getenv("RESEND_FROM_EMAIL")
+        if resend_sender:
+            from_email = f"{sender_name} <{resend_sender}>"
+        elif sender.endswith("@gmail.com") or sender.endswith("@yahoo.com"):
+            from_email = f"{sender_name} <onboarding@resend.dev>"
+        else:
+            from_email = f"{sender_name} <{sender}>"
+            
         payload = {
-            "from": f"{sender_name} <{sender}>",
+            "from": from_email,
             "to": [recipient],
             "subject": subject,
             "html": html_body,
