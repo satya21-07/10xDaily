@@ -121,6 +121,10 @@ export class ProgressService {
     });
   }
   
+  get visitedModules$(): Observable<Set<string>> {
+    return this.visitedModulesSubject.asObservable();
+  }
+  
   get currentExploredCount(): number {
     return this.visitedModulesSubject.value.size;
   }

@@ -1,174 +1,188 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title style="padding-left: 0px;">
-      <div class="app-brand">
-        <img src="assets/10_X_Daily.png" alt="10xDaily Logo" />
-      </div>
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" routerLink="/profile/personal-information"><ion-icon slot="icon-only" name="person-circle-outline"></ion-icon></ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="home-wrapper">
+  <!-- Full screen background -->
+  <div class="full-background" [ngStyle]="{'background-image': getBackgroundImage()}">
+    <div class="header-overlay"></div>
+  </div>
 
-<ion-content>
-  <div class="home-container">
-    <!-- Custom Top Header -->
-    <div class="custom-home-header">
-      <div class="header-top-row">
-        <div class="greeting-time">
-          <ion-icon [name]="getGreetingIcon()"></ion-icon>
-          <span>{{ getGreeting() }}</span>
+  <ion-content class="transparent-content">
+    <!-- Navbar -->
+    <div class="top-nav">
+        <div class="app-brand">
+          <img src="assets/10_X_Daily.png" alt="10xDaily Logo" />
         </div>
-        <div class="streak-pill-new">
-          <ion-icon name="flame-outline"></ion-icon>
-          <span>{{ (authService.currentUser$ | async)?.streak || 0 }} day streak</span>
+        <div class="nav-actions">
+          <ion-button fill="clear" class="notification-btn">
+            <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+          </ion-button>
+          <div class="profile-circle" routerLink="/profile/personal-information">
+            <ng-container *ngIf="(authService.currentUser$ | async) as user">
+              <span *ngIf="!user.avatarUrl || user.avatarUrl.includes('dicebear')">{{ getInitials(user.name) }}</span>
+              <img *ngIf="user.avatarUrl && !user.avatarUrl.includes('dicebear')" [src]="user.avatarUrl" alt="Profile" />
+            </ng-container>
+          </div>
         </div>
       </div>
-      
-      <div class="header-bottom-row" routerLink="/profile/personal-information">
-        <ng-container *ngIf="(authService.currentUser$ | async) as user">
-          <div class="profile-picture">
-            <img *ngIf="user.avatarUrl && !user.avatarUrl.includes('dicebear')" [src]="user.avatarUrl" alt="Profile Picture" class="avatar-img" />
-            <div *ngIf="!user.avatarUrl || user.avatarUrl.includes('dicebear')" class="avatar-initials">
-              {{ getInitials(user.name) }}
+
+      <!-- Greeting Section -->
+      <div class="greeting-section" [ngClass]="getTimeClass()">
+        <div class="greeting-left">
+          <div class="greeting-time">
+            <ion-icon [name]="getGreetingIcon()"></ion-icon>
+            <span>{{ getGreeting() }},</span>
+          </div>
+          <ng-container *ngIf="(authService.currentUser$ | async) as user">
+            <h1 class="user-name">{{ getFirstName(user.name) }}</h1>
+          </ng-container>
+          <!-- <p class="current-date">{{ currentDate | date:'EEEE, MMMM d' }}</p> -->
+        </div>
+        
+        <div class="greeting-right">
+          <div class="streak-card">
+            <div class="streak-header">
+              <ion-icon name="flame"></ion-icon>
+              <span>{{ (authService.currentUser$ | async)?.streak || 0 }} day streak</span>
+            </div>
+            <div class="streak-footer">
+              Keep it up! 🔥
             </div>
           </div>
-          <div class="user-details">
-            <h2>{{ getFirstName(user.name) }}</h2>
-            <p>{{ currentDate | date:'EEEE, MMMM d' }}</p>
-          </div>
-        </ng-container>
+        </div>
       </div>
-    </div>
-
-    <!-- On This Day Card -->
-    <div class="on-this-day-section" *ngIf="onThisDayEvent || isLoadingOnThisDay">
-      <div class="section-badge">ON THIS DAY</div>
+    <div class="home-container">
       
-      <div *ngIf="isLoadingOnThisDay" class="otd-skeleton">
-        <ion-skeleton-text animated style="width: 40%; height: 24px; margin-bottom: 12px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 100%; height: 28px; margin-bottom: 16px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 100%; height: 14px; margin-bottom: 8px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 90%; height: 14px; margin-bottom: 8px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 80%; height: 14px;"></ion-skeleton-text>
+      <!-- On This Day Card -->
+      <div class="on-this-day-card" *ngIf="onThisDayEvent || isLoadingOnThisDay">
+        
+        <div *ngIf="isLoadingOnThisDay" class="otd-skeleton">
+          <ion-skeleton-text animated style="width: 100%; height: 200px; border-radius: 16px;"></ion-skeleton-text>
+        </div>
+
+        <div *ngIf="!isLoadingOnThisDay && onThisDayEvent" class="otd-content-wrapper">
+          <div class="otd-bg-image" [ngStyle]="{'background-image': onThisDayEvent.image_url ? 'url(' + onThisDayEvent.image_url + ')' : 'none'}"></div>
+          <div class="otd-gradient-overlay"></div>
+          
+          <div class="otd-content">
+            <div class="otd-badge">
+              <!-- <ion-icon name="calendar-outline"></ion-icon> -->
+               ON THIS DAY
+            </div>
+            
+            <div class="otd-date-block">
+              <span class="otd-day">{{ onThisDayEvent.day }}</span>
+              <div class="otd-month-year">
+                <span class="otd-month">{{ currentDate | date:'MMMM' | uppercase }}</span>
+                <span class="otd-year">{{ onThisDayEvent.year }}</span>
+              </div>
+            </div>
+            
+            <h3 class="otd-title">{{ onThisDayEvent.title }}</h3>
+            <p class="otd-desc">{{ onThisDayEvent.description }}</p>
+            
+            <div class="otd-footer">
+              <span class="otd-category-pill">{{ onThisDayEvent.category | uppercase }}</span>
+              <a *ngIf="onThisDayEvent.source_url" [href]="onThisDayEvent.source_url" target="_blank" class="otd-read-more">
+                Read more <ion-icon name="arrow-forward-outline"></ion-icon>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div *ngIf="!isLoadingOnThisDay && onThisDayEvent" class="otd-content">
-        <div class="otd-date">
-          <span class="otd-day">{{ onThisDayEvent.day }}</span>
-          <span class="otd-month-year">{{ currentDate | date:'MMMM' | uppercase }}<br/>{{ onThisDayEvent.year }}</span>
+      <!-- Quote Card -->
+      <div class="quote-card" (click)="fetchNewQuote()">
+        <div class="quote-header">
+          <div class="quote-badge">
+            <!-- <ion-icon name="chatbox-ellipses-outline"></ion-icon> -->
+            <span>QUOTE OF THE DAY</span>
+          </div>
+          <ion-button fill="clear" size="small" class="refresh-btn" (click)="fetchNewQuote(); $event.stopPropagation()">
+            <ion-icon slot="icon-only" name="refresh-outline" [class.spin]="isLoadingQuote"></ion-icon>
+          </ion-button>
         </div>
         
-        <h3 class="otd-title">{{ onThisDayEvent.title }}</h3>
+        <div *ngIf="isLoadingQuote" class="quote-skeleton">
+          <ion-skeleton-text animated style="width: 100%; height: 14px; margin-bottom: 8px;"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 14px;"></ion-skeleton-text>
+        </div>
         
-        <p class="otd-description">{{ onThisDayEvent.description }}</p>
+        <div *ngIf="!isLoadingQuote" class="quote-body">
+          <div class="quote-mark">“</div>
+          <div class="quote-content">
+            <p class="quote-text">“{{ quoteOfTheDay.text }}”</p>
+            <p class="quote-author">– {{ quoteOfTheDay.author }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explore Topics -->
+      <div class="explore-header">
+        <div class="explore-title">
+          <!-- <ion-icon name="compass-outline" style="font-size: 16px; margin-right: 6px;"></ion-icon> -->
+          <h2>EXPLORE TOPICS</h2>
+        </div>
+        <!-- <a class="view-all-link">View all <ion-icon name="arrow-forward-outline"></ion-icon></a> -->
+      </div>
+
+      <div class="topics-scroll-container">
+        <div *ngFor="let topic of topics" class="topic-card {{topic.cssClass}}" [routerLink]="topic.route">
+          <div class="topic-icon-wrapper">
+            <ion-icon [name]="topic.icon"></ion-icon>
+          </div>
+          <div class="topic-bottom-row">
+            <div class="topic-info">
+              <h3>{{ topic.title }}</h3>
+              <p>{{ topic.desc }}</p>
+            </div>
+            <!-- <div class="topic-arrow">
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </div> -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Quiz Card -->
+      <div class="quiz-banner-new" routerLink="/quiz">
+        <div class="quiz-left">
+          <div class="brain-circle">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </div>
+        </div>
+        <div class="quiz-middle">
+          <h3>DAILY KNOWLEDGE QUIZ</h3>
+          <p>10 questions across all topics</p>
+          <div class="quiz-dots">
+            <span *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]" class="dot" [class.filled]="i===4"></span>
+          </div>
+          <div class="quiz-btn">Start Quiz <ion-icon name="arrow-forward-outline"></ion-icon></div>
+        </div>
+        <div class="quiz-right">
+          <div class="play-circle">
+            <ion-icon name="play"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Progress -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <h3>TODAY'S PROGRESS</h3>
+          <p>{{ progress.completed }} of {{ progress.total }} activities completed</p>
+        </div>
         
-        <div class="otd-footer">
-          <span class="otd-category">{{ onThisDayEvent.category }}</span>
-          <a *ngIf="onThisDayEvent.source_url" [href]="onThisDayEvent.source_url" target="_blank" class="otd-read-more">
-            Read more <ion-icon name="arrow-forward-outline"></ion-icon>
-          </a>
+        <div class="progress-stepper">
+          <div class="progress-line"></div>
+          <div class="progress-line-fill" [style.width]="((progress.completed - 1) / (progress.total - 1) * 100) + '%'"></div>
+          
+          <div class="step" *ngFor="let step of progress.items" [class.completed]="step.status === 'completed'">
+            <div class="step-icon">
+              <ion-icon [name]="step.icon"></ion-icon>
+            </div>
+            <span class="step-label">{{ step.label }}</span>
+          </div>
         </div>
       </div>
+
+      <div style="height: 40px;"></div>
     </div>
-
-    <!-- Quote Card -->
-    <div class="quote-card" (click)="fetchNewQuote()">
-      <div class="quote-header">
-        <div class="icon-circle purple-light-bg"><ion-icon name="chatbox-ellipses-outline" class="purple-text"></ion-icon></div>
-        <span class="quote-title">Quote of the Day</span>
-        <ion-button fill="clear" size="small" class="refresh-btn" (click)="fetchNewQuote(); $event.stopPropagation()">
-          <ion-icon slot="icon-only" name="refresh-outline" [class.spin]="isLoadingQuote"></ion-icon>
-        </ion-button>
-      </div>
-      <div *ngIf="isLoadingQuote" class="quote-skeleton">
-        <ion-skeleton-text animated style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 8px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 70%; height: 14px; border-radius: 4px; margin-bottom: 12px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 30%; height: 10px; border-radius: 4px; float: right;"></ion-skeleton-text>
-        <div style="clear: both;"></div>
-      </div>
-      <div *ngIf="!isLoadingQuote" class="quote-body">
-        <p class="quote-text">"{{ quoteOfTheDay.text }}"</p>
-        <p class="quote-author">- {{ quoteOfTheDay.author }}</p>
-      </div>
-    </div>
-
-    <!-- Daily Quiz Card -->
-    <div class="quiz-banner" routerLink="/quiz">
-      <div class="quiz-icon-wrapper">
-        <ion-icon name="help-circle-outline"></ion-icon>
-      </div>
-      <div class="quiz-banner-content">
-        <h3>Daily Knowledge Quiz</h3>
-        <p>10 questions across all topics</p>
-      </div>
-      <div class="quiz-play-btn">
-        <ion-icon name="play-circle-outline"></ion-icon>
-      </div>
-    </div>
-
-    <!-- Explore Topics -->
-    <div class="section-header explore-header">
-      <h2>EXPLORE TOPICS</h2>
-      <!-- <a class="see-all-btn">See all</a> -->
-    </div>
-
-    <div class="topics-grid">
-      <!-- Vocabulary -->
-      <div class="topic-card blue-card" routerLink="/vocabulary">
-        <ion-icon name="book-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Vocabulary</h3>
-          <p>10 new words</p>
-        </div>
-      </div>
-
-      <!-- News -->
-      <div class="topic-card peach-card" routerLink="/news">
-        <ion-icon name="newspaper-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Daily news</h3>
-          <p>India and world</p>
-        </div>
-      </div>
-
-      <!-- Coding -->
-      <div class="topic-card purple-card" routerLink="/coding">
-        <ion-icon name="code-slash-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Coding</h3>
-          <p>DSA mastery</p>
-        </div>
-      </div>
-
-      <!-- Finance -->
-      <div class="topic-card yellow-card" routerLink="/finance">
-        <ion-icon name="wallet-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Finance</h3>
-          <p>Markets and tips</p>
-        </div>
-      </div>
-
-      <!-- Health -->
-      <div class="topic-card pink-card" routerLink="/health">
-        <ion-icon name="fitness-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Health</h3>
-          <p>Daily fitness</p>
-        </div>
-      </div>
-
-      <!-- Spiritual -->
-      <div class="topic-card mint-card" routerLink="/spiritual">
-        <ion-icon name="medkit-outline" class="topic-icon"></ion-icon>
-        <div class="topic-info">
-          <h3>Spiritual</h3>
-          <p>Mindfulness</p>
-        </div>
-      </div>
-    </div>
-    <div style="height: 40px;"></div>
-  </div>
-</ion-content>
+  </ion-content>
+</div>

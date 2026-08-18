@@ -193,6 +193,7 @@ def get_fallback_event(date_obj) -> dict:
         "country": "World",
         "source_name": "Wikipedia",
         "source_url": "https://en.wikipedia.org/wiki/Apollo_11",
+        "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Apollo_11_first_step.jpg/440px-Apollo_11_first_step.jpg",
         "why_it_matters": "A monumental achievement in human history and space exploration."
     }
 
@@ -217,6 +218,7 @@ def get_on_this_day_event(db: Session) -> dict:
             "country": existing_event.country,
             "source_name": existing_event.source_name,
             "source_url": existing_event.source_url,
+            "image_url": existing_event.image_url,
             "why_it_matters": existing_event.why_it_matters
         }
         
@@ -235,20 +237,32 @@ def get_on_this_day_event(db: Session) -> dict:
         pages = enhanced_event.get("pages", [])
         source_name = "Wikipedia"
         source_url = None
+        image_url = None
         if pages:
             source_url = pages[0].get("content_urls", {}).get("desktop", {}).get("page")
+            if pages[0].get("originalimage"):
+                image_url = pages[0].get("originalimage").get("source")
+            elif pages[0].get("thumbnail"):
+                image_url = pages[0].get("thumbnail").get("source")
             
+        fallback_title = f"Event in {enhanced_event.get('year')}"
+        if pages:
+            fallback_title = pages[0].get("normalizedtitle") or pages[0].get("title", "").replace("_", " ")
+            if not fallback_title:
+                fallback_title = f"Event in {enhanced_event.get('year')}"
+                
         final_event_dict = {
             "date": current_date_str,
             "month": now.month,
             "day": now.day,
             "year": str(enhanced_event.get("year", "Unknown Year")),
-            "title": enhanced_event.get("enhanced_title") or f"Event in {enhanced_event.get('year')}",
+            "title": enhanced_event.get("enhanced_title") or fallback_title,
             "description": enhanced_event.get("enhanced_summary") or enhanced_event.get("text"),
             "category": "History",
             "country": "World",
             "source_name": source_name,
             "source_url": source_url,
+            "image_url": image_url,
             "why_it_matters": enhanced_event.get("why_it_matters", "")
         }
         
@@ -264,6 +278,7 @@ def get_on_this_day_event(db: Session) -> dict:
             country=final_event_dict["country"],
             source_name=final_event_dict["source_name"],
             source_url=final_event_dict["source_url"],
+            image_url=final_event_dict["image_url"],
             why_it_matters=final_event_dict["why_it_matters"]
         )
         db.add(new_event)
@@ -287,6 +302,7 @@ def get_on_this_day_event(db: Session) -> dict:
                 "country": existing_event.country,
                 "source_name": existing_event.source_name,
                 "source_url": existing_event.source_url,
+                "image_url": existing_event.image_url,
                 "why_it_matters": existing_event.why_it_matters
             }
     except Exception as e:

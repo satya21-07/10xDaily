@@ -137,5 +137,6 @@ class DailyOnThisDayEvent(Base):
     country = Column(String(100))
     source_name = Column(String(100))
     source_url = Column(String(255))
+    image_url = Column(String(500))
     why_it_matters = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

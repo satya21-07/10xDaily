@@ -15,6 +15,7 @@ export interface OnThisDayEvent {
   country: string;
   source_name: string;
   source_url?: string;
+  image_url?: string;
   why_it_matters?: string;
 }
 
@@ -24,8 +25,8 @@ export interface OnThisDayEvent {
 export class OnThisDayService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/on-this-day`;
-  private readonly CACHE_KEY = 'on_this_day_cache';
-  private readonly DATE_KEY = 'on_this_day_date';
+  private readonly CACHE_KEY = 'on_this_day_cache_v2';
+  private readonly DATE_KEY = 'on_this_day_date_v2';
 
   getTodayEvent(): Observable<OnThisDayEvent> {
     const today = new Date().toDateString();
@@ -62,6 +63,7 @@ export class OnThisDayService {
       category: "Science & Technology",
       country: "World",
       source_name: "Fallback Data",
+      image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Apollo_11_first_step.jpg/440px-Apollo_11_first_step.jpg",
       why_it_matters: "A monumental achievement in human history and space exploration."
     };
   }
