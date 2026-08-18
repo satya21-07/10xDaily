@@ -69,11 +69,12 @@ export class SpiritualService {
     scripture: string = 'gita',
     day?: number,
     chapter?: number,
-    verse?: number
+    verse?: number,
+    forceRefresh?: boolean
   ): Observable<SpiritualLesson> {
     const cacheKey = `${scripture}_${day || 'auto'}_${chapter || ''}_${verse || ''}`;
 
-    if (this.lessonCache.has(cacheKey)) {
+    if (!forceRefresh && this.lessonCache.has(cacheKey)) {
       return of(JSON.parse(JSON.stringify(this.lessonCache.get(cacheKey)!)));
     }
 
@@ -101,28 +102,54 @@ export class SpiritualService {
 
   private getOfflineMockData(scripture: string, day?: number): SpiritualLesson {
     const today = new Date().toISOString().split('T')[0];
+    
+    if (scripture === 'character') {
+      return {
+        lesson_date: today,
+        day_number: day || 1,
+        total_days_or_verses: 23,
+        topic: 'Character of the Day',
+        source: {
+          name: 'Wikipedia',
+          scripture_type: 'character',
+          reference: 'Arjuna',
+          translation: 'Arjuna is a major character in the Indian epic Mahabharata. He was the third of the Pandava brothers and was known for his archery skills.',
+        },
+        reflection: {
+          title: 'Who is Arjuna?',
+          explanation: 'Arjuna is a major character in the Indian epic Mahabharata.',
+          key_takeaways: ['Learn from the life and stories of Arjuna.']
+        },
+        today_practice: {
+          title: 'Reflect on Character',
+          description: 'Take a moment to read and reflect upon the values and stories associated with Arjuna.'
+        },
+        journal_prompt: 'What lessons can you draw from the mythology of Arjuna?'
+      };
+    }
+
+    // Default to Gita
     return {
       lesson_date: today,
       day_number: day || 1,
-      total_days_or_verses: scripture === 'gita' ? 700 : 8,
-      topic: scripture === 'ramayana' ? 'Ideal Human Being' : scripture === 'mahabharata' ? 'The Shield of Dharma' : 'Nishkama Karma',
+      total_days_or_verses: 700,
+      topic: 'Nishkama Karma',
       source: {
-        name: scripture === 'ramayana' ? 'Valmiki Ramayana' : scripture === 'mahabharata' ? 'Vyasa Mahabharata' : 'Bhagavad Gita',
-        scripture_type: scripture,
-        reference: scripture === 'ramayana' ? 'Bala Kanda 1.1' : scripture === 'mahabharata' ? 'Adi Parva 1.267' : 'Bhagavad Gita 2.47',
+        name: 'Bhagavad Gita',
+        scripture_type: 'gita',
+        reference: 'Bhagavad Gita 2.47',
         chapter: 2,
         verse: 47,
         kanda_or_parva: 'Chapter 2',
         character: 'Krishna',
-        original_sanskrit: scripture === 'ramayana' ? 'तपस्स्वाध्यायनिरतां तपस्वी वाग्विदां वरम्।\nनारदं परिपप्रच्छ वाल्मीकिर्मुनिपुङ्गवम्॥' : scripture === 'mahabharata' ? 'नारायणं नमस्कृत्य नरं चैव नरोत्तमम्।\nदेवीं सरस्वतीं व्यासं ततो जयमुदीरयेत्॥' : 'धृतराष्ट्र उवाच |\nधर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः |\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ||१-१||',
-        transliteration: scripture === 'ramayana' ? 'tapassvādhyāyaniratāṁ tapasvī vāgvidāṁ varam |\nnāradaṁ paripapraccha vālmīkirmunipuṅgavam ||' : scripture === 'mahabharata' ? 'nārāyaṇaṁ namaskṛtya naraṁ caiva narottamam |\ndevīṁ sarasvatīṁ vyāsaṁ tato jayamudīrayet ||' : 'dhṛtarāṣṭra uvāca |\ndharmakṣetre kurukṣetre samavetā yuyutsavaḥ |\nmāmakāḥ pāṇḍavāścaiva kimakurvata sañjaya ||',
-        translation: scripture === 'ramayana' ? 'Valmiki asked sage Narada: Who in this world is truly virtuous, heroic, righteous, grateful, truthful, and resolute in vows?' : scripture === 'mahabharata' ? 'Having bowed down in deep reverence to Lord Narayana, to Nara, Goddess Sarasvati, and Sage Vyasa, let the epic of Jaya be proclaimed.' : 'Dhritarashtra said: O Sanjaya, assembled on the holy field of Kurukshetra and eager for battle, what did my sons and the sons of Pandu do?',
-        hindi_translation: scripture === 'ramayana' ? 'तपस्वी महर्षि वाल्मीकि ने तप और स्वाध्याय में निरन्तर लगे रहने वाले, वाणी के ज्ञाताओं में श्रेष्ठ मुनिवर नारद जी से पूछा: इस संसार में ऐसा कौन सा गुणवान, पराक्रमी, धर्मज्ञ, कृतज्ञ, सत्यवादी और दृढ़प्रतिज्ञ पुरुष है जो सब प्राणियों का हितैषी हो?' : scripture === 'mahabharata' ? 'भगवान नारायण (श्रीहरि), नरों में श्रेष्ठ नर (अर्जुन), भगवती सरस्वती देवी और महर्षि वेदव्यास को श्रद्धापूर्वक नमस्कार करके जय (महाभारत ग्रंथ) का पाठ प्रारम्भ करना चाहिए।' : 'धृतराष्ट्र ने कहा -- हे संजय ! धर्मभूमि कुरुक्षेत्र में एकत्र हुए युद्ध के इच्छुक मेरे और पाण्डु के पुत्रों ने क्या किया?',
+        original_sanskrit: 'धृतराष्ट्र उवाच |\nधर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः |\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ||१-१||',
+        transliteration: 'dhṛtarāṣṭra uvāca |\ndharmakṣetre kurukṣetre samavetā yuyutsavaḥ |\nmāmakāḥ pāṇḍavāścaiva kimakurvata sañjaya ||',
+        translation: 'Dhritarashtra said: O Sanjaya, assembled on the holy field of Kurukshetra and eager for battle, what did my sons and the sons of Pandu do?',
+        hindi_translation: 'धृतराष्ट्र ने कहा -- हे संजय ! धर्मभूमि कुरुक्षेत्र में एकत्र हुए युद्ध के इच्छुक मेरे और पाण्डु के पुत्रों ने क्या किया?',
         commentators: {
           'Gita Press': 'धर्मभूमि कुरुक्षेत्र में कर्म और कर्तव्य का उपदेश।'
         }
       },
-
       reflection: {
         title: 'Nishkama Karma — Action Without Attachment',
         story_context: 'On the battlefield of Kurukshetra, Shri Krishna teaches Arjuna how to act with excellence without being crippled by anxiety over outcomes.',

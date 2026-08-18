@@ -154,49 +154,59 @@ class EmailService:
             return False
 
         try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"{sender_name} <{sender}>"
-            msg["To"] = recipient
-            msg["Reply-To"] = feedback.user_email
-
-            # Plain text fallback
-            text_body = (
-                f"New 10xDaily Feedback Received\n\n"
-                f"Type: {feedback.feedback_type}\n"
-                f"Category: {feedback.category}\n"
-                f"From: {feedback.user_name} ({feedback.user_email})\n"
-                f"Rating: {feedback.rating or 'N/A'}\n\n"
-                f"Subject: {feedback.subject}\n"
-                f"Message:\n{feedback.message}\n\n"
-                f"Device: {feedback.device_info or 'N/A'}\n"
-            )
-            part1 = MIMEText(text_body, "plain", "utf-8")
-            part2 = MIMEText(_generate_feedback_html(feedback), "html", "utf-8")
-
-            msg.attach(part1)
-            msg.attach(part2)
-
-            password = smtp_password.replace(" ", "").strip()
-            clean_user = smtp_user.strip() if smtp_user else ""
-
-            if smtp_port == 465:
-                server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20)
-                server.ehlo()
-            else:
-                server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-
-            if clean_user and password:
-                server.login(clean_user, password)
-
-            server.sendmail(sender, [recipient], msg.as_string())
-            server.quit()
-
-            print(f"[EMAIL SUCCESS] Feedback email #{feedback.id} successfully sent to {recipient}!")
-            return True
+            import socket
+            old_getaddrinfo = socket.getaddrinfo
+            def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+                return old_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+            
+            socket.getaddrinfo = ipv4_getaddrinfo
+            
+            try:
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = subject
+                msg["From"] = f"{sender_name} <{sender}>"
+                msg["To"] = recipient
+                msg["Reply-To"] = feedback.user_email
+    
+                # Plain text fallback
+                text_body = (
+                    f"New 10xDaily Feedback Received\n\n"
+                    f"Type: {feedback.feedback_type}\n"
+                    f"Category: {feedback.category}\n"
+                    f"From: {feedback.user_name} ({feedback.user_email})\n"
+                    f"Rating: {feedback.rating or 'N/A'}\n\n"
+                    f"Subject: {feedback.subject}\n"
+                    f"Message:\n{feedback.message}\n\n"
+                    f"Device: {feedback.device_info or 'N/A'}\n"
+                )
+                part1 = MIMEText(text_body, "plain", "utf-8")
+                part2 = MIMEText(_generate_feedback_html(feedback), "html", "utf-8")
+    
+                msg.attach(part1)
+                msg.attach(part2)
+    
+                password = smtp_password.replace(" ", "").strip()
+                clean_user = smtp_user.strip() if smtp_user else ""
+    
+                if smtp_port == 465:
+                    server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20)
+                    server.ehlo()
+                else:
+                    server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+    
+                if clean_user and password:
+                    server.login(clean_user, password)
+    
+                server.sendmail(sender, [recipient], msg.as_string())
+                server.quit()
+    
+                print(f"[EMAIL SUCCESS] Feedback email #{feedback.id} successfully sent to {recipient}!")
+                return True
+            finally:
+                socket.getaddrinfo = old_getaddrinfo
         except Exception as e:
             print(f"[EMAIL ERROR] Failed to send email via SMTP: {e}")
             logger.error(f"Failed to dispatch feedback email #{feedback.id}: {str(e)}", exc_info=True)

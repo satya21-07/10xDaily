@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/daily", response_model=DailySpiritualLessonResponse)
 def get_daily_spiritual(
-    scripture: str = Query("gita", description="Scripture type: 'gita', 'ramayana', or 'mahabharata'"),
+    scripture: str = Query("gita", description="Scripture type: 'gita' or 'character'"),
     day: Optional[int] = Query(None, description="Sequential day or verse index"),
     chapter: Optional[int] = Query(None, description="Chapter number (for Gita)"),
     verse: Optional[int] = Query(None, description="Verse number (for Gita)"),
@@ -20,7 +20,7 @@ def get_daily_spiritual(
 ) -> Any:
     """
     Retrieve authentic sequential lessons from Bhagavad Gita,
-    Valmiki Ramayana, or Vyasa Mahabharata without AI.
+    or a Mythological Character of the Day.
     """
     lesson_data = get_daily_spiritual_lesson(
         scripture=scripture,

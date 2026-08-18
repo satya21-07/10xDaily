@@ -2,8 +2,11 @@ import os
 import json
 import logging
 import requests
+import html
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
+
+_CHARACTER_CACHE: Dict[str, dict] = {}
 from app.services.scripture_data import (
     GITA_CHAPTER_NAMES,
     GITA_CHAPTER_VERSE_COUNTS,
@@ -275,100 +278,748 @@ def get_gita_lesson(
         "journal_prompt": reflection["journal_prompt"]
     }
 
+MYTHOLOGICAL_CHARACTERS = [
+    "Brahma",
+    "Vishnu",
+    "Shiva",
+    "Saraswati",
+    "Lakshmi",
+    "Parvati",
+    "Matsya",
+    "Kurma",
+    "Varaha",
+    "Narasimha",
+    "Vamana",
+    "Parashurama",
+    "Rama",
+    "Krishna",
+    "Balarama",
+    "Kalki",
+    "Shailaputri",
+    "Brahmacharini",
+    "Chandraghanta",
+    "Kushmanda",
+    "Skandamata",
+    "Katyayani",
+    "Kalaratri",
+    "Mahagauri",
+    "Siddhidhatri",
+    "Kali",
+    "Tara (Devi)",
+    "Tripura Sundari",
+    "Bhuvaneshvari",
+    "Bhairavi",
+    "Chhinnamasta",
+    "Dhumavati",
+    "Bagalamukhi",
+    "Matangi",
+    "Kamala (goddess)",
+    "Yudhishthira",
+    "Bhima",
+    "Arjuna",
+    "Nakula",
+    "Sahadeva",
+    "Draupadi",
+    "Duryodhana",
+    "Dushasana",
+    "Karna",
+    "Bhishma",
+    "Drona",
+    "Ashwatthama",
+    "Shakuni",
+    "Dasharatha",
+    "Sita",
+    "Lakshmana",
+    "Bharata (Ramayana)",
+    "Shatrughna",
+    "Hanuman",
+    "Sugriva",
+    "Vibhishana",
+    "Ravana",
+    "Kumbhakarna",
+    "Indrajit",
+    "Hiranyakashipu",
+    "Hiranyaksha",
+    "Mahishasura",
+    "Holika",
+    "Bhasmasura",
+    "Raktabīja",
+    "Indra",
+    "Agni",
+    "Surya",
+    "Vayu",
+    "Varuna",
+    "Yama",
+    "Soma",
+    "Kubera",
+    "Dattatreya",
+    "Dhisana",
+    "Satyavati",
+    "Gayatri",
+    "Aniruddha",
+    "Dharā",
+    "Muchilot Bhagavathi",
+    "Dhritarashtra",
+    "Apsara",
+    "Akampana",
+    "Nandi (Hinduism)",
+    "Vikarna",
+    "Virata",
+    "Sumali",
+    "Hidimbi",
+    "Sang Hyang Widhi Wasa",
+    "Namuchi",
+    "Jivdani Mata",
+    "Shakuntala",
+    "Śvetaketu",
+    "Jagannath",
+    "Kamadeva",
+    "Khodiyar",
+    "Parikshit",
+    "Vishrava",
+    "Trijata",
+    "Prasuti",
+    "Ranganayaki",
+    "Balambika",
+    "Bhagadatta",
+    "Maa Tarini",
+    "Sushena",
+    "Angada (Lakshmana's son)",
+    "Kritavarma",
+    "Akrura",
+    "Budha",
+    "Rudrani",
+    "Pretakshi Devi",
+    "Prachetas",
+    "Mandavi",
+    "Subahu (Shatrughna's son)",
+    "Kamakhya",
+    "Prahasta",
+    "Kannagi",
+    "Vrishaketu",
+    "Shalya",
+    "Ashokasundari",
+    "Kartavirya Arjuna",
+    "Kubjika",
+    "Brahmani (Matrika)",
+    "Ammavaru",
+    "Ahmuvan",
+    "Pancha Prakriti (Five Goddesses)",
+    "Rishyasringa",
+    "Atikaya",
+    "Kalmashapada",
+    "Vrishakapi",
+    "Kamaksha",
+    "Ambalika",
+    "Tridevi",
+    "Yogeshvari",
+    "Kaushiki",
+    "Rudrasundari",
+    "Puru (legendary king)",
+    "Pashupati",
+    "Wives of Duryodhana",
+    "Badi Mata",
+    "Ahalya",
+    "Tvarita",
+    "Ashapura Mata",
+    "Tara (Mahavidya)",
+    "Kamadhenu",
+    "Tara (Hindu goddess)",
+    "Damayanti",
+    "Gandhari",
+    "Ashta Lakshmi",
+    "Jaganmata",
+    "Aranyani",
+    "Vedavati",
+    "Uttamaujas and Yudhamanyu",
+    "Kaunteya",
+    "Sandipani",
+    "Tara (Ramayana)",
+    "Nara-Narayana",
+    "Ratri",
+    "Yogamaya",
+    "Ilavida",
+    "Ganga (goddess)",
+    "Shantadurga",
+    "Vakula Devi",
+    "Uttara (Mahabharata)",
+    "Tapati",
+    "Banka-Mundi",
+    "Brihadratha",
+    "Virabhadra",
+    "Dhata",
+    "Dharmathakur",
+    "Romapada",
+    "Madhavi (princess)",
+    "Dvivida",
+    "Khemukhi",
+    "Ekanamsha",
+    "Shishupala",
+    "Temblai",
+    "Brihannala",
+    "Durvasa",
+    "Bahlika (king)",
+    "Iravati",
+    "Vyasa",
+    "Maṇibhadra",
+    "Sharabha",
+    "Harsidhhi",
+    "Takshaka",
+    "Vinda and Anuvinda of Avanti",
+    "Devaki",
+    "Priti (goddess)",
+    "Parjanya (Hinduism)",
+    "Danu (Hinduism)",
+    "Markandeya",
+    "Samvarana",
+    "Vishvavasu",
+    "Harishchandra",
+    "Nikumbha",
+    "Ahilawati",
+    "Lakshmi Chandralamba Parameshwari",
+    "Ugrashravas",
+    "Shivaduti",
+    "Aditi",
+    "Madravati",
+    "Puloma",
+    "Neela (goddess)",
+    "Tilottama",
+    "Rohini (wife of Vasudeva)",
+    "Subahu",
+    "Yogini",
+    "Astika (sage)",
+    "Hansa and Dimbhaka",
+    "Indrani",
+    "Mārtanda",
+    "Parnashavari",
+    "Kushadhvaja",
+    "Bahuchara Mata",
+    "Apam Napat",
+    "Bhumi (goddess)",
+    "Satyaki",
+    "Atithi (Ramayana)",
+    "Angala Devi",
+    "Kotavi",
+    "Divodasa",
+    "Madreya",
+    "Vrihanta",
+    "Chelamma",
+    "Agneya",
+    "Jyoti (goddess)",
+    "Vrinda (goddess)",
+    "Yayati",
+    "Wives of Karna",
+    "Kavyamata",
+    "Kecaikhati",
+    "Prajapati",
+    "Devapi",
+    "Jaratkaru",
+    "Vajreshvari Devi",
+    "Śarabhanga",
+    "Guha (Ramayana)",
+    "Somalamma",
+    "Amshuman",
+    "Sri Ramalinga Sowdeswari Amman",
+    "Alakshmi",
+    "Jayadurgā",
+    "Parjanya",
+    "Rati",
+    "Hidimba",
+    "Kindama",
+    "Urmila",
+    "Maruts",
+    "Māṇḍakarṇi",
+    "Budhi Pallien",
+    "Urvashi",
+    "Nagalakshmi",
+    "Boyakonda Gangamma",
+    "Sarvamangala temple",
+    "Manasa",
+    "Deva (Hinduism)",
+    "Khyati",
+    "Sunayana (Ramayana)",
+    "Jwala (goddess)",
+    "Kalayavana",
+    "Vasudeva",
+    "Jabali",
+    "Sahadeva of Magadha",
+    "Kaikashi",
+    "Amba (Mahabharata)",
+    "Aja of Kosala",
+    "Chhaya",
+    "Para Brahman",
+    "Mātali",
+    "Rukmini",
+    "Modheshwari",
+    "Dewi Ratih",
+    "Maalikapurathamma",
+    "Abhimanyu",
+    "Krodhavasa",
+    "Devasena",
+    "Chitrangada (princess)",
+    "Karumariamman",
+    "Harihara",
+    "Ilvala and Vatapi",
+    "Jayanti (Hinduism)",
+    "Bhagavati",
+    "Visalakshi",
+    "Bhumanyu",
+    "Sarama",
+    "Bhutamata",
+    "Mahakala",
+    "Garuda",
+    "Narakasura",
+    "Uttamabhadras",
+    "Bala Tripurasundari",
+    "Susharma",
+    "Jambavan",
+    "Shambuka",
+    "Varahi",
+    "Sanjaya",
+    "Gādhi",
+    "Swasthani Barta (Fast)",
+    "Vijayadurga",
+    "Mandavya",
+    "Bhagiratha",
+    "Ishvari",
+    "Lomasha",
+    "Menaka",
+    "Phul Mata",
+    "Lairai",
+    "Ushas",
+    "Chenjiamman",
+    "Chandrahasa",
+    "Padmavati (Hinduism)",
+    "Vinayaki",
+    "Pratipa",
+    "Ugrasena",
+    "Ila (Hinduism)",
+    "Asikni (goddess)",
+    "Mookambika",
+    "Indradyumna",
+    "Shanta",
+    "Nalakuvara",
+    "Ashtabharya",
+    "Satrajit",
+    "Archi (Hindu goddess)",
+    "Mahadevi",
+    "Chitragupta",
+    "Nahusha",
+    "Suswani Mataji",
+    "Amsha",
+    "Pulastya",
+    "Lakshmana (Mahabharata)",
+    "Anaranya",
+    "Poleramma",
+    "Kamatha",
+    "Rituparna",
+    "Pradyumna",
+    "Dhrishtaketu",
+    "Manikeswari",
+    "Bhaga",
+    "Bhadra",
+    "Ambarisha",
+    "Dushyanta",
+    "Panchakanya",
+    "Pushan",
+    "Bhurishravas",
+    "Kusha (Ramayana)",
+    "Gautama Maharishi",
+    "Vajreshwari Temple",
+    "Shashthi",
+    "Lajja Gauri",
+    "Muthyalamma",
+    "Viprachitti",
+    "Kaikeyi",
+    "Pratyangira",
+    "Meldi Mata",
+    "Maisamma",
+    "Bharata (Mahabharata)",
+    "Ashvapati",
+    "Vinata",
+    "Nandipada",
+    "Svaha",
+    "Ekalavya",
+    "Shakambhari",
+    "Rukmi",
+    "Narayana",
+    "Consorts of Ganesha",
+    "Anumati (deity)",
+    "Drupada",
+    "Korravai",
+    "Rudras",
+    "Vāc",
+    "Lava (Ramayana)",
+    "Trideva",
+    "Radha",
+    "Mahakali",
+    "Ghatotkacha",
+    "Bhagamalini",
+    "Nandagopa",
+    "Rahu",
+    "Thirty-three gods",
+    "Rudra",
+    "Ambika (Mahabharata)",
+    "Pushkara",
+    "Revati",
+    "Niladevi",
+    "Anasuya",
+    "Pandu",
+    "Saat Behna (Seven Sisters goddesses)",
+    "Naigamesha",
+    "Putana",
+    "Kaliya",
+    "Chitraratha",
+    "Akilandeswari",
+    "Sanjna",
+    "Dev Mogra",
+    "Sumitra",
+    "Nagnechiya Mata",
+    "Purochana",
+    "Vandin",
+    "Prithvi",
+    "Akshayakumara",
+    "Vrishasena",
+    "Uttanka",
+    "Asamanja",
+    "Vidura",
+    "Santoshi Mata",
+    "Prapaksha Kamboja",
+    "Kamalatmika",
+    "Pururavas",
+    "Samba (Krishna's son)",
+    "Shurasena",
+    "Sudakshina",
+    "Raktadantika",
+    "Dhrishtadyumna",
+    "Kunti",
+    "Bhishmaka",
+    "Uddālaka Āruṇi",
+    "Yuyutsu",
+    "Rohini (nakshatra)",
+    "Revanta",
+    "Kateri Amman",
+    "Vershini",
+    "Shani",
+    "Vasishtha",
+    "Tvashtr",
+    "Bambar Baini",
+    "Acintya",
+    "Dantavakra",
+    "Uttarā",
+    "Ikshvaku",
+    "Subhadra",
+    "Jagdamba",
+    "Sampati",
+    "Shibi (king)",
+    "Jayadratha",
+    "Jagaddhatri",
+    "Shrutayudha",
+    "Asvayujau",
+    "Aruna (Hinduism)",
+    "Chandra",
+    "Annapurna (goddess)",
+    "Rambha (apsara)",
+    "Yaksha",
+    "Diti",
+    "Tumburu",
+    "Chandraketu",
+    "Renuka",
+    "Lankini",
+    "Satyabhama",
+    "Aryaman",
+    "Chitrasena (gandharva)",
+    "Nirṛti",
+    "Yadu (legendary king)",
+    "Dushala",
+    "Vajradatta",
+    "Ishana",
+    "Ghritachi",
+    "Shakti",
+    "Vishvakarma",
+    "Dhaumya",
+    "Iravan",
+    "Dewi Sri",
+    "Rakteswari",
+    "Dhanvantari",
+    "Trimurti",
+    "Vichitravirya",
+    "Mayasura",
+    "Uparichara Vasu",
+    "Vaisampayana",
+    "Bharat Mata",
+    "Masani Amman",
+    "Rantideva",
+    "Sati (Hindu goddess)",
+    "Uluka",
+    "Vishala",
+    "Madri",
+    "Kolaramma",
+    "Ganesha",
+    "Mitra (Hindu god)",
+    "Dilīpa",
+    "Sulochana (wife of Indrajit)",
+    "Hemadryamba",
+    "Bhadrakali",
+    "Valli",
+    "Periyachi",
+    "Himavat",
+    "Kakudmi",
+    "Kshetrapala",
+    "Sinivali",
+    "Jatayu",
+    "Nandni Mata",
+    "Kaurava",
+    "Lomaharshana",
+    "Devi Kanya Kumari",
+    "Yashoda",
+    "Shesha",
+    "Devi",
+    "Batuka Bhairava",
+    "Suvannamaccha",
+    "Makaradhwaja",
+    "Jyestha (goddess)",
+    "Maitreya (Mahābhārata)",
+    "Janaka",
+    "Vishvaksena",
+    "Muchukunda",
+    "Devayani",
+    "Mitra–Varuna",
+    "Nala",
+    "Anila",
+    "Kripa",
+    "Mukasura",
+    "Kushanabha",
+    "Jayatsena",
+    "Babhruvahana",
+    "Mohini",
+    "Guardians of the directions",
+    "Banjari (deity)",
+    "Taleju Bhawani",
+    "Kumari (goddess)",
+    "Sunaka",
+    "Karni Mata",
+    "Virabahu",
+    "Chandi",
+    "Jarasandha",
+    "Bhramari",
+    "Shrutakirti",
+    "Ulupi",
+    "Vipattāriṇī Dēvī",
+    "Madayi Kavu",
+    "Ashvins",
+    "Manthara",
+    "Surasa",
+    "Rumā",
+    "Shantanu",
+    "Draupadeyas",
+    "Mhalsa",
+    "Savitri and Satyavan",
+    "Jayanta",
+    "Ashvatthama",
+    "Sharmishtha",
+    "Kacha (sage)",
+    "Pratardana",
+    "Ambika (goddess)",
+    "Varuni",
+    "Ribhus",
+    "Kamsa",
+    "Maya Sita",
+    "Janamejaya",
+    "Dharmabhrit",
+    "Kaushalya",
+    "Navadurga",
+    "Vaishno Devi",
+    "Kartikeya",
+    "Nilakanta (Hinduism)",
+    "Usha (princess)",
+    "Lavanasura",
+    "Mahavidya",
+    "Harishankari",
+    "Kichaka",
+    "Shaunaka",
+    "Chitrangada (king)",
+    "Brihadbala",
+    "Jhandewali Mata",
+    "Matrikas",
+    "Simhika",
+    "Bhavani",
+    "Kurupuram",
+    "Kalanemi",
+    "Ram Ki Shakti Puja",
+    "Bharadvaja",
+    "Sudeshna",
+    "Brihaspati",
+    "Durga",
+    "Banaasura",
+    "Dewi Danu"
+]
 
-def get_ramayana_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
-    """Builds a sequential lesson from Valmiki Ramayana."""
+def fetch_wikipedia_extract(character: str) -> Optional[str]:
+    """Fetches and caches the Wikipedia extract for a mythological character."""
+    if character in _CHARACTER_CACHE:
+        return _CHARACTER_CACHE[character].get("extract")
+
+    url = "https://en.wikipedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "prop": "extracts|pageprops",
+        "explaintext": "1",
+        "titles": character,
+        "redirects": "1",
+        "formatversion": "2",
+        "format": "json"
+    }
+    headers = {"User-Agent": "10xDailyApp/1.0 (https://10xdaily.com; contact@10xdaily.com)"}
+    
+    extract = None
+    # Try fetching with 1 retry
+    for attempt in range(2):
+        try:
+            resp = requests.get(url, params=params, headers=headers, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            pages = data.get("query", {}).get("pages", [])
+            if pages and not pages[0].get("missing"):
+                page = pages[0]
+                # Skip disambiguation pages
+                if "disambiguation" in page.get("pageprops", {}):
+                    logger.warning(f"Wikipedia page for {character} is a disambiguation page.")
+                    break
+                extract = page.get("extract")
+                if extract:
+                    _CHARACTER_CACHE[character] = {"extract": extract}
+                    break
+        except requests.RequestException as e:
+            logger.warning(f"Attempt {attempt+1} failed to fetch Wikipedia data for {character}: {e}")
+            
+    return extract
+
+def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
+    """Builds a daily lesson based on a mythological character from Wikipedia."""
     if not target_date_str:
         target_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    total_items = len(RAMAYANA_DATASET)
+    total_items = len(MYTHOLOGICAL_CHARACTERS)
     if day is not None:
         day_num = ((day - 1) % total_items) + 1
     else:
         offset = get_day_offset()
         day_num = (offset % total_items) + 1
 
-    item = RAMAYANA_DATASET[day_num - 1]
+    character = MYTHOLOGICAL_CHARACTERS[day_num - 1]
+    
+    # Fetch from Wikipedia API (cached)
+    extract = fetch_wikipedia_extract(character)
 
-    return {
-        "lesson_date": target_date_str,
-        "day_number": day_num,
-        "total_days_or_verses": total_items,
-        "topic": item["topic"],
-        "source": {
-            "name": "Valmiki Ramayana",
-            "scripture_type": "ramayana",
-            "reference": item["reference"],
-            "chapter": item.get("chapter"),
-            "verse": item.get("verse"),
-            "kanda_or_parva": item["kanda"],
-            "character": item["character"],
-            "original_sanskrit": item["sanskrit"],
-            "transliteration": item["transliteration"],
-            "translation": item["translation"],
-            "hindi_translation": item.get("hindi_translation"),
-            "commentators": {
-                "Ralph T.H. Griffith": item["translation"],
-                "Sage Valmiki Tradition": item["context"]
-            }
-        },
-        "reflection": {
-            "title": item["reflection_title"],
-            "story_context": item["context"],
-            "explanation": item["explanation"],
-            "key_takeaways": item["key_takeaways"]
-        },
-        "today_practice": item["today_practice"],
-        "journal_prompt": item["journal_prompt"]
-    }
+    import re
 
-
-def get_mahabharata_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
-    """Builds a sequential lesson from Vyasa Mahabharata."""
-    if not target_date_str:
-        target_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    total_items = len(MAHABHARATA_DATASET)
-    if day is not None:
-        day_num = ((day - 1) % total_items) + 1
+    if not extract:
+        extract = f"{character} is a significant figure in Hindu mythology. We are currently gathering more detailed information from our sources."
+        explanation = extract
+        facts = [f"Explore more about the legend of {character}."]
+        story_context = ""
+        practice = f"Take a moment to reflect upon the values associated with {character}."
+        prompt = f"What lessons can you draw from the mythology of {character}?"
     else:
-        offset = get_day_offset()
-        day_num = (offset % total_items) + 1
+        # Strip out useless sections like References, See also, External links
+        clean_text = re.split(r'==\s*(?:See also|References|Notes|Further reading|External links)\s*==', extract, flags=re.IGNORECASE)[0].strip()
+        
+        # Escape HTML to prevent XSS from Wikipedia artifacts before we inject our own tags
+        clean_text = html.escape(clean_text)
+        
+        # Separate intro from the rest of the body
+        parts = re.split(r'\n==', clean_text, 1)
+        intro_text = parts[0].strip()
+        
+        body_text = '==' + parts[1] if len(parts) > 1 else ""
+        
+        # Format the body text into HTML headings for colored topics and subtopics
+        def format_heading(m):
+            level = len(m.group(1))
+            text = m.group(2).strip().upper()
+            if level == 2:
+                return f'<h3 class="story-topic">{text}</h3>'
+            else:
+                return f'<h4 class="story-subtopic">{text}</h4>'
+                
+        story_context = re.sub(r'^(=+)\s*(.*?)\s*\1$', format_heading, body_text, flags=re.MULTILINE).strip()
+        
+        # Collapse massive whitespace gaps (including spaces between newlines) into clean paragraph breaks
+        story_context = re.sub(r'(\n\s*){2,}', '\n\n', story_context)
+        
+        # Completely strip newlines around HTML headings so CSS margins don't compound with pre-wrap newlines!
+        story_context = re.sub(r'\n*<h', '<h', story_context)
+        story_context = re.sub(r'</h(\d)>\n*', r'</h\1>', story_context)
+        
+        # Extract explanation and facts from intro
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', intro_text) if s.strip()]
+        if len(sentences) > 2:
+            explanation = " ".join(sentences[:2])
+            facts = [f"Did you know? {s}" for s in sentences[2:5]]
+        else:
+            explanation = intro_text
+            facts = [f"Learn from the life and stories of {character}."]
+            
+        practice = f"Take a moment to read and reflect upon the values and stories associated with {character}."
+        prompt = f"What lessons can you draw from the mythology of {character}?"
 
-    item = MAHABHARATA_DATASET[day_num - 1]
+    if day_num <= 3:
+        theme = "The Trimurti"
+    elif day_num <= 6:
+        theme = "The Tridevi"
+    elif day_num <= 16:
+        theme = "Dashavatara: 10 Avatars of Vishnu"
+    elif day_num <= 25:
+        theme = "Navadurga: 9 Forms of Durga"
+    elif day_num <= 35:
+        theme = "The Mahavidyas"
+    elif day_num <= 41:
+        theme = "The Pandavas"
+    elif day_num <= 48:
+        theme = "Mahabharata Legends"
+    elif day_num <= 59:
+        theme = "Ramayana Epics"
+    elif day_num <= 65:
+        theme = "The Great Asuras"
+    elif day_num <= 73:
+        theme = "Vedic Deities"
+    else:
+        theme = "Mythological Figures"
+
+    topic = f"{theme} - Character of the Day"
 
     return {
         "lesson_date": target_date_str,
         "day_number": day_num,
         "total_days_or_verses": total_items,
-        "topic": item["topic"],
+        "topic": topic,
         "source": {
-            "name": "Vyasa Mahabharata",
-            "scripture_type": "mahabharata",
-            "reference": item["reference"],
-            "chapter": item.get("chapter"),
-            "verse": item.get("verse"),
-            "kanda_or_parva": item["parva"],
-            "character": item["character"],
-            "original_sanskrit": item["sanskrit"],
-            "transliteration": item["transliteration"],
-            "translation": item["translation"],
-            "hindi_translation": item.get("hindi_translation"),
-            "commentators": {
-                "Kisari Mohan Ganguli": item["translation"],
-                "Vyasa Parampara": item["context"]
-            }
+            "name": "Wikipedia",
+            "scripture_type": "character",
+            "reference": character,
+            "chapter": None,
+            "verse": None,
+            "kanda_or_parva": None,
+            "character": character,
+            "original_sanskrit": None,
+            "transliteration": None,
+            "translation": explanation,
+            "hindi_translation": None,
+            "commentators": {}
         },
         "reflection": {
-            "title": item["reflection_title"],
-            "story_context": item["context"],
-            "explanation": item["explanation"],
-            "key_takeaways": item["key_takeaways"]
+            "title": f"Who is {character}?",
+            "story_context": story_context,
+            "explanation": explanation,
+            "key_takeaways": facts
         },
-        "today_practice": item["today_practice"],
-        "journal_prompt": item["journal_prompt"]
+        "today_practice": {
+            "title": "Reflect on Character",
+            "description": practice
+        },
+        "journal_prompt": prompt
     }
-
 
 
 def get_daily_spiritual_lesson(
@@ -379,12 +1030,10 @@ def get_daily_spiritual_lesson(
 ) -> dict:
     """
     Main dispatch function: returns sequential authentic lessons from
-    Gita, Ramayana, or Mahabharata without AI/Groq.
+    Gita or Character of the day.
     """
     sc = (scripture or "gita").lower().strip()
-    if sc in ["ramayana", "ramayan"]:
-        return get_ramayana_lesson(day=day)
-    elif sc in ["mahabharata", "mahabharat"]:
-        return get_mahabharata_lesson(day=day)
+    if sc == "character":
+        return get_character_lesson(day=day)
     else:
         return get_gita_lesson(day=day, chapter=chapter, verse=verse)

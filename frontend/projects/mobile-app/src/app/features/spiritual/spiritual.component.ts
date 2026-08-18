@@ -10,7 +10,7 @@ import {
   chevronForwardOutline, chevronBackOutline, chevronDownOutline, chevronUpOutline, pencilOutline,
   volumeHighOutline, volumeMuteOutline, copyOutline, checkmarkOutline,
   refreshOutline, sparklesOutline, bulbOutline, calendarOutline,
-  shareSocialOutline, checkmarkCircleOutline, listOutline
+  shareSocialOutline, checkmarkCircleOutline, listOutline, openOutline, closeCircleOutline
 } from 'ionicons/icons';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ProgressService } from '../../services/progress.service';
@@ -35,7 +35,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
   private currentUserId: number | string = 'guest';
 
   // Active state
-  selectedScripture: 'gita' | 'ramayana' | 'mahabharata' = 'gita';
+  selectedScripture: 'gita' | 'character' = 'gita';
   lesson?: SpiritualLesson;
   savedBookmarks: Bookmark[] = [];
   isLoading = true;
@@ -48,6 +48,8 @@ export class SpiritualComponent implements OnInit, OnDestroy {
   copiedToast = false;
   journalSaved = false;
   isStoryExpanded = false;
+  isDeepDiveModalOpen = false;
+  presentingElement: any = null;
 
 
   constructor() {
@@ -56,7 +58,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
       chevronForwardOutline, chevronBackOutline, chevronDownOutline, chevronUpOutline, pencilOutline,
       volumeHighOutline, volumeMuteOutline, copyOutline, checkmarkOutline,
       refreshOutline, sparklesOutline, bulbOutline, calendarOutline,
-      shareSocialOutline, checkmarkCircleOutline, listOutline
+      shareSocialOutline, checkmarkCircleOutline, listOutline, openOutline, closeCircleOutline
     });
   }
 
@@ -66,6 +68,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
 
 
   ngOnInit() {
+    this.presentingElement = document.querySelector('.ion-page');
     this.initSpeechVoices();
     this.authService.currentUser$.subscribe(user => {
       const newUserId = user?.id || 'guest';
@@ -101,7 +104,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
     this.stopAudio();
   }
 
-  selectScripture(type: 'gita' | 'ramayana' | 'mahabharata') {
+  selectScripture(type: 'gita' | 'character') {
     if (this.selectedScripture === type) return;
     this.stopAudio();
     this.selectedScripture = type;
@@ -113,11 +116,17 @@ export class SpiritualComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.stopAudio();
 
-    this.spiritualService.getDailyLesson(this.selectedScripture, day, chapter, verse).subscribe({
+    this.spiritualService.getDailyLesson(this.selectedScripture, day, chapter, verse, !!event).subscribe({
       next: (data) => {
         this.lesson = data;
         this.isLoading = false;
         
+        if (!this.lesson.source.hindi_translation) {
+          this.selectedMeaningLanguage = 'english';
+        } else {
+          this.selectedMeaningLanguage = 'hindi';
+        }
+
         this.loadJournalForCurrentLesson();
         if (event) event.target.complete();
         this.loadBookmarks();

@@ -185,6 +185,19 @@ ion-content {
       padding: 3px 8px;
       border-radius: 12px;
     }
+
+    .audio-listen-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sp-accent-deep);
+      background: rgba(217, 119, 6, 0.1);
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
   }
 
   .card-title-row {
@@ -207,6 +220,42 @@ ion-content {
       color: var(--sp-accent-deep);
       font-weight: 600;
       margin: 0;
+    }
+  }
+
+  .character-inline-body {
+    padding-top: 8px;
+
+    .character-inline-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+
+
+    .english-text {
+      font-family: var(--sp-font-sans);
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--sp-text-secondary);
+      margin: 0;
+      text-align: justify;
+    }
+
+    .wikipedia-attribution {
+      font-family: var(--sp-font-sans);
+      font-size: 11px;
+      color: var(--sp-text-muted);
+      margin-top: 12px;
+      margin-bottom: 0;
+      text-align: right;
+      font-style: italic;
+
+      a {
+        color: var(--sp-accent-primary);
+        text-decoration: underline;
+      }
     }
   }
 
@@ -740,3 +789,31 @@ ion-content {
   }
 }
 
+/* ─── Deep Dive HTML Content Styles ─────────────────────── */
+::ng-deep .html-narrative .story-topic {
+  color: var(--sp-accent-deep, #78350F);
+  font-family: 'Cinzel', serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--sp-border-gold);
+  padding-bottom: 0.25rem;
+}
+
+::ng-deep .html-narrative .story-subtopic {
+  color: var(--sp-accent-gold, #D97706);
+  font-family: 'Lora', serif;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.read-more-inline {
+  color: var(--sp-accent-gold, #D97706);
+  font-weight: 600;
+  text-decoration: underline;
+  margin-left: 0.4rem;
+  cursor: pointer;
+}

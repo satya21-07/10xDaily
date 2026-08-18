@@ -33,17 +33,10 @@
       </button>
       <button
         class="epic-tab"
-        [class.active]="selectedScripture === 'ramayana'"
-        (click)="selectScripture('ramayana')">
-        <!-- <span class="tab-emoji">🏹</span> -->
-        <span class="tab-label">Ramayana</span>
-      </button>
-      <button
-        class="epic-tab"
-        [class.active]="selectedScripture === 'mahabharata'"
-        (click)="selectScripture('mahabharata')">
-        <!-- <span class="tab-emoji">📜</span> -->
-        <span class="tab-label">Mahabharat</span>
+        [class.active]="selectedScripture === 'character'"
+        (click)="selectScripture('character')">
+        <!-- <span class="tab-emoji">👤</span> -->
+        <span class="tab-label">Character of the Day</span>
       </button>
     </div>
   </div>
@@ -66,7 +59,19 @@
           <ion-icon name="calendar-outline" class="badge-icon"></ion-icon>
           <span>{{ formattedDate }}</span>
         </div>
-        <div class="epic-badge">{{ lesson.source.name }}</div>
+        <div class="epic-badge" *ngIf="selectedScripture !== 'character'">{{ lesson.source.name }}</div>
+
+        <!-- Listen Audio Button for Character -->
+        <button
+          *ngIf="selectedScripture === 'character'"
+          class="audio-listen-pill audio-listen-inline"
+          [class.playing]="isPlayingAudio && audioLanguage === 'english'"
+          (click)="toggleChantingAudio('english')"
+          title="Listen in English"
+          style="margin-left: auto;">
+          <ion-icon [name]="(isPlayingAudio && audioLanguage === 'english') ? 'volume-mute-outline' : 'volume-high-outline'"></ion-icon>
+          <span>{{ (isPlayingAudio && audioLanguage === 'english') ? 'Stop' : 'Listen Audio' }}</span>
+        </button>
       </div>
 
       <!-- Title & Topic Header -->
@@ -75,52 +80,66 @@
         <p class="daily-topic-subtitle">{{ lesson.topic }}</p>
       </div>
 
-      <!-- Card Ornament / Divider -->
-      <div class="card-ornament top-ornament">
-        <span class="om-symbol">ॐ</span>
+      <!-- FOR CHARACTER ONLY: Unified Body after dotted border -->
+      <div class="character-inline-body" *ngIf="selectedScripture === 'character'">
+        <p class="english-text">
+          {{ lesson.source.translation }}
+          <span *ngIf="lesson.reflection.story_context" (click)="isDeepDiveModalOpen = true" class="read-more-inline">Read More</span>
+        </p>
+        <p class="wikipedia-attribution">
+          Source: <a [href]="'https://en.wikipedia.org/wiki/' + lesson.source.character" target="_blank">Wikipedia</a> (CC BY-SA)
+        </p>
       </div>
 
-      <!-- Speaker Tag -->
-      <div class="speaker-tag-row" *ngIf="lesson.source.character">
-        <span class="speaker-pill">
-          <span class="speaker-dot"></span>
-          {{ lesson.source.character }}
-        </span>
-      </div>
-
-      <!-- Sanskrit Devanagari Verses -->
-      <div class="sanskrit-container" *ngIf="lesson.source.original_sanskrit">
-        <p class="sanskrit-text">{{ lesson.source.original_sanskrit }}</p>
-      </div>
-
-      <!-- Roman Transliteration -->
-      <div class="transliteration-box" *ngIf="showTransliteration && lesson.source.transliteration">
-        <p class="transliteration-text">{{ lesson.source.transliteration }}</p>
-      </div>
-
-      <!-- Sanskrit Card Utility Actions -->
-      <div class="shloka-card-actions">
-        <button
-          class="action-pill-btn"
-          *ngIf="lesson.source.transliteration"
-          (click)="toggleTransliteration()">
-          <ion-icon name="list-outline"></ion-icon>
-          <span>{{ showTransliteration ? 'Hide Roman' : 'Show Roman' }}</span>
-        </button>
-
-        <button class="action-pill-btn" (click)="copyVerseCard()">
-          <ion-icon name="copy-outline"></ion-icon>
-          <span>Copy Shloka</span>
-        </button>
-      </div>
+      <!-- FOR GITA ONLY: Original elements -->
+      <ng-container *ngIf="selectedScripture !== 'character'">
+        <!-- Card Ornament / Divider -->
+        <div class="card-ornament top-ornament">
+          <span class="om-symbol">ॐ</span>
+        </div>
+  
+        <!-- Speaker Tag -->
+        <div class="speaker-tag-row" *ngIf="lesson.source.character">
+          <span class="speaker-pill">
+            <span class="speaker-dot"></span>
+            {{ lesson.source.character }}
+          </span>
+        </div>
+  
+        <!-- Sanskrit Devanagari Verses -->
+        <div class="sanskrit-container" *ngIf="lesson.source.original_sanskrit">
+          <p class="sanskrit-text">{{ lesson.source.original_sanskrit }}</p>
+        </div>
+  
+        <!-- Roman Transliteration -->
+        <div class="transliteration-box" *ngIf="showTransliteration && lesson.source.transliteration">
+          <p class="transliteration-text">{{ lesson.source.transliteration }}</p>
+        </div>
+  
+        <!-- Sanskrit Card Utility Actions -->
+        <div class="shloka-card-actions">
+          <button
+            class="action-pill-btn"
+            *ngIf="lesson.source.transliteration"
+            (click)="toggleTransliteration()">
+            <ion-icon name="list-outline"></ion-icon>
+            <span>{{ showTransliteration ? 'Hide Roman' : 'Show Roman' }}</span>
+          </button>
+  
+          <button class="action-pill-btn" (click)="copyVerseCard()">
+            <ion-icon name="copy-outline"></ion-icon>
+            <span>Copy Shloka</span>
+          </button>
+        </div>
+      </ng-container>
     </div>
 
 
     <!-- ── Unified Meaning Card with Language Toggle & In-Place Audio ── -->
-    <section class="card-section meaning-toggle-card">
+    <section class="card-section meaning-toggle-card" *ngIf="selectedScripture !== 'character'">
       <div class="meaning-header-row">
         <!-- Language Switcher Tabs -->
-        <div class="lang-segmented-control">
+        <div class="lang-segmented-control" *ngIf="lesson.source.hindi_translation">
           <button
             class="lang-pill-btn"
             [class.active]="selectedMeaningLanguage === 'hindi'"
@@ -160,12 +179,14 @@
 
       <!-- English Meaning View -->
       <div class="meaning-body english-view" *ngIf="selectedMeaningLanguage === 'english'">
-        <p class="english-text">{{ lesson.source.translation }}</p>
+        <p class="english-text">
+          {{ lesson.source.translation }}
+        </p>
       </div>
     </section>
 
     <!-- ── Story Context & Narrative Accordion ────────── -->
-    <section class="card-section story-accordion-card" *ngIf="lesson.reflection.story_context">
+    <section class="card-section story-accordion-card" *ngIf="lesson.reflection.story_context && selectedScripture !== 'character'">
       <button class="accordion-header-btn" (click)="toggleStoryAccordion()" [attr.aria-expanded]="isStoryExpanded">
         <div class="section-title-wrap">
           <h2 class="section-heading">Story & Epic Context</h2>
@@ -177,7 +198,7 @@
       </button>
 
       <div class="accordion-content-body" *ngIf="isStoryExpanded">
-        <p class="narrative-text">{{ lesson.reflection.story_context }}</p>
+        <p class="narrative-text" style="white-space: pre-wrap;">{{ lesson.reflection.story_context }}</p>
       </div>
     </section>
 
@@ -187,7 +208,7 @@
       <div class="section-header">
         <div class="section-title-wrap">
           <!-- <span class="section-icon-badge">💡</span> -->
-          <h2 class="section-heading">Core Life Lessons</h2>
+          <h2 class="section-heading">{{ selectedScripture === 'character' ? 'Fascinating Facts' : 'Core Life Lessons' }}</h2>
         </div>
       </div>
 
@@ -200,7 +221,7 @@
     </section>
 
     <!-- ── Today's Practical Sadhana ───────────────────── -->
-    <section class="card-section sadhana-card">
+    <section class="card-section sadhana-card" *ngIf="selectedScripture !== 'character'">
       <div class="section-header">
         <div class="section-title-wrap">
           <!-- <span class="section-icon-badge">⚡</span> -->
@@ -241,3 +262,28 @@
 
   </div>
 </ion-content>
+
+<!-- ── Deep Dive Modal ────────────────────────────────── -->
+<ion-modal [isOpen]="isDeepDiveModalOpen" (didDismiss)="isDeepDiveModalOpen = false">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar color="transparent" style="--background: #fffdf5;">
+        <ion-buttons slot="start">
+          <ion-button (click)="isDeepDiveModalOpen = false" style="color: #633300;">
+            <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title style="color: #633300; font-weight: 700;">Deep Dive & Lore</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding" style="--background: #fffdf5;">
+      <div class="modal-body-content">
+        <h2 style="font-size: 18px; color: #8e4a00; font-weight: 800; margin-bottom: 1rem; text-align: center;">
+          {{ lesson?.reflection?.title }}
+        </h2>
+        <div class="narrative-text html-narrative" style="white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #4a2700;" [innerHTML]="lesson?.reflection?.story_context">
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
