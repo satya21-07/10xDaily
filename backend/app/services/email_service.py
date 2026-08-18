@@ -130,6 +130,32 @@ def _generate_feedback_html(feedback: Feedback) -> str:
     return html
 
 class EmailService:
+    @classmethod
+    def send_via_resend(cls, api_key: str, sender: str, sender_name: str, recipient: str, subject: str, html_body: str, reply_to: str) -> bool:
+        import requests
+        url = "https://api.resend.com/emails"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "from": f"{sender_name} <{sender}>",
+            "to": [recipient],
+            "subject": subject,
+            "html": html_body,
+            "reply_to": reply_to
+        }
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            if response.status_code in (200, 201):
+                return True
+            else:
+                logger.error(f"[EMAIL ERROR] Resend API failed: {response.status_code} - {response.text}")
+                return False
+        except Exception as e:
+            logger.error(f"[EMAIL ERROR] Resend API request failed: {e}")
+            return False
+
     @staticmethod
     def send_feedback_email(feedback: Feedback) -> bool:
         # Dynamically read latest settings/env in case server was running when .env was edited
@@ -141,18 +167,32 @@ class EmailService:
         recipient = os.getenv("FEEDBACK_RECIPIENT_EMAIL", settings.FEEDBACK_RECIPIENT_EMAIL) or smtp_user
         sender = os.getenv("EMAILS_FROM_EMAIL", settings.EMAILS_FROM_EMAIL) or smtp_user or "onexDaily@gmail.com"
         sender_name = os.getenv("EMAILS_FROM_NAME", settings.EMAILS_FROM_NAME) or "10xDaily Support"
+        resend_api_key = os.getenv("RESEND_API_KEY")
 
         subject = f"[10xDaily Feedback] [{feedback.feedback_type.upper()}] {feedback.subject}"
         
         print(f"[Feedback Notification] Processing ID #{feedback.id} for recipient: {recipient}")
 
-        if not smtp_host or not recipient or not smtp_password:
+        if not smtp_host and not resend_api_key:
             print(
-                f"[EMAIL NOTICE] Missing SMTP credentials (host={smtp_host}, user={smtp_user}, password_set={bool(smtp_password)}). "
+                f"[EMAIL NOTICE] Missing SMTP and Resend credentials. "
                 f"Feedback #{feedback.id} saved to DB."
             )
             return False
+            
+        html_body = _generate_feedback_html(feedback)
+        
+        # Try Resend HTTP API first if configured
+        if resend_api_key:
+            success = EmailService.send_via_resend(
+                resend_api_key, sender, sender_name, recipient, subject, html_body, feedback.user_email
+            )
+            if success:
+                print(f"[EMAIL SUCCESS] Feedback email #{feedback.id} successfully sent via Resend!")
+                return True
+            print(f"[EMAIL NOTICE] Resend failed for ID #{feedback.id}. Falling back to SMTP if configured.")
 
+        # Fallback to SMTP
         try:
             import socket
             old_getaddrinfo = socket.getaddrinfo
@@ -180,7 +220,7 @@ class EmailService:
                     f"Device: {feedback.device_info or 'N/A'}\n"
                 )
                 part1 = MIMEText(text_body, "plain", "utf-8")
-                part2 = MIMEText(_generate_feedback_html(feedback), "html", "utf-8")
+                part2 = MIMEText(html_body, "html", "utf-8")
     
                 msg.attach(part1)
                 msg.attach(part2)
