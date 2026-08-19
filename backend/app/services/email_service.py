@@ -157,8 +157,7 @@ class EmailService:
             "html": html_body
         }
         
-        # Resend sometimes throws errors if the reply_to domain isn't verified or is a strict DMARC domain like gmail.com
-        if reply_to and "@gmail.com" not in reply_to and "@yahoo.com" not in reply_to:
+        if reply_to:
             payload["reply_to"] = reply_to
 
         try:

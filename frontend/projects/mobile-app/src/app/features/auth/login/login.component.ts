@@ -52,26 +52,26 @@ export class LoginComponent implements AfterViewInit {
   }
 
   handleCredentialResponse(response: any) {
-    this.isLoggingIn = true;
-    this.authService.loginWithGoogle(response.credential).subscribe({
-      next: () => {
-        this.ngZone.run(() => {
+    this.ngZone.run(() => {
+      this.isLoggingIn = true;
+      this.authService.loginWithGoogle(response.credential).subscribe({
+        next: () => {
           this.router.navigate(['/home'], { replaceUrl: true }).then(() => {
             this.isLoggingIn = false;
           });
-        });
-      },
-      error: async (err) => {
-        console.error('Google login failed', err);
-        this.isLoggingIn = false;
-        
-        const alert = await this.alertCtrl.create({
-          header: 'Google Login Failed',
-          message: err?.error?.detail || 'Please try again.',
-          buttons: ['OK']
-        });
-        await alert.present();
-      }
+        },
+        error: async (err) => {
+          console.error('Google login failed', err);
+          this.isLoggingIn = false;
+          
+          const alert = await this.alertCtrl.create({
+            header: 'Google Login Failed',
+            message: err?.error?.detail || 'Please try again.',
+            buttons: ['OK']
+          });
+          await alert.present();
+        }
+      });
     });
   }
 

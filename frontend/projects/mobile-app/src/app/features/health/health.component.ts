@@ -49,7 +49,8 @@ export class HealthComponent implements OnInit {
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
-      const newUserId = user?.id || 'guest';
+      if (!user) return;
+      const newUserId = user.id ?? 'guest';
       if (this.currentUserId !== newUserId) {
         this.currentUserId = newUserId;
         this.resetState();

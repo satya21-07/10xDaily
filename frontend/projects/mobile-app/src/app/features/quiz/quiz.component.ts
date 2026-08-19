@@ -62,7 +62,8 @@ export class QuizComponent implements OnInit {
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
-      const newUserId = user?.id || 'guest';
+      if (!user) return;
+      const newUserId = user.id ?? 'guest';
       this.activeUserId = newUserId;
       
       const today = new Date().toISOString().split('T')[0];

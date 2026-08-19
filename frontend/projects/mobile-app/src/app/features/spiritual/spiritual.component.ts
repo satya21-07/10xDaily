@@ -73,7 +73,8 @@ export class SpiritualComponent implements OnInit, OnDestroy {
     this.presentingElement = document.querySelector('.ion-page');
     this.initSpeechVoices();
     this.authService.currentUser$.subscribe(user => {
-      const newUserId = user?.id || 'guest';
+      if (!user) return;
+      const newUserId = user.id ?? 'guest';
       if (this.currentUserId !== newUserId || !this.hasLoadedData) {
         this.currentUserId = newUserId;
         this.resetState();

@@ -240,6 +240,8 @@ export class AuthService {
   }
 
   logout(): void {
+    if (!this.currentUserSubject.value) return;
+    
     if (typeof window !== 'undefined' && window.localStorage) {
       // Preserve theme preference across logouts
       const themePref = localStorage.getItem('10xdaily_theme_pref');
