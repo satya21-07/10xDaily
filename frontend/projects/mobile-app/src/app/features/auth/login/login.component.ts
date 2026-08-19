@@ -56,7 +56,7 @@ export class LoginComponent implements AfterViewInit {
     this.authService.loginWithGoogle(response.credential).subscribe({
       next: () => {
         this.ngZone.run(() => {
-          this.router.navigate(['/home']).then(() => {
+          this.router.navigate(['/home'], { replaceUrl: true }).then(() => {
             this.isLoggingIn = false;
           });
         });
@@ -83,7 +83,7 @@ export class LoginComponent implements AfterViewInit {
     this.authService.login(this.loginEmail, this.loginPassword).subscribe({
       next: () => {
         this.ngZone.run(() => {
-          this.router.navigate(['/home']).then(() => {
+          this.router.navigate(['/home'], { replaceUrl: true }).then(() => {
             this.isLoggingIn = false;
           });
         });
