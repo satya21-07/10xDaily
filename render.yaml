@@ -23,6 +23,9 @@ services:
     env: static
     buildCommand: "cd frontend && ./build.sh"
     staticPublishPath: "./frontend/dist/mobile-app/browser"
+    customDomains:
+      - www.10xdaily.online
+      - 10xdaily.online
     routes:
       - type: rewrite
         source: /*
