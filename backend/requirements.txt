@@ -19,3 +19,4 @@ pandas
 openpyxl
 python-dotenv
 groq
+slowapi

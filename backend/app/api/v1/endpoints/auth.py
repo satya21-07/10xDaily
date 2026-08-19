@@ -1,9 +1,11 @@
 import zoneinfo
+import secrets
 from datetime import timedelta, datetime, timezone
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from app.core.rate_limit import limiter
 from app.db.session import get_db
 from app.core import security
 from app.core.config import settings
@@ -45,7 +47,9 @@ def update_user_streak(db: Session, user: User) -> int:
     return user.current_streak
 
 @router.post("/admin/login/access-token", response_model=Token)
+@limiter.limit("5/minute")
 def admin_login_access_token(
+    request: Request,
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """OAuth2 compatible token login specifically for admins, get an access token for future requests"""
@@ -81,7 +85,9 @@ def admin_login_access_token(
     }
 
 @router.post("/login/access-token", response_model=Token)
+@limiter.limit("5/minute")
 def login_access_token(
+    request: Request,
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """OAuth2 compatible token login, get an access token for future requests"""
@@ -121,7 +127,9 @@ class GoogleToken(BaseModel):
     token: str
 
 @router.post("/register", response_model=Token)
+@limiter.limit("3/minute")
 def register(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     user_in: UserCreate,
@@ -192,10 +200,15 @@ def google_auth(
             # Create user
             user = User(
                 email=email,
-                hashed_password=security.get_password_hash("google_sso_random_pw_placeholder"),
+                hashed_password=security.get_password_hash(secrets.token_urlsafe(32)),
                 full_name=name,
             )
             db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Existing user - wipe their password to prevent pre-account takeover
+            user.hashed_password = security.get_password_hash(secrets.token_urlsafe(32))
             db.commit()
             db.refresh(user)
             
