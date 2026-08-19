@@ -16,10 +16,12 @@ interface Cage {
   isInvalid?: boolean; // red highlight
 }
 
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+
 @Component({
   selector: 'app-kenken',
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule],
+  imports: [CommonModule, IonicModule, FormsModule, LoaderComponent],
   templateUrl: './kenken.component.html',
   styleUrls: ['./kenken.component.scss']
 })
@@ -42,6 +44,7 @@ export class KenKenComponent implements OnInit, OnDestroy {
   elapsedSeconds: number = 0;
   won: boolean = false;
   hasStarted: boolean = false;
+  isLoading: boolean = true;
   
   private timerInterval: any;
   private firstGameCompletedToday: boolean = false;
@@ -63,6 +66,7 @@ export class KenKenComponent implements OnInit, OnDestroy {
   }
   
   loadPuzzle() {
+    this.isLoading = true;
     this.gamesService.getTodayKenKen(this.size).subscribe({
       next: (res: any) => {
         if (res.completed) {
@@ -84,9 +88,11 @@ export class KenKenComponent implements OnInit, OnDestroy {
             this.elapsedSeconds = res.saved_state.time_taken;
           }
         }
+        this.isLoading = false;
       },
       error: () => {
         // Fallback or retry
+        this.isLoading = false;
       }
     });
   }

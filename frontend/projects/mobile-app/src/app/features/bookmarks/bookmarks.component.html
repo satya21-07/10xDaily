@@ -14,7 +14,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content color="light">
+<ion-content>
   <div class="tabs-scroll-container">
     <div class="tabs-wrapper">
       <div
@@ -29,13 +29,15 @@
     </div>
   </div>
 
+  <app-loader *ngIf="isLoading" message="Loading your saved items..."></app-loader>
+
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="topics.length === 0">
+  <div class="empty-state" *ngIf="!isLoading && topics.length === 0">
     <ion-icon name="bookmark-outline"></ion-icon>
     <p>You haven't saved anything yet.</p>
   </div>
 
-  <div *ngIf="topics.length > 0 && activeSegment" class="content-container">
+  <div *ngIf="!isLoading && topics.length > 0 && activeSegment" class="content-container">
     <div class="segment-header">
       <span class="segment-title">{{ getTabLabel(activeSegment) }}</span>
       <span class="segment-count">{{ getSavedText(activeSegment, groupedBookmarks[activeSegment].length || 0) }}</span>

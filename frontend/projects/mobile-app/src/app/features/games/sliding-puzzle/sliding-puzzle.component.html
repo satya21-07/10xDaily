@@ -15,7 +15,10 @@
 </ion-header>
 
 <ion-content class="ion-padding" [scrollY]="false">
-  <div class="stats-bar">
+  <app-loader *ngIf="isLoading" message="Loading Sliding Puzzle..."></app-loader>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="stats-bar">
     <div class="stat">
       <span class="label">MOVES</span>
       <span class="value">{{ moveCount }}</span>
@@ -61,4 +64,5 @@
       <button class="primary-btn" (click)="goBack()">Back to Games</button>
     </div>
   </div>
+  </ng-container>
 </ion-content>

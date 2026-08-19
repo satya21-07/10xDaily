@@ -150,35 +150,63 @@ export class PersonalInformationComponent implements OnInit {
 
     const reader = new FileReader();
     reader.onload = async (e: any) => {
-      const base64Image = e.target.result;
-      
-      const loading = await this.loadingCtrl.create({
-        message: 'Updating profile picture...',
-      });
-      await loading.present();
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 512;
+        const MAX_HEIGHT = 512;
+        let width = img.width;
+        let height = img.height;
 
-      this.authService.updateAvatar(base64Image).subscribe({
-        next: async () => {
-          await loading.dismiss();
-          const toast = await this.toastCtrl.create({
-            message: 'Profile picture updated successfully!',
-            duration: 2000,
-            color: 'success',
-            position: 'bottom'
-          });
-          toast.present();
-        },
-        error: async (err) => {
-          await loading.dismiss();
-          const toast = await this.toastCtrl.create({
-            message: 'Failed to update profile picture. Please try again.',
-            duration: 3000,
-            color: 'danger',
-            position: 'bottom'
-          });
-          toast.present();
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round(height *= MAX_WIDTH / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round(width *= MAX_HEIGHT / height);
+            height = MAX_HEIGHT;
+          }
         }
-      });
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/webp', 0.8);
+          
+          const loading = await this.loadingCtrl.create({
+            message: 'Updating profile picture...',
+          });
+          await loading.present();
+
+          this.authService.updateAvatar(compressedBase64).subscribe({
+            next: async () => {
+              await loading.dismiss();
+              const toast = await this.toastCtrl.create({
+                message: 'Profile picture updated successfully!',
+                duration: 2000,
+                color: 'success',
+                position: 'bottom'
+              });
+              toast.present();
+            },
+            error: async (err) => {
+              await loading.dismiss();
+              const toast = await this.toastCtrl.create({
+                message: 'Failed to update profile picture. Please try again.',
+                duration: 3000,
+                color: 'danger',
+                position: 'bottom'
+              });
+              toast.present();
+            }
+          });
+        }
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }

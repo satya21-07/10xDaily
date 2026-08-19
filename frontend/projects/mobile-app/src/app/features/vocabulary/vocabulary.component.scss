@@ -694,3 +694,12 @@ ion-content {
     }
   }
 }
+
+
+/* Global Background Override */
+ion-content {
+  --background: radial-gradient(rgba(100, 110, 140, 0.15) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #f0f4ff 0%, #ede9fe 50%, #fae8ff 100%) !important;
+}
+:host-context(.ion-palette-dark) ion-content {
+  --background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%) !important;
+}

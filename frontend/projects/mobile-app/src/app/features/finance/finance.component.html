@@ -43,6 +43,11 @@
   <app-loader *ngIf="isLoading && activeSegment === 'lesson'" message="Loading financial curriculum..."></app-loader>
 
   <div *ngIf="!isLoading && lesson && activeSegment === 'lesson'" class="content-container">
+    <!-- Hero Image -->
+    <div class="hero-image-wrapper">
+      <img [src]="'https://image.pollinations.ai/prompt/Financial%20illustration%20about%20' + getEncodedTopic(lesson.topic) + ',%20money,%20investing,%20wealth,%20coins,%20chart,%20modern%20vector%20art,%20colorful?width=800&height=400&nologo=true'" alt="Finance illustration" class="finance-hero-img" />
+    </div>
+
     <!-- Editorial Header -->
     <div class="editorial-header">
       <div class="date-badge">TODAY'S TOPIC</div>

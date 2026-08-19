@@ -18,10 +18,12 @@ interface SudokuCell {
   animateComplete?: boolean;
 }
 
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+
 @Component({
   selector: 'app-mini-sudoku',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, LoaderComponent],
   templateUrl: './mini-sudoku.component.html',
   styleUrls: ['./mini-sudoku.component.scss']
 })
@@ -42,6 +44,7 @@ export class MiniSudokuComponent implements OnInit {
   isCompleted = false;
   alreadyCompletedToday = false;
   savedState: any = null;
+  isLoading = true;
 
   selectedCell: SudokuCell | null = null;
   numpad = [1, 2, 3, 4, 5, 6];
@@ -51,11 +54,18 @@ export class MiniSudokuComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.gamesService.getTodayMiniSudoku().subscribe(res => {
-      this.alreadyCompletedToday = res.completed;
-      this.levelData = res.level;
-      this.savedState = res.saved_state;
-      this.initGame();
+    this.isLoading = true;
+    this.gamesService.getTodayMiniSudoku().subscribe({
+      next: (res) => {
+        this.alreadyCompletedToday = res.completed;
+        this.levelData = res.level;
+        this.savedState = res.saved_state;
+        this.initGame();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 

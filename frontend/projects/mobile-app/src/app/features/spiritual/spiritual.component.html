@@ -82,6 +82,9 @@
 
       <!-- FOR CHARACTER ONLY: Unified Body after dotted border -->
       <div class="character-inline-body" *ngIf="selectedScripture === 'character'">
+        <div class="character-image-container" *ngIf="lesson.source.image_url">
+          <img [src]="lesson.source.image_url" [alt]="lesson.source.character" class="character-image" />
+        </div>
         <p class="english-text">
           {{ lesson.source.translation }}
           <span *ngIf="lesson.reflection.story_context" (click)="isDeepDiveModalOpen = true" class="read-more-inline">Read More</span>
@@ -247,6 +250,7 @@
           id="journal-textarea"
           class="journal-textarea"
           [(ngModel)]="journalText"
+          (ngModelChange)="onJournalChange()"
           placeholder="Write your reflections, insights, or resolutions for today..."
           rows="4"
         ></textarea>

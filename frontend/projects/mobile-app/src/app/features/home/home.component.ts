@@ -158,4 +158,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     { id: 'finance', title: 'Finance', desc: 'Market updates', route: '/finance', icon: 'wallet-outline', cssClass: 'peach-card', shortLabel: 'Finance' },
     { id: 'health', title: 'Health', desc: 'Fitness tips', route: '/health', icon: 'fitness-outline', cssClass: 'purple-card', shortLabel: 'Health' }
   ];
+
+  getProgressWidth(): string {
+    if (this.progress.total <= 1) return '0%';
+    if (this.progress.completed <= 1) return '0%';
+    const pct = ((this.progress.completed - 1) / (this.progress.total - 1)) * 100;
+    return `${pct}%`;
+  }
 }

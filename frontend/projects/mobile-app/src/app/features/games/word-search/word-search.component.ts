@@ -17,10 +17,12 @@ interface GridCell {
   color?: string; // Color assigned when a word is found
 }
 
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+
 @Component({
   selector: 'app-word-search',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, LoaderComponent],
   templateUrl: './word-search.component.html',
   styleUrls: ['./word-search.component.scss']
 })
@@ -48,6 +50,7 @@ export class WordSearchComponent implements OnInit {
   isCompleted = false;
   alreadyCompletedToday = false;
   savedState: any = null;
+  isLoading = true;
 
   // Selection state
   isSelecting = false;
@@ -61,11 +64,18 @@ export class WordSearchComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.gamesService.getTodayWordSearch().subscribe(res => {
-      this.alreadyCompletedToday = res.completed;
-      this.levelData = res.level;
-      this.savedState = res.saved_state;
-      this.initGame();
+    this.isLoading = true;
+    this.gamesService.getTodayWordSearch().subscribe({
+      next: (res) => {
+        this.alreadyCompletedToday = res.completed;
+        this.levelData = res.level;
+        this.savedState = res.saved_state;
+        this.initGame();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 

@@ -7,7 +7,8 @@
 }
 
 .games-hub-content {
-  --background: #f8f9fe;
+  --background: radial-gradient(rgba(100, 110, 140, 0.15) 1.5px, transparent 1.5px) 0 0 / 20px 20px, 
+                linear-gradient(135deg, #f0f4ff 0%, #ede9fe 50%, #fae8ff 100%);
   padding: 16px;
 }
 
@@ -17,7 +18,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px;
-  background: transparent;
+  background: radial-gradient(rgba(100, 110, 140, 0.15) 1.5px, transparent 1.5px) 0 0 / 20px 20px, 
+              linear-gradient(135deg, #f0f4ff 0%, #ede9fe 50%, #fae8ff 100%);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
   
   .menu-btn {
     font-size: 28px;
@@ -492,8 +495,14 @@
 
 /* Dark Mode Overrides */
 :host-context(.ion-palette-dark) {
-  .games-hub-content { --background: #111827; }
+  .games-hub-content { 
+    --background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, 
+                  linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%); 
+  }
   .header {
+    background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, 
+                linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     .title, .menu-btn { color: #f9fafb; }
     .coin-pill { background: #1f2937; .coin-amount { color: #f9fafb; } }
   }

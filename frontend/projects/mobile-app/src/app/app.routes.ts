@@ -114,5 +114,13 @@ export const routes: Routes = [
     path: 'spiritual',
     canActivate: [authGuard],
     loadComponent: () => import('./features/spiritual/spiritual.component').then(m => m.SpiritualComponent)
+  },
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/privacy/privacy.component').then(m => m.PrivacyComponent)
+  },
+  {
+    path: 'terms',
+    loadComponent: () => import('./features/terms/terms.component').then(m => m.TermsComponent)
   }
 ];

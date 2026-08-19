@@ -5,13 +5,14 @@ import { IonicModule, ActionSheetController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { BookmarkService, Bookmark } from '../../core/services/bookmark.service';
 import { NewsService } from '../../services/news.service';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { addIcons } from 'ionicons';
 import { arrowBack, bookOutline, newspaperOutline, codeSlashOutline, medkitOutline, leafOutline, cashOutline, bookmarkOutline, searchOutline, optionsOutline, volumeHighOutline, bookmark, ellipsisVertical, trashOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-bookmarks',
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [IonicModule, CommonModule, LoaderComponent],
   templateUrl: './bookmarks.component.html',
   styleUrl: './bookmarks.component.scss'
 })
@@ -20,6 +21,7 @@ export class BookmarksComponent implements OnInit {
   groupedBookmarks: { [key: string]: Bookmark[] } = {};
   topics: string[] = [];
   activeSegment: string = '';
+  isLoading: boolean = true;
 
   tabConfig: { [key: string]: { label: string, icon: string, suffix: string } } = {
     'vocabulary': { label: 'Vocabulary', icon: 'book-outline', suffix: 'words' },
@@ -58,6 +60,7 @@ export class BookmarksComponent implements OnInit {
   }
 
   loadBookmarks() {
+    this.isLoading = true;
     // We now have two sources: BookmarkService for general bookmarks, NewsService for SavedNews
     let generalBookmarks: Bookmark[] = [];
     let savedNewsBookmarks: any[] = [];
@@ -68,6 +71,7 @@ export class BookmarksComponent implements OnInit {
       if (completedRequests === 2) {
         this.bookmarks = [...generalBookmarks, ...savedNewsBookmarks];
         this.groupBookmarks();
+        this.isLoading = false;
       }
     };
 

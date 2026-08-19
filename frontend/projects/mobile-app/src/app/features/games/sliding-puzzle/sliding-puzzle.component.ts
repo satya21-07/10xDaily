@@ -6,10 +6,12 @@ import { GamesService } from '../../../services/games.service';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, refreshOutline, trophyOutline, bulbOutline, refresh, bulb, arrowUpOutline, arrowDownOutline, arrowForwardOutline } from 'ionicons/icons';
 
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+
 @Component({
   selector: 'app-sliding-puzzle',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, LoaderComponent],
   templateUrl: './sliding-puzzle.component.html',
   styleUrls: ['./sliding-puzzle.component.scss']
 })
@@ -29,6 +31,7 @@ export class SlidingPuzzleComponent implements OnInit, OnDestroy {
   hasStarted: boolean = false;
   hintTile: number | null = null;
   hintDirection: string | null = null;
+  isLoading: boolean = true;
   
   private timerInterval: any;
   private firstGameCompletedToday: boolean = false;
@@ -38,6 +41,7 @@ export class SlidingPuzzleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.isLoading = true;
     this.gamesService.getTodaySlidingPuzzle().subscribe({
       next: (res: any) => {
         if (res.completed) {
@@ -58,6 +62,7 @@ export class SlidingPuzzleComponent implements OnInit, OnDestroy {
             this.moveCount = res.saved_state.move_count || 0;
           }
         }
+        this.isLoading = false;
       },
       error: () => {
         // Fallback for testing if backend fails
@@ -65,6 +70,7 @@ export class SlidingPuzzleComponent implements OnInit, OnDestroy {
         this.initialTiles = [1, 2, 3, 4, 5, 6, 7, 0, 8]; // sample shuffled
         this.initialSolutionPath = [8];
         this.initGame();
+        this.isLoading = false;
       }
     });
   }

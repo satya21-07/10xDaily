@@ -33,6 +33,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
 
   private currentUserId: number | string = 'guest';
+  private hasLoadedData = false;
 
   // Active state
   selectedScripture: 'gita' | 'character' = 'gita';
@@ -50,6 +51,7 @@ export class SpiritualComponent implements OnInit, OnDestroy {
   isStoryExpanded = false;
   isDeepDiveModalOpen = false;
   presentingElement: any = null;
+  private autoSaveTimeout: any;
 
 
   constructor() {
@@ -72,11 +74,12 @@ export class SpiritualComponent implements OnInit, OnDestroy {
     this.initSpeechVoices();
     this.authService.currentUser$.subscribe(user => {
       const newUserId = user?.id || 'guest';
-      if (this.currentUserId !== newUserId) {
+      if (this.currentUserId !== newUserId || !this.hasLoadedData) {
         this.currentUserId = newUserId;
         this.resetState();
+        this.loadData();
+        this.hasLoadedData = true;
       }
-      this.loadData();
     });
   }
 
@@ -303,13 +306,25 @@ export class SpiritualComponent implements OnInit, OnDestroy {
   }
 
   // ── Journal Persistence ───────────────────────────────────────────
-  saveJournal() {
+  onJournalChange() {
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+    }
+    this.autoSaveTimeout = setTimeout(() => {
+      this.saveJournal(true);
+    }, 1000);
+  }
+
+  saveJournal(isAutoSave = false) {
     if (!this.lesson) return;
     const key = `journal_spiritual_${this.currentUserId}_${this.selectedScripture}_${this.lesson.day_number}`;
     localStorage.setItem(key, this.journalText);
-    this.journalSaved = true;
-    setTimeout(() => (this.journalSaved = false), 3000);
-    this.presentToast('Journal entry saved to your device!');
+    
+    if (!isAutoSave) {
+      this.journalSaved = true;
+      setTimeout(() => (this.journalSaved = false), 3000);
+      this.presentToast('Journal entry saved to your device!');
+    }
   }
 
   private loadJournalForCurrentLesson() {

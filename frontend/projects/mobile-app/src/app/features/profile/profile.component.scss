@@ -29,14 +29,32 @@
   --border-color: #333333;
 }
 
+:host-context(.ion-palette-dark) ion-content {
+  --background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%) !important;
+}
+
+:host-context(.ion-palette-dark) .profile-container {
+  background-image: none !important;
+}
+
 ion-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   z-index: 100;
+  background: transparent;
+  
   ion-toolbar {
-    --background: var(--ion-background-color, #ffffff);
+    --background: transparent;
+    --border-width: 0;
   }
   ion-button {
     font-size: 12px;
-    --color: #000;
+    --color: var(--text-main);
+  }
+  ion-title {
+    color: var(--text-main);
   }
 }
 
@@ -73,7 +91,21 @@ ion-content {
 }
 
 .profile-container {
-      padding: 8px 12px 16px 12px;
+  /* Add top padding to clear the transparent absolute header */
+  padding: calc(env(safe-area-inset-top, 0px) + 56px) 12px 16px 12px;
+  background-image: url('../../../assets/profile_page.png');
+  /* Use vw (viewport width) so the negative offset scales up on tablets */
+  background-position: right calc(-18vw); 
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  min-height: 100%;
+  
+  @media (min-width: 768px) {
+    /* Cap the size on very wide screens so it doesn't stretch too much */
+    background-size: 600px auto;
+    /* Fixed offset when the size stops scaling */
+    background-position: right -180px; 
+  }
 }
 
 /* Profile Info Card */

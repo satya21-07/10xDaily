@@ -17,6 +17,7 @@ export interface SpiritualSource {
   transliteration?: string | null;
   translation: string;
   hindi_translation?: string | null;
+  image_url?: string | null;
   commentators?: Record<string, string> | null;
 }
 

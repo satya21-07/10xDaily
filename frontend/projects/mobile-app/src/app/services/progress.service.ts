@@ -37,27 +37,37 @@ export class ProgressService {
 
   private loadState() {
     if (this.currentUserId !== null) {
+      // Optimistically load from storage first to provide instant UI
+      this.loadStateFromStorage();
+
       if (this.authService.isLoggedIn) {
         const headers = new HttpHeaders({
           'Authorization': `Bearer ${this.authService.getToken()}`
         });
         this.http.get<{visited_modules: string[]}>(`${this.apiUrl}/users/me/progress/modules`, { headers }).pipe(
           catchError(() => {
-            this.loadStateFromStorage();
             return of({visited_modules: []});
           })
         ).subscribe(res => {
           if (res && res.visited_modules && res.visited_modules.length > 0) {
-            this.visitedModulesSubject.next(new Set(res.visited_modules));
-          } else {
-            this.loadStateFromStorage();
+            const current = this.visitedModulesSubject.value;
+            const backendSet = new Set(res.visited_modules);
+            // Merge both to prevent overriding local optimistic updates that might have happened during request
+            const merged = new Set([...Array.from(current), ...Array.from(backendSet)]);
+            this.visitedModulesSubject.next(merged);
+            this.saveStateLocallyOnly(merged);
           }
         });
-      } else {
-        this.loadStateFromStorage();
       }
     } else {
       this.visitedModulesSubject.next(new Set());
+    }
+  }
+  
+  private saveStateLocallyOnly(modules: Set<string>) {
+    if (typeof window !== 'undefined' && window.localStorage && this.currentUserId !== null) {
+      const todayKey = this.getTodayKey();
+      localStorage.setItem(todayKey, JSON.stringify(Array.from(modules)));
     }
   }
   
@@ -132,27 +142,36 @@ export class ProgressService {
   // --- Habits Progress ---
   private loadHabitState() {
     if (this.currentUserId !== null) {
+      // Optimistically load from storage first
+      this.loadHabitStateFromStorage();
+
       if (this.authService.isLoggedIn) {
         const headers = new HttpHeaders({
           'Authorization': `Bearer ${this.authService.getToken()}`
         });
         this.http.get<{completed_habits: string[]}>(`${this.apiUrl}/users/me/progress/habits`, { headers }).pipe(
           catchError(() => {
-            this.loadHabitStateFromStorage();
             return of({completed_habits: []});
           })
         ).subscribe(res => {
           if (res && res.completed_habits && res.completed_habits.length > 0) {
-            this.completedHabitsSubject.next(new Set(res.completed_habits));
-          } else {
-            this.loadHabitStateFromStorage();
+            const current = this.completedHabitsSubject.value;
+            const backendSet = new Set(res.completed_habits);
+            const merged = new Set([...Array.from(current), ...Array.from(backendSet)]);
+            this.completedHabitsSubject.next(merged);
+            this.saveHabitStateLocallyOnly(merged);
           }
         });
-      } else {
-        this.loadHabitStateFromStorage();
       }
     } else {
       this.completedHabitsSubject.next(new Set());
+    }
+  }
+
+  private saveHabitStateLocallyOnly(habits: Set<string>) {
+    if (typeof window !== 'undefined' && window.localStorage && this.currentUserId !== null) {
+      const todayKey = this.getTodayHabitsKey();
+      localStorage.setItem(todayKey, JSON.stringify(Array.from(habits)));
     }
   }
 

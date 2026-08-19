@@ -15,7 +15,10 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="stats-bar">
+  <app-loader *ngIf="isLoading" message="Loading Flow Puzzle..."></app-loader>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="stats-bar">
     <div class="stat-item">
       <span class="label">TIME:</span>
       <span class="value">{{ formattedTime }}</span>
@@ -85,4 +88,5 @@
       <ion-button expand="block" (click)="goBack()">Back to Games</ion-button>
     </div>
   </div>
+  </ng-container>
 </ion-content>

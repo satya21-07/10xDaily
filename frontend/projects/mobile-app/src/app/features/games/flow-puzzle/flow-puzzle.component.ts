@@ -22,10 +22,12 @@ interface Cell {
   };
 }
 
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+
 @Component({
   selector: 'app-flow-puzzle',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, LoaderComponent],
   templateUrl: './flow-puzzle.component.html',
   styleUrls: ['./flow-puzzle.component.scss']
 })
@@ -49,6 +51,7 @@ export class FlowPuzzleComponent implements OnInit, OnDestroy {
   fillPercentage = 0;
   isCompleted = false;
   alreadyCompletedToday = false;
+  isLoading = true;
 
   paths: Map<string, {x: number, y: number}[]> = new Map();
   currentDragPath: string | null = null;
@@ -59,11 +62,18 @@ export class FlowPuzzleComponent implements OnInit, OnDestroy {
   timerInterval: any;
 
   ngOnInit() {
-    this.gamesService.getTodayFlowPuzzle().subscribe(res => {
-      this.alreadyCompletedToday = res.completed;
-      this.levelData = res.level;
-      this.savedPaths = res.saved_paths;
-      this.initGame();
+    this.isLoading = true;
+    this.gamesService.getTodayFlowPuzzle().subscribe({
+      next: (res) => {
+        this.alreadyCompletedToday = res.completed;
+        this.levelData = res.level;
+        this.savedPaths = res.saved_paths;
+        this.initGame();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 

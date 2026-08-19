@@ -12,6 +12,39 @@ from app.utils.curated_words import CURATED_WORDS
 import os
 import asyncio
 
+def get_word_difficulty(word: str) -> str:
+    """Determine difficulty using Datamuse API for frequency."""
+    try:
+        response = httpx.get(f"https://api.datamuse.com/words?sp={word}&md=f", timeout=5.0)
+        if response.status_code == 200:
+            data = response.json()
+            # Find exact match
+            for item in data:
+                if item.get("word") == word:
+                    tags = item.get("tags", [])
+                    for tag in tags:
+                        if tag.startswith("f:"):
+                            freq = float(tag.split(":")[1])
+                            if freq >= 5.0:
+                                return "Easy"
+                            elif freq >= 1.0:
+                                return "Medium"
+                            else:
+                                return "Hard"
+                    break
+    except Exception as e:
+        logger.warning(f"Failed to fetch frequency for {word}: {e}")
+        pass
+    
+    # Fallback to length-based heuristic
+    length = len(word)
+    if length <= 5:
+        return "Easy"
+    elif length <= 8:
+        return "Medium"
+    else:
+        return "Hard"
+
 logger = logging.getLogger(__name__)
 
 INDIA_TZ = ZoneInfo("Asia/Kolkata")
@@ -174,6 +207,8 @@ def process_dictionary_data(word: str, data: dict) -> dict:
         if needs_antonyms and isinstance(groq_data.get("antonyms"), list):
             antonyms = list(dict.fromkeys(groq_data.get("antonyms")))[:5]
     
+    difficulty = get_word_difficulty(word)
+
     return {
         "word": word,
         "definitions": definitions,
@@ -182,7 +217,7 @@ def process_dictionary_data(word: str, data: dict) -> dict:
         "audio_url": audio_url,
         "synonyms": synonyms,
         "antonyms": antonyms,
-        "difficulty": "Hard",
+        "difficulty": difficulty,
         "origin": data.get("origin"),
         "source": "free_dictionary"
     }

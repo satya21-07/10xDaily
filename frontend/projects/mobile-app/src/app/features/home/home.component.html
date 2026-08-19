@@ -6,7 +6,7 @@
 
   <ion-content class="transparent-content">
     <!-- Navbar -->
-    <div class="top-nav">
+    <div class="top-nav" [ngClass]="getTimeClass()">
         <div class="app-brand">
           <img src="assets/10_X_Daily.png" alt="10xDaily Logo" />
         </div>
@@ -170,10 +170,14 @@
         </div>
         
         <div class="progress-stepper">
-          <div class="progress-line"></div>
-          <div class="progress-line-fill" [style.width]="((progress.completed - 1) / (progress.total - 1) * 100) + '%'"></div>
+          <div class="progress-track">
+            <div class="progress-line"></div>
+            <div class="progress-line-fill" [style.--target-width]="getProgressWidth()"></div>
+          </div>
           
-          <div class="step" *ngFor="let step of progress.items" [class.completed]="step.status === 'completed'">
+          <div class="step" *ngFor="let step of progress.items" 
+               [class.completed]="step.status === 'completed'"
+               [routerLink]="['/' + step.id]">
             <div class="step-icon">
               <ion-icon [name]="step.icon"></ion-icon>
             </div>

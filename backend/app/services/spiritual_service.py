@@ -855,15 +855,16 @@ MYTHOLOGICAL_CHARACTERS = [
     "Dewi Danu"
 ]
 
-def fetch_wikipedia_extract(character: str) -> Optional[str]:
-    """Fetches and caches the Wikipedia extract for a mythological character."""
+def fetch_wikipedia_extract(character: str) -> Optional[dict]:
+    """Fetches and caches the Wikipedia extract and image for a mythological character."""
     if character in _CHARACTER_CACHE:
-        return _CHARACTER_CACHE[character].get("extract")
+        return _CHARACTER_CACHE[character]
 
     url = "https://en.wikipedia.org/w/api.php"
     params = {
         "action": "query",
-        "prop": "extracts|pageprops",
+        "prop": "extracts|pageprops|pageimages",
+        "pithumbsize": "800",
         "explaintext": "1",
         "titles": character,
         "redirects": "1",
@@ -872,7 +873,7 @@ def fetch_wikipedia_extract(character: str) -> Optional[str]:
     }
     headers = {"User-Agent": "10xDailyApp/1.0 (https://10xdaily.com; contact@10xdaily.com)"}
     
-    extract = None
+    result = None
     # Try fetching with 1 retry
     for attempt in range(2):
         try:
@@ -887,13 +888,15 @@ def fetch_wikipedia_extract(character: str) -> Optional[str]:
                     logger.warning(f"Wikipedia page for {character} is a disambiguation page.")
                     break
                 extract = page.get("extract")
+                image_url = page.get("thumbnail", {}).get("source")
                 if extract:
-                    _CHARACTER_CACHE[character] = {"extract": extract}
+                    result = {"extract": extract, "image_url": image_url}
+                    _CHARACTER_CACHE[character] = result
                     break
         except requests.RequestException as e:
             logger.warning(f"Attempt {attempt+1} failed to fetch Wikipedia data for {character}: {e}")
             
-    return extract
+    return result
 
 def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[str] = None) -> dict:
     """Builds a daily lesson based on a mythological character from Wikipedia."""
@@ -910,9 +913,12 @@ def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[st
     character = MYTHOLOGICAL_CHARACTERS[day_num - 1]
     
     # Fetch from Wikipedia API (cached)
-    extract = fetch_wikipedia_extract(character)
-
+    wiki_data = fetch_wikipedia_extract(character)
+    
     import re
+
+    extract = wiki_data.get("extract") if wiki_data else None
+    image_url = wiki_data.get("image_url") if wiki_data else None
 
     if not extract:
         extract = f"{character} is a significant figure in Hindu mythology. We are currently gathering more detailed information from our sources."
@@ -923,16 +929,16 @@ def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[st
         prompt = f"What lessons can you draw from the mythology of {character}?"
     else:
         # Strip out useless sections like References, See also, External links
-        clean_text = re.split(r'==\s*(?:See also|References|Notes|Further reading|External links)\s*==', extract, flags=re.IGNORECASE)[0].strip()
-        
-        # Escape HTML to prevent XSS from Wikipedia artifacts before we inject our own tags
-        clean_text = html.escape(clean_text)
+        clean_text = re.split(r'==\s*(?:See also|References|Notes|Further reading|External links|Gallery)\s*==', extract, flags=re.IGNORECASE)[0].strip()
         
         # Separate intro from the rest of the body
         parts = re.split(r'\n==', clean_text, 1)
         intro_text = parts[0].strip()
         
         body_text = '==' + parts[1] if len(parts) > 1 else ""
+        
+        # Escape body HTML to prevent XSS from Wikipedia artifacts before we inject our own tags
+        body_text = html.escape(body_text)
         
         # Format the body text into HTML headings for colored topics and subtopics
         def format_heading(m):
@@ -948,12 +954,21 @@ def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[st
         # Collapse massive whitespace gaps (including spaces between newlines) into clean paragraph breaks
         story_context = re.sub(r'(\n\s*){2,}', '\n\n', story_context)
         
-        # Completely strip newlines around HTML headings so CSS margins don't compound with pre-wrap newlines!
-        story_context = re.sub(r'\n*<h', '<h', story_context)
-        story_context = re.sub(r'</h(\d)>\n*', r'</h\1>', story_context)
+        # Format newlines around HTML headings so CSS margins render properly with pre-wrap
+        story_context = re.sub(r'\n*<h', '\n\n<h', story_context)
+        story_context = re.sub(r'</h(\d)>\n*', r'</h\1>\n', story_context)
+        story_context = story_context.strip()
+        
+        # Clean up linguistic metadata in the intro to make it highly readable
+        cleaned_intro = re.sub(r'\s*\([^)]*(?:Sanskrit:|IAST:|pronounced|lit\.|also spelled)[^)]*\)', '', intro_text)
+        cleaned_intro = re.sub(r'\s*\[[^\]]+\]', '', cleaned_intro)
+        cleaned_intro = re.sub(r'\s*\(\s*[;,\s]*\)', '', cleaned_intro)
+        cleaned_intro = re.sub(r',\s*,', ',', cleaned_intro)
+        cleaned_intro = re.sub(r'\s+,', ',', cleaned_intro)
+        cleaned_intro = re.sub(r'\.\s*,', '.', cleaned_intro).strip()
         
         # Extract explanation and facts from intro
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', intro_text) if s.strip()]
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', cleaned_intro) if s.strip()]
         if len(sentences) > 2:
             explanation = " ".join(sentences[:2])
             facts = [f"Did you know? {s}" for s in sentences[2:5]]
@@ -1006,6 +1021,7 @@ def get_character_lesson(day: Optional[int] = None, target_date_str: Optional[st
             "transliteration": None,
             "translation": explanation,
             "hindi_translation": None,
+            "image_url": image_url,
             "commentators": {}
         },
         "reflection": {

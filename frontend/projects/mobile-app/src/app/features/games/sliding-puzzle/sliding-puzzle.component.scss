@@ -2,7 +2,10 @@
   display: block;
   height: 100%;
 }
-
+:host {
+  --ion-color-primary: #1b2536;
+  --ion-color-primary-rgb: 27, 37, 54;
+}
 ion-content {
   --background: #f8f9fa;
   overscroll-behavior-y: none;

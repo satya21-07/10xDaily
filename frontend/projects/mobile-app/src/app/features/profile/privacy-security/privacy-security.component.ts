@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { 
   shieldCheckmarkOutline, 
   shield, 
@@ -24,7 +24,7 @@ import {
   styleUrl: './privacy-security.component.scss'
 })
 export class PrivacySecurityComponent {
-  constructor(private toastCtrl: ToastController) {
+  constructor(private toastCtrl: ToastController, private router: Router) {
     addIcons({ 
       shieldCheckmarkOutline, 
       shield, 
@@ -41,15 +41,21 @@ export class PrivacySecurityComponent {
   }
 
   openWebLink(type: string) {
-    let url = 'https://10xdaily.app';
     if (type === 'privacy') {
-      url += '/privacy';
-    } else if (type === 'terms') {
-      url += '/terms';
-    } else if (type === 'support') {
-      url = 'mailto:support@10xdaily.app';
+      this.router.navigate(['/privacy']);
+      return;
     }
-    window.open(url, '_blank');
+    
+    if (type === 'terms') {
+      this.router.navigate(['/terms']);
+      return;
+    }
+    
+    let url = 'https://10xdaily.online';
+    if (type === 'support') {
+      url = 'mailto:one0xdaily@gmail.com';
+      window.location.href = url;
+    }
   }
 
   async openDataPreferences() {

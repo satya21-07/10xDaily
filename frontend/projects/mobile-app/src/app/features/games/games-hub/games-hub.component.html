@@ -1,5 +1,4 @@
-<ion-content class="games-hub-content">
-  <!-- Header -->
+<ion-header class="ion-no-border">
   <div class="header">
     <div class="menu-btn" (click)="goBack()">
       <ion-icon name="arrow-back-outline"></ion-icon>
@@ -20,10 +19,15 @@
       </div> -->
     </div>
   </div>
+</ion-header>
+
+<ion-content class="games-hub-content">
 
   <!-- Hero Banner -->
-  <div class="hero-banner">
-    <div class="hero-content">
+  <div class="hero-banner" style="background-image: url('assets/games_banner.png'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <!-- Optional overlay gradient to ensure text readability -->
+    <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%); z-index: 1;"></div>
+    <div class="hero-content" style="position: relative; z-index: 2;">
       <!-- <div class="streak-badge">
         🔥 {{ userProfile?.streak || 0 }} Day Streak
       </div> -->
@@ -32,16 +36,6 @@
       <!-- <button class="daily-challenge-btn">
         Daily Challenge <ion-icon name="arrow-forward"></ion-icon>
       </button> -->
-    </div>
-    <div class="hero-graphics">
-      <!-- Approximating 3D graphics with large icon -->
-      <ion-icon name="trophy" class="trophy-icon"></ion-icon>
-      <div class="confetti confetti-1"></div>
-      <div class="confetti confetti-2"></div>
-      <div class="confetti confetti-3"></div>
-      <div class="coin coin-1"></div>
-      <div class="coin coin-2"></div>
-      <div class="pedestal"></div>
     </div>
   </div>
 

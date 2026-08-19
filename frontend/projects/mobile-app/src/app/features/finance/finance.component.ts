@@ -241,6 +241,10 @@ export class FinanceComponent implements OnInit {
     });
   }
 
+  getEncodedTopic(topic: string): string {
+    return encodeURIComponent(topic || 'Finance');
+  }
+
   isSaved(concept: any): boolean {
     return this.savedBookmarks.some(b => b.title === concept.title);
   }

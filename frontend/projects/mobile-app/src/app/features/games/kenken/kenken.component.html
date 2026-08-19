@@ -1,5 +1,8 @@
 <ion-content class="game-content">
-  <div class="header" *ngIf="!won">
+  <app-loader *ngIf="isLoading" message="Loading KenKen..."></app-loader>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="header" *ngIf="!won">
     <div class="menu-btn" (click)="goBack()">
       <ion-icon name="arrow-back-outline"></ion-icon>
     </div>
@@ -74,4 +77,5 @@
       </button>
     </div>
   </div>
+  </ng-container>
 </ion-content>

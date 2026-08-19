@@ -1,0 +1,223 @@
+<ion-header class="ion-no-border blur-header">
+  <ion-toolbar color="transparent">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" color="primary"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Privacy Policy</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="privacy-content" fullscreen="true">
+  <div class="privacy-bg-gradient"></div>
+  
+  <div class="privacy-container">
+    <!-- Header Card -->
+    <div class="header-card fade-in">
+      <div class="icon-wrapper">
+        <ion-icon name="shield-checkmark"></ion-icon>
+      </div>
+      <h1>10xDaily Privacy</h1>
+      <div class="metadata">
+        <span class="badge">Last Updated: {{ currentDate | date:'MMMM d, yyyy' }}</span>
+      </div>
+      <p class="website-link">
+        Official website: <a href="https://10xdaily.online" target="_blank">10xdaily.online</a>
+      </p>
+    </div>
+
+    <div class="sections-wrapper slide-up">
+      <!-- Section 1 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">1</div>
+          <h2>Introduction</h2>
+        </div>
+        <div class="section-content">
+          <p>Welcome to 10xDaily, a learning and knowledge application that provides daily vocabulary, daily news, quizzes, brain games, and tracks learning progress and streaks. This Privacy Policy explains how we collect, use, and protect your information.</p>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">2</div>
+          <h2>Information We Collect</h2>
+        </div>
+        <div class="section-content">
+          <p>We only collect information that is necessary to provide our application features. We collect the following personal and activity information:</p>
+          <ul class="styled-list">
+            <li><strong>Account Information:</strong> Name, Email address, Phone number, Date of birth, Password, and Avatar images.</li>
+            <li><strong>Learning & Activity:</strong> Vocabulary learned, Quiz results, Quiz accuracy, Game scores and results, Learning progress, Streak information, XP (Experience Points), and Saved content/bookmarks.</li>
+          </ul>
+          <div class="alert-box success">
+            <ion-icon name="eye-off"></ion-icon>
+            <p>We <strong>do not</strong> collect location data, contacts, advertising IDs, or financial/health information.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">3</div>
+          <h2>Automatically Collected / Technical Information</h2>
+        </div>
+        <div class="section-content">
+          <p>We do not automatically collect analytics or tracking data. Our application does not integrate third-party tracking SDKs like Google Analytics or Firebase.</p>
+        </div>
+      </section>
+
+      <!-- Section 4 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">4</div>
+          <h2>How We Use Information</h2>
+        </div>
+        <div class="section-content">
+          <p>Your information is used exclusively for the following purposes:</p>
+          <ul class="styled-list checkmarks">
+            <li>To create and manage user accounts</li>
+            <li>To authenticate users</li>
+            <li>To provide application functionality</li>
+            <li>To save learning progress and user content/preferences</li>
+            <li>To track quiz and game results</li>
+            <li>To maintain learning streaks and XP</li>
+            <li>To provide user support, maintain security, fix bugs, and improve the application</li>
+          </ul>
+          <div class="alert-box info">
+            <ion-icon name="document-text"></ion-icon>
+            <p>We <strong>do not</strong> use your information for advertising, profiling, personalization, or marketing.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">5</div>
+          <h2>Data Sharing</h2>
+        </div>
+        <div class="section-content">
+          <p>We <strong>do not sell</strong> your personal information. We share data only with the third-party services required to operate the application. Our current service providers are:</p>
+          <ul class="styled-list">
+            <li><strong>Render:</strong> For application, backend hosting, and PostgreSQL database hosting.</li>
+            <li><strong>Resend:</strong> For email delivery (such as support and feedback emails).</li>
+          </ul>
+          <p>These service providers may process information only as necessary to provide their services to us.</p>
+        </div>
+      </section>
+
+      <!-- Section 6 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">6</div>
+          <h2>Security</h2>
+        </div>
+        <div class="section-content">
+          <p>We implement security measures to protect your information:</p>
+          <ul class="styled-list">
+            <li>Data is transmitted securely over HTTPS/TLS.</li>
+            <li>Access to backend and database services is strictly restricted.</li>
+            <li>User passwords are securely hashed before being stored in our database.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 7 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">7</div>
+          <h2>Data Retention</h2>
+        </div>
+        <div class="section-content">
+          <p>We retain your account and learning data for as long as your account is active. When you delete your account, we delete the personal information associated with that account, except for information that must legally or legitimately be retained.</p>
+        </div>
+      </section>
+
+      <!-- Section 8 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">8</div>
+          <h2>Account and Data Deletion</h2>
+        </div>
+        <div class="section-content">
+          <p>You can permanently delete your account and all associated personal data at any time through our in-app deletion process:</p>
+          <div class="path-box">Profile &rarr; Personal Information &rarr; Delete Account</div>
+          <p>Alternatively, you can delete your account via our web-based account deletion page at:</p>
+          <div style="text-align: center; margin-top: 1rem;">
+            <a class="external-link" href="https://10xdaily.online/delete-account" target="_blank">10xdaily.online/delete-account</a>
+          </div>
+          <p class="mt-3">Completing this process will delete your associated personal data from our database in accordance with our deletion implementation.</p>
+        </div>
+      </section>
+
+      <!-- Section 9 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">9</div>
+          <h2>Children</h2>
+        </div>
+        <div class="section-content">
+          <p>10xDaily is not specifically directed toward children. We do not knowingly collect children's personal information where prohibited by applicable law.</p>
+        </div>
+      </section>
+
+      <!-- Section 10 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">10</div>
+          <h2>Cookies and Local Storage</h2>
+        </div>
+        <div class="section-content">
+          <p>Our application uses <code>localStorage</code> securely on your device solely for authentication (to store your access token), session management, and storing basic application preferences (such as theme preferences). We do not use tracking cookies.</p>
+        </div>
+      </section>
+
+      <!-- Section 11 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">11</div>
+          <h2>User Privacy Rights</h2>
+        </div>
+        <div class="section-content">
+          <p>As a user, you have the right to:</p>
+          <ul class="styled-list checkmarks">
+            <li>Access and update your account information.</li>
+            <li>Delete your account and associated data.</li>
+            <li>Request information about your personal data.</li>
+            <li>Contact us regarding any privacy questions.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 12 -->
+      <section class="policy-card">
+        <div class="section-header">
+          <div class="number">12</div>
+          <h2>Changes to Privacy Policy</h2>
+        </div>
+        <div class="section-content">
+          <p>We may update this Privacy Policy from time to time. When we make material updates, we will change the "Last Updated" date at the top of this policy.</p>
+        </div>
+      </section>
+
+      <!-- Section 13 -->
+      <section class="policy-card mb-4">
+        <div class="section-header">
+          <div class="number">13</div>
+          <h2>Contact Us</h2>
+        </div>
+        <div class="section-content">
+          <p>If you have any questions, comments, or concerns about this Privacy Policy or your data, please contact us:</p>
+          <div class="contact-box">
+            <strong>Email:</strong> <a href="mailto:one0xdaily@gmail.com">one0xdaily&#64;gmail.com</a><br>
+            <div style="margin-top: 0.5rem;">
+                <strong>Website:</strong> <a href="https://10xdaily.online" target="_blank">https://10xdaily.online</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</ion-content>
