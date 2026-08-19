@@ -17,7 +17,9 @@ app.add_middleware(
         "http://localhost:8100",
         "http://localhost:4200",
         "http://localhost:4201",
-        "https://one0xdaily-web.onrender.com"
+        "https://one0xdaily-web.onrender.com",
+        "https://10xdaily.online",
+        "https://www.10xdaily.online"
     ],
     allow_credentials=True,
     allow_methods=["*"],
