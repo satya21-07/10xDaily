@@ -4,11 +4,11 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { shieldCheckmark, lockClosed, eyeOff, documentText } from 'ionicons/icons';
-
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-privacy',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule,RouterLink],
   templateUrl: './privacy.component.html',
   styleUrls: ['./privacy.component.scss']
 })

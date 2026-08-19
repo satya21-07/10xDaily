@@ -12,8 +12,7 @@
   --border-color: #e2e8f0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :host {
+:host-context(.dark-theme) {
     --page-bg: #0f172a;
     --card-bg: #1e293b;
     --text-main: #f8fafc;
@@ -25,7 +24,6 @@
     --info-bg: #1e3a8a;
     --info-text: #60a5fa;
     --border-color: #334155;
-  }
 }
 
 .blur-header {
