@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">10xDaily</string>
+    <string name="title_activity_main">10xDaily</string>
+    <string name="package_name">com.dailyos.app</string>
+    <string name="custom_url_scheme">com.dailyos.app</string>
+</resources>
