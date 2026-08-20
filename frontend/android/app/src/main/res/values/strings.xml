@@ -4,4 +4,5 @@
     <string name="title_activity_main">10xDaily</string>
     <string name="package_name">com.dailyos.app</string>
     <string name="custom_url_scheme">com.dailyos.app</string>
+    <string name="server_client_id">663497949911-ntqrrseps5dc6o8oe7972mor0259af94.apps.googleusercontent.com</string>
 </resources>

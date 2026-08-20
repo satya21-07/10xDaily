@@ -20,6 +20,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost",
+        "capacitor://localhost",
         "http://localhost:8100",
         "http://localhost:4200",
         "http://localhost:4201",

@@ -7,6 +7,8 @@ import { AuthService } from '../../../services/auth.service';
 import { environment } from '../../../../environments/environment';
 import { addIcons } from 'ionicons';
 import { personOutline, lockClosedOutline, rocket, logoGoogle, mailOutline, eyeOutline, eyeOffOutline, shieldCheckmarkOutline, logoApple } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 declare var google: any;
 
@@ -27,6 +29,7 @@ export class LoginComponent implements AfterViewInit {
   loginPassword = '';
   isLoggingIn = false;
   showPassword = false;
+  isNativePlatform = Capacitor.isNativePlatform();
 
   constructor() {
     addIcons({ personOutline, lockClosedOutline, rocket, logoGoogle, mailOutline, eyeOutline, eyeOffOutline, shieldCheckmarkOutline, logoApple });
@@ -37,7 +40,13 @@ export class LoginComponent implements AfterViewInit {
   }
 
   private initializeGoogleSignIn() {
-    if (typeof window !== 'undefined' && typeof google !== 'undefined' && google.accounts) {
+    if (this.isNativePlatform) {
+      GoogleAuth.initialize({
+        clientId: environment.googleClientId,
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
+      });
+    } else if (typeof window !== 'undefined' && typeof google !== 'undefined' && google.accounts) {
       google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: this.handleCredentialResponse.bind(this)
@@ -73,6 +82,39 @@ export class LoginComponent implements AfterViewInit {
         }
       });
     });
+  }
+
+  async onNativeGoogleSignIn() {
+    try {
+      this.isLoggingIn = true;
+      const user = await GoogleAuth.signIn();
+      // GoogleAuth returns an idToken we can use to verify on the backend
+      const credential = user.authentication.idToken;
+      
+      this.authService.loginWithGoogle(credential).subscribe({
+        next: () => {
+          this.ngZone.run(() => {
+            this.router.navigate(['/home'], { replaceUrl: true }).then(() => {
+              this.isLoggingIn = false;
+            });
+          });
+        },
+        error: async (err) => {
+          console.error('Google native login failed', err);
+          this.isLoggingIn = false;
+          
+          const alert = await this.alertCtrl.create({
+            header: 'Google Login Failed',
+            message: err?.error?.detail || 'Please try again.',
+            buttons: ['OK']
+          });
+          await alert.present();
+        }
+      });
+    } catch (error) {
+      console.error('Google native sign-in error:', error);
+      this.isLoggingIn = false;
+    }
   }
 
   async onLogin() {

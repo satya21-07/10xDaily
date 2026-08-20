@@ -50,7 +50,11 @@
       </div>
 
       <div class="social-btn-wrapper">
-        <div id="google-btn-container"></div>
+        <div id="google-btn-container" *ngIf="!isNativePlatform"></div>
+        <button class="social-btn" *ngIf="isNativePlatform" (click)="onNativeGoogleSignIn()">
+          <ion-icon name="logo-google"></ion-icon>
+          <span>Continue with Google</span>
+        </button>
       </div>
     </div>
 
