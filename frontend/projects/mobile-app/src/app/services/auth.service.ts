@@ -21,6 +21,8 @@ export interface UserProfile {
   quiz_total_answers?: number;
   modules_completed?: number;
   total_time_spent_seconds?: number;
+  authProvider?: string;
+  isTwoFactorEnabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -41,6 +43,8 @@ export interface AuthResponse {
     modules_explored?: number;
     total_time_spent_seconds?: number;
     avatar?: string;
+    auth_provider?: string;
+    is_two_factor_enabled?: boolean;
   };
 }
 
@@ -173,7 +177,9 @@ export class AuthService {
             modulesExplored: updatedUser.modules_explored,
             total_time_spent_seconds: updatedUser.total_time_spent_seconds,
             phoneNumber: updatedUser.phone_number,
-            dateOfBirth: updatedUser.date_of_birth
+            dateOfBirth: updatedUser.date_of_birth,
+            authProvider: updatedUser.auth_provider || current.authProvider || 'email',
+            isTwoFactorEnabled: updatedUser.is_two_factor_enabled || false
           };
           if (updatedUser.avatar) {
             newProfile.avatarUrl = updatedUser.avatar;
@@ -191,14 +197,18 @@ export class AuthService {
     );
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
+  login(email: string, password: string, otpCode?: string): Observable<AuthResponse> {
     const body = new URLSearchParams();
     body.set('username', email);
     body.set('password', password);
 
-    const headers = new HttpHeaders({
+    let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
+    
+    if (otpCode) {
+      headers = headers.set('X-OTP-Code', otpCode);
+    }
 
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login/access-token`, body.toString(), { headers }).pipe(
       tap(res => this.handleAuthResponse(res))
@@ -228,7 +238,9 @@ export class AuthService {
       quiz_correct_answers: res.user.quiz_correct_answers || 0,
       quiz_total_answers: res.user.quiz_total_answers || 0,
       modules_completed: res.user.modules_completed || 0,
-      total_time_spent_seconds: res.user.total_time_spent_seconds || 0
+      total_time_spent_seconds: res.user.total_time_spent_seconds || 0,
+      authProvider: res.user.auth_provider || 'email',
+      isTwoFactorEnabled: res.user.is_two_factor_enabled || false
     };
     
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -312,6 +324,24 @@ export class AuthService {
     );
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    if (!this.isLoggedIn) return throwError(() => new Error('Not logged in'));
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.post(`${this.apiUrl}/users/me/password`, {
+      current_password: currentPassword,
+      new_password: newPassword
+    }, { headers }).pipe(
+      catchError(err => {
+        console.error('Failed to change password', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
   deleteAccount(): Observable<any> {
     if (!this.isLoggedIn) return of(null);
     
@@ -326,6 +356,46 @@ export class AuthService {
       catchError(err => {
         console.error('Failed to delete account', err);
         return throwError(() => err);
+      })
+    );
+  }
+
+  setup2FA(): Observable<any> {
+    if (!this.isLoggedIn) return throwError(() => new Error('Not logged in'));
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    return this.http.post(`${this.apiUrl}/users/me/2fa/setup`, {}, { headers });
+  }
+
+  verify2FA(code: string, secret?: string): Observable<any> {
+    if (!this.isLoggedIn) return throwError(() => new Error('Not logged in'));
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    return this.http.post(`${this.apiUrl}/users/me/2fa/verify`, { code, secret }, { headers }).pipe(
+      tap(() => {
+        const profile = this.currentUserValue;
+        if (profile) {
+          profile.isTwoFactorEnabled = true;
+          this.updateLocalProfile(profile);
+        }
+      })
+    );
+  }
+
+  disable2FA(): Observable<any> {
+    if (!this.isLoggedIn) return throwError(() => new Error('Not logged in'));
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    return this.http.post(`${this.apiUrl}/users/me/2fa/disable`, {}, { headers }).pipe(
+      tap(() => {
+        const profile = this.currentUserValue;
+        if (profile) {
+          profile.isTwoFactorEnabled = false;
+          this.updateLocalProfile(profile);
+        }
       })
     );
   }

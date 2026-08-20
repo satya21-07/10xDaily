@@ -33,6 +33,10 @@
   --background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%) !important;
 }
 
+:host-context(.ion-palette-dark) ion-header ion-toolbar {
+  --background: rgba(18, 18, 18, 0.7);
+}
+
 :host-context(.ion-palette-dark) .profile-container {
   background-image: none !important;
 }
@@ -46,7 +50,9 @@ ion-header {
   background: transparent;
   
   ion-toolbar {
-    --background: transparent;
+    --background: rgba(252, 252, 253, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     --border-width: 0;
   }
   ion-button {

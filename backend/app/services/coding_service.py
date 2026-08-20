@@ -150,8 +150,8 @@ def get_or_generate_daily_coding_lesson(db: Session) -> dict:
        - Q4: Medium
        - Q5: Hard
     4. Do not generate five questions that test exactly the same technique. Questions should cover meaningful variations of the day's topic/pattern.
-    5. Provide concise, clean standard solutions in Java, Python, JavaScript, and C++ as raw strings without markdown code fences or verbose comments.
-    6. Keep all fields compact and concise so the JSON response stays well within token constraints.
+    5. Provide clean standard solutions in Java, Python, JavaScript, and C++ as raw strings. The code MUST BE PROPERLY INDENTED WITH NEWLINES (\n). Do NOT minify or compress the code.
+    6. Ensure the JSON is compact but DO NOT compromise on code formatting and indentation for the solutions.
 
     You MUST respond with ONLY a valid JSON object matching this exact structure:
     {{

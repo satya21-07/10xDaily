@@ -12,8 +12,8 @@
   --border-color: #e2e8f0;
 }
 
-:host-context(.dark-theme) {
-    --page-bg: #0f172a;
+:host-context(.dark-theme), :host-context(.ion-palette-dark) {
+    --page-bg: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%) !important;
     --card-bg: #1e293b;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;

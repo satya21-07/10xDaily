@@ -18,6 +18,8 @@ class UserBase(BaseModel):
     modules_explored: Optional[int] = 0
     total_time_spent_seconds: Optional[int] = 0
     avatar: Optional[str] = None
+    auth_provider: Optional[str] = "email"
+    is_two_factor_enabled: Optional[bool] = False
 
 class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None

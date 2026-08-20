@@ -137,9 +137,9 @@
                   [class.language-javascript]="activeSolutionTab[i] === 'javascript'"
                   [class.language-cpp]="activeSolutionTab[i] === 'cpp'"
                   >{{ 
-                  activeSolutionTab[i] === 'java' ? q.solution_java : 
+                  formatCode(activeSolutionTab[i] === 'java' ? q.solution_java : 
                   (activeSolutionTab[i] === 'python' ? q.solution_python : 
-                  (activeSolutionTab[i] === 'javascript' ? q.solution_javascript : q.solution_cpp)) 
+                  (activeSolutionTab[i] === 'javascript' ? q.solution_javascript : q.solution_cpp)))
                 }}</code></pre>
               </div>
             </div>

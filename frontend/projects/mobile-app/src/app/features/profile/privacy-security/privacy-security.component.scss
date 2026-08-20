@@ -212,7 +212,7 @@ ion-header {
   }
   
   ion-content {
-    --background: #121212;
+    --background: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%) !important;
   }
   
   .header-graphic {

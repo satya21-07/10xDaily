@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { IonicModule, ToastController, AlertController, LoadingController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController, LoadingController, IonicSafeString } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
   personOutline, 
@@ -13,7 +13,9 @@ import {
   trashOutline,
   saveOutline,
   closeOutline,
-  arrowBack
+  arrowBack,
+  copyOutline,
+  checkmarkOutline
 } from 'ionicons/icons';
 import { AuthService, UserProfile } from '../../../services/auth.service';
 
@@ -40,6 +42,12 @@ export class PersonalInformationComponent implements OnInit {
   editPhone: string = '';
   editDob: string = '';
 
+  is2FAModalOpen = false;
+  twoFactorQrCode = '';
+  twoFactorSecret = '';
+  twoFactorCodeInput = '';
+  isSecretCopied = false;
+
   constructor() {
     addIcons({ 
       personOutline, 
@@ -50,7 +58,9 @@ export class PersonalInformationComponent implements OnInit {
       trashOutline,
       saveOutline,
       closeOutline,
-      arrowBack
+      arrowBack,
+      copyOutline,
+      checkmarkOutline
     });
   }
 
@@ -74,6 +84,43 @@ export class PersonalInformationComponent implements OnInit {
   }
 
   async saveProfile() {
+    if (this.editPhone) {
+      const phoneRegex = /^\+?[0-9\s\-\(\)]{7,15}$/;
+      if (!phoneRegex.test(this.editPhone)) {
+        const alert = await this.alertCtrl.create({
+          header: 'Invalid Phone Number',
+          message: 'Please enter a valid phone number containing only numbers and standard formatting characters.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+    }
+
+    if (this.editDob) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(this.editDob)) {
+        const alert = await this.alertCtrl.create({
+          header: 'Invalid Date',
+          message: 'Please enter a valid date of birth (YYYY-MM-DD).',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+      
+      const dobDate = new Date(this.editDob);
+      if (dobDate > new Date()) {
+         const alert = await this.alertCtrl.create({
+          header: 'Invalid Date',
+          message: 'Date of birth cannot be in the future.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+    }
+
     const loading = await this.loadingCtrl.create({
       message: 'Saving...',
     });
@@ -120,6 +167,231 @@ export class PersonalInformationComponent implements OnInit {
       color: 'dark'
     });
     toast.present();
+  }
+
+  async manage2FA() {
+    if (this.isEditing) return;
+    
+    if (this.user?.isTwoFactorEnabled) {
+      const alert = await this.alertCtrl.create({
+        header: 'Disable 2FA',
+        message: 'Are you sure you want to disable Two-Factor Authentication? Your account will be less secure.',
+        buttons: [
+          { text: 'Cancel', role: 'cancel' },
+          { 
+            text: 'Disable', 
+            role: 'destructive',
+            handler: async () => {
+              const loading = await this.loadingCtrl.create({ message: 'Disabling...' });
+              await loading.present();
+              this.authService.disable2FA().subscribe({
+                next: async () => {
+                  await loading.dismiss();
+                  const toast = await this.toastCtrl.create({
+                    message: 'Two-Factor Authentication disabled.',
+                    duration: 2000,
+                    color: 'success',
+                    position: 'bottom'
+                  });
+                  toast.present();
+                },
+                error: async () => {
+                  await loading.dismiss();
+                  const toast = await this.toastCtrl.create({
+                    message: 'Failed to disable 2FA.',
+                    duration: 2000,
+                    color: 'danger',
+                    position: 'bottom'
+                  });
+                  toast.present();
+                }
+              });
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      const loading = await this.loadingCtrl.create({ message: 'Initializing 2FA...' });
+      await loading.present();
+      
+      this.authService.setup2FA().subscribe({
+        next: async (res) => {
+          await loading.dismiss();
+          this.twoFactorSecret = res.secret;
+          this.twoFactorQrCode = res.qr_code;
+          this.twoFactorCodeInput = '';
+          this.isSecretCopied = false;
+          this.is2FAModalOpen = true;
+        },
+        error: async () => {
+          await loading.dismiss();
+          const toast = await this.toastCtrl.create({
+            message: 'Failed to initialize 2FA setup.',
+            duration: 2000,
+            color: 'danger',
+            position: 'bottom'
+          });
+          toast.present();
+        }
+      });
+    }
+  }
+
+  close2FAModal() {
+    this.is2FAModalOpen = false;
+    this.twoFactorCodeInput = '';
+    this.isSecretCopied = false;
+  }
+
+  async copySecret() {
+    if (navigator.clipboard && this.twoFactorSecret) {
+      try {
+        await navigator.clipboard.writeText(this.twoFactorSecret);
+        this.isSecretCopied = true;
+        setTimeout(() => {
+          this.isSecretCopied = false;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+    }
+  }
+
+  async verify2FACode() {
+    if (!this.twoFactorCodeInput || this.twoFactorCodeInput.toString().length !== 6) {
+      const toast = await this.toastCtrl.create({
+        message: 'Please enter a valid 6-digit code.',
+        duration: 2000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      toast.present();
+      return;
+    }
+    
+    const verifyLoading = await this.loadingCtrl.create({ message: 'Verifying...' });
+    await verifyLoading.present();
+    
+    this.authService.verify2FA(this.twoFactorCodeInput.toString(), this.twoFactorSecret).subscribe({
+      next: async () => {
+        await verifyLoading.dismiss();
+        this.close2FAModal();
+        const toast = await this.toastCtrl.create({
+          message: 'Two-Factor Authentication enabled successfully!',
+          duration: 2000,
+          color: 'success',
+          position: 'bottom'
+        });
+        toast.present();
+      },
+      error: async (err) => {
+        await verifyLoading.dismiss();
+        const errToast = await this.toastCtrl.create({
+          message: err.error?.detail || 'Invalid code. Please try again.',
+          duration: 2000,
+          color: 'danger',
+          position: 'bottom'
+        });
+        errToast.present();
+      }
+    });
+  }
+
+  async changePassword() {
+    if (this.isEditing) return; // Disable standard clicks during edit mode
+
+    const alert = await this.alertCtrl.create({
+      header: 'Change Password',
+      inputs: [
+        {
+          name: 'currentPassword',
+          type: 'password',
+          placeholder: 'Current Password'
+        },
+        {
+          name: 'newPassword',
+          type: 'password',
+          placeholder: 'New Password'
+        },
+        {
+          name: 'confirmPassword',
+          type: 'password',
+          placeholder: 'Confirm New Password'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Update',
+          handler: async (data) => {
+            if (!data.currentPassword || !data.newPassword || !data.confirmPassword) {
+              const err = await this.alertCtrl.create({
+                header: 'Error',
+                message: 'All fields are required.',
+                buttons: ['OK']
+              });
+              await err.present();
+              return false;
+            }
+            
+            if (data.newPassword !== data.confirmPassword) {
+              const err = await this.alertCtrl.create({
+                header: 'Error',
+                message: 'New passwords do not match.',
+                buttons: ['OK']
+              });
+              await err.present();
+              return false;
+            }
+            
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+            if (!passwordRegex.test(data.newPassword)) {
+              const err = await this.alertCtrl.create({
+                header: 'Weak Password',
+                message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+                buttons: ['OK']
+              });
+              await err.present();
+              return false;
+            }
+
+            const loading = await this.loadingCtrl.create({
+              message: 'Updating password...',
+            });
+            await loading.present();
+
+            this.authService.changePassword(data.currentPassword, data.newPassword).subscribe({
+              next: async () => {
+                await loading.dismiss();
+                const success = await this.alertCtrl.create({
+                  header: 'Success',
+                  message: 'Your password has been updated successfully.',
+                  buttons: ['OK']
+                });
+                await success.present();
+              },
+              error: async (err) => {
+                await loading.dismiss();
+                const errAlert = await this.alertCtrl.create({
+                  header: 'Update Failed',
+                  message: err?.error?.detail || 'Failed to update password. Please check your current password.',
+                  buttons: ['OK']
+                });
+                await errAlert.present();
+              }
+            });
+            
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   triggerFileInput() {

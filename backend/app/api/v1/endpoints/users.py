@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.user import User, UserCreate
@@ -138,9 +138,105 @@ def delete_user_me(
     db.commit()
     return current_user
 
+from pydantic import BaseModel
+
+class UserPasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
+from app.core import security
+
+@router.post("/me/password", response_model=User)
+def update_user_password(
+    *,
+    db: Session = Depends(deps.get_db),
+    password_in: UserPasswordUpdate,
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Update user password."""
+    if not security.verify_password(password_in.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    current_user.hashed_password = security.get_password_hash(password_in.new_password)
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+import pyotp
+import qrcode
+import base64
+from io import BytesIO
+
+class TwoFactorVerify(BaseModel):
+    code: str
+    secret: Optional[str] = None
+
+@router.post("/me/2fa/setup")
+def setup_2fa(
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Generate 2FA secret and QR code."""
+    secret = pyotp.random_base32()
+    # Provide an otpauth URI
+    uri = pyotp.totp.TOTP(secret).provisioning_uri(name=current_user.email, issuer_name="10xDaily")
+    
+    # Generate QR Code image
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    return {
+        "secret": secret,
+        "qr_code": f"data:image/png;base64,{qr_b64}"
+    }
+
+@router.post("/me/2fa/verify")
+def verify_2fa(
+    request: TwoFactorVerify,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Verify 2FA code and enable if successful."""
+    # If enabling for the first time, secret is passed in request. 
+    secret_to_use = request.secret if request.secret else current_user.two_factor_secret
+    
+    if not secret_to_use:
+        raise HTTPException(status_code=400, detail="No secret provided or found.")
+        
+    totp = pyotp.TOTP(secret_to_use)
+    if not totp.verify(request.code):
+        raise HTTPException(status_code=400, detail="Invalid 2FA code.")
+        
+    # If successful and secret was passed, enable it
+    if request.secret:
+        current_user.two_factor_secret = request.secret
+        current_user.is_two_factor_enabled = True
+        db.add(current_user)
+        db.commit()
+        
+    return {"message": "2FA verified successfully."}
+
+@router.post("/me/2fa/disable")
+def disable_2fa(
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+) -> Any:
+    """Disable 2FA."""
+    current_user.is_two_factor_enabled = False
+    current_user.two_factor_secret = None
+    db.add(current_user)
+    db.commit()
+    return {"message": "2FA disabled successfully."}
+
 from app.models.games import GameProgress
 from datetime import datetime, timezone, timedelta
-from pydantic import BaseModel
 
 class ModulesProgressUpdate(BaseModel):
     visited_modules: List[str]
@@ -239,3 +335,4 @@ def update_today_habits_progress(
     db.commit()
     
     return {"message": "Habits progress saved!"}
+

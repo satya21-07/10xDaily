@@ -32,6 +32,18 @@ export class RegisterComponent {
   async onRegister() {
     if (!this.registerEmail || !this.registerPassword || !this.registerName) return;
     
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(this.registerEmail)) {
+      const alert = await this.alertCtrl.create({
+        header: 'Invalid Email',
+        message: 'Please enter a valid email address.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+    
     // Password validation: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     if (!passwordRegex.test(this.registerPassword)) {

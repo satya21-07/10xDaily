@@ -154,7 +154,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     { id: 'vocabulary', title: 'Vocabulary', desc: '10 new words', route: '/vocabulary', icon: 'book-outline', cssClass: 'blue-card', shortLabel: 'Vocab' },
     { id: 'news', title: 'Daily news', desc: 'India and world', route: '/news', icon: 'newspaper-outline', cssClass: 'peach-card', shortLabel: 'News' },
     { id: 'coding', title: 'Coding', desc: 'DSA mastery', route: '/coding', icon: 'code-slash-outline', cssClass: 'purple-card', shortLabel: 'Coding' },
-    { id: 'spiritual', title: 'Spiritual', desc: 'Mythology tales', route: '/spiritual', icon: 'moon-outline', cssClass: 'blue-card', shortLabel: 'Spirit' },
+    { id: 'spiritual', title: 'Spiritual', desc: 'Mythology tales', route: '/spiritual', icon: 'moon-outline', cssClass: 'blue-card', shortLabel: 'Spiritual' },
     { id: 'finance', title: 'Finance', desc: 'Market updates', route: '/finance', icon: 'wallet-outline', cssClass: 'peach-card', shortLabel: 'Finance' },
     { id: 'health', title: 'Health', desc: 'Fitness tips', route: '/health', icon: 'fitness-outline', cssClass: 'purple-card', shortLabel: 'Health' }
   ];

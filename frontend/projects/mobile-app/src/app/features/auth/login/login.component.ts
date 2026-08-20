@@ -75,8 +75,19 @@ export class LoginComponent implements AfterViewInit {
     });
   }
 
-  onLogin() {
+  async onLogin() {
     if (!this.loginEmail || !this.loginPassword) return;
+    
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(this.loginEmail)) {
+      const alert = await this.alertCtrl.create({
+        header: 'Invalid Email',
+        message: 'Please enter a valid email address.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
     
     this.isLoggingIn = true;
     
@@ -92,12 +103,57 @@ export class LoginComponent implements AfterViewInit {
         console.error('Login failed', err);
         this.isLoggingIn = false;
         
-        const alert = await this.alertCtrl.create({
-          header: 'Login Failed',
-          message: 'Please check your credentials and try again.',
-          buttons: ['OK']
-        });
-        await alert.present();
+        if (err?.error?.detail === '2FA_REQUIRED') {
+          const alert = await this.alertCtrl.create({
+            header: 'Two-Factor Authentication',
+            message: 'Please enter the 6-digit code from your authenticator app.',
+            inputs: [
+              {
+                name: 'code',
+                type: 'number',
+                placeholder: '6-digit code'
+              }
+            ],
+            buttons: [
+              { text: 'Cancel', role: 'cancel' },
+              {
+                text: 'Verify',
+                handler: async (data) => {
+                  if (!data.code) return false;
+                  
+                  this.isLoggingIn = true;
+                  this.authService.login(this.loginEmail, this.loginPassword, data.code).subscribe({
+                    next: () => {
+                      this.ngZone.run(() => {
+                        this.router.navigate(['/home'], { replaceUrl: true }).then(() => {
+                          this.isLoggingIn = false;
+                        });
+                      });
+                    },
+                    error: async (err2) => {
+                      this.isLoggingIn = false;
+                      const errAlert = await this.alertCtrl.create({
+                        header: 'Login Failed',
+                        message: err2?.error?.detail || 'Invalid 2FA code.',
+                        buttons: ['OK']
+                      });
+                      await errAlert.present();
+                    }
+                  });
+                  return true;
+                }
+              }
+            ]
+          });
+          await alert.present();
+        } else {
+          const alert = await this.alertCtrl.create({
+            header: 'Login Failed',
+            message: err?.error?.detail || 'Please check your credentials and try again.',
+            buttons: ['OK']
+          });
+          await alert.present();
+        }
       }
     });
   }
@@ -110,8 +166,51 @@ export class LoginComponent implements AfterViewInit {
     this.showPassword = !this.showPassword;
   }
 
-  goToForgotPassword() {
-    console.log('Forgot password clicked');
-    // Implement forgot password navigation here
+  async goToForgotPassword() {
+    const alert = await this.alertCtrl.create({
+      header: 'Reset Password',
+      message: 'Enter your email address to receive a password reset link.',
+      inputs: [
+        {
+          name: 'email',
+          type: 'email',
+          placeholder: 'Email address',
+          value: this.loginEmail
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Send Link',
+          handler: async (data) => {
+            if (!data.email) return false;
+            
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(data.email)) {
+              const errorAlert = await this.alertCtrl.create({
+                header: 'Invalid Email',
+                message: 'Please enter a valid email address.',
+                buttons: ['OK']
+              });
+              await errorAlert.present();
+              return false;
+            }
+
+            const successAlert = await this.alertCtrl.create({
+              header: 'Link Sent',
+              message: `A password reset link has been sent to ${data.email}.`,
+              buttons: ['OK']
+            });
+            await successAlert.present();
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

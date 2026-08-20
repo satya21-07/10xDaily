@@ -481,16 +481,35 @@ ion-header {
   .vocab-layout .middle-section .meaning-row .label, .vocab-layout .middle-section .synonyms-row .label { color: #DDD; }
   .vocab-layout .middle-section .meaning-row .value, .vocab-layout .middle-section .synonyms-row .value { color: #AAA; }
   
+  .left-section .audio-circle {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+  
   .empty-state { color: #A0A0A0; }
   
   .tab-item { color: #A0A0A0; }
   .tab-item .tab-badge { background: #333333; color: #A0A0A0; }
-  .tab-item.active { color: var(--ion-color-primary); }
+  .tab-item.active { 
+    color: #ffffff; 
+    border-bottom-color: #ffffff;
+    
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+  }
   
   .news-item .category-label { color: #64B5F6; }
   
   .generic-item .item-actions .action-icon, .news-item .item-actions .action-icon, .right-section .action-buttons .options-icon { color: #A0A0A0; }
   .right-section .date-saved { color: #A0A0A0; }
+  
+  .generic-item .item-actions .action-icon.bookmark.saved, 
+  .news-item .item-actions .action-icon.bookmark.saved,
+  .right-section .action-buttons .bookmark-icon {
+    color: #ffffff !important;
+  }
   
   ion-button { --color: #FFFFFF; }
 }

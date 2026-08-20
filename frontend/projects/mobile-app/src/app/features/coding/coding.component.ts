@@ -141,4 +141,9 @@ export class CodingComponent implements OnInit {
   setSolutionTab(index: number, tab: 'java' | 'python' | 'javascript' | 'cpp') {
     this.activeSolutionTab[index] = tab;
   }
+
+  formatCode(code: string | undefined): string {
+    if (!code) return '';
+    return code.replace(/\\n/g, '\n').replace(/\\t/g, '  ');
+  }
 }

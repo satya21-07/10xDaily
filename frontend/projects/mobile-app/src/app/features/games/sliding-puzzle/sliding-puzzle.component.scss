@@ -240,28 +240,58 @@ ion-content {
     --background: #000000;
   }
   
-  .stats-bar, .numpad-btn {
-    background: #1c1c1e;
-    color: #e5e5ea;
+  ion-toolbar {
+    --background: #000000;
+    --color: #ffffff;
+    
+    ion-button {
+      --color: #ffffff !important;
+      color: #ffffff !important;
+    }
+
+    ion-icon {
+      color: #ffffff !important;
+    }
+  }
+  
+  .stats-bar {
+    background: #1c1c1e !important;
+    
+    .stat .label {
+      color: #a0a0a0 !important;
+    }
+    
+    .stat .value {
+      color: #ffffff !important;
+    }
+  }
+  
+  .sliding-cell {
+    color: #ffffff !important;
+  }
+  
+  .numpad-btn {
+    background: #1c1c1e !important;
+    color: #ffffff !important;
   }
 
   .numpad-btn.active {
-    background: var(--ion-color-primary);
-    color: white;
+    background: var(--ion-color-primary) !important;
+    color: white !important;
   }
   
   .success-overlay {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.8) !important;
     
     .success-content {
-      background: #1c1c1e;
+      background: #1c1c1e !important;
       
       h2 {
-        color: #34d399;
+        color: #34d399 !important;
       }
       
       p {
-        color: #e5e5ea;
+        color: #e5e5ea !important;
       }
     }
   }

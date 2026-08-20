@@ -10,9 +10,15 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
+    auth_provider = Column(String(50), default="email")
     phone_number = Column(String(50), nullable=True)
     date_of_birth = Column(String(50), nullable=True)
     avatar = Column(Text, nullable=True)
+    
+    # 2FA
+    two_factor_secret = Column(String(50), nullable=True)
+    is_two_factor_enabled = Column(Boolean, default=False)
+    
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
     xp = Column(Integer, default=0)

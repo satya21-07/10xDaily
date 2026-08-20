@@ -61,41 +61,15 @@ def admin_login_access_token(
     elif not user.is_superuser:
         raise HTTPException(status_code=403, detail="You do not have admin privileges")
         
-    current_streak = update_user_streak(db, user)
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": security.create_access_token(
-            user.id, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "full_name": user.full_name,
-            "streak": current_streak,
-            "xp": user.xp,
-            "words_learned": user.words_learned,
-            "quiz_correct_answers": user.quiz_correct_answers,
-            "quiz_total_answers": user.quiz_total_answers,
-            "modules_completed": user.modules_completed,
-            "modules_explored": user.modules_explored,
-            "total_time_spent_seconds": user.total_time_spent_seconds
-        }
-    }
-
-@router.post("/login/access-token", response_model=Token)
-@limiter.limit("5/minute")
-def login_access_token(
-    request: Request,
-    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
-) -> Any:
-    """OAuth2 compatible token login, get an access token for future requests"""
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
-    elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+    if user.is_two_factor_enabled:
+        otp_code = request.headers.get("X-OTP-Code")
+        if not otp_code:
+            raise HTTPException(status_code=401, detail="2FA_REQUIRED")
+            
+        import pyotp
+        totp = pyotp.TOTP(user.two_factor_secret)
+        if not totp.verify(otp_code):
+            raise HTTPException(status_code=401, detail="INVALID_2FA_CODE")
         
     current_streak = update_user_streak(db, user)
     
@@ -116,7 +90,57 @@ def login_access_token(
             "quiz_total_answers": user.quiz_total_answers,
             "modules_completed": user.modules_completed,
             "modules_explored": user.modules_explored,
-            "total_time_spent_seconds": user.total_time_spent_seconds
+            "total_time_spent_seconds": user.total_time_spent_seconds,
+            "auth_provider": user.auth_provider,
+            "is_two_factor_enabled": user.is_two_factor_enabled
+        }
+    }
+
+@router.post("/login/access-token", response_model=Token)
+@limiter.limit("5/minute")
+def login_access_token(
+    request: Request,
+    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+) -> Any:
+    """OAuth2 compatible token login, get an access token for future requests"""
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not security.verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+        
+    if user.is_two_factor_enabled:
+        otp_code = request.headers.get("X-OTP-Code")
+        if not otp_code:
+            raise HTTPException(status_code=401, detail="2FA_REQUIRED")
+            
+        import pyotp
+        totp = pyotp.TOTP(user.two_factor_secret)
+        if not totp.verify(otp_code):
+            raise HTTPException(status_code=401, detail="INVALID_2FA_CODE")
+        
+    current_streak = update_user_streak(db, user)
+    
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return {
+        "access_token": security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        ),
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "streak": current_streak,
+            "xp": user.xp,
+            "words_learned": user.words_learned,
+            "quiz_correct_answers": user.quiz_correct_answers,
+            "quiz_total_answers": user.quiz_total_answers,
+            "modules_completed": user.modules_completed,
+            "modules_explored": user.modules_explored,
+            "total_time_spent_seconds": user.total_time_spent_seconds,
+            "auth_provider": user.auth_provider,
+            "is_two_factor_enabled": user.is_two_factor_enabled
         }
     }
 
@@ -169,7 +193,9 @@ def register(
             "quiz_total_answers": user.quiz_total_answers,
             "modules_completed": user.modules_completed,
             "modules_explored": user.modules_explored,
-            "total_time_spent_seconds": user.total_time_spent_seconds
+            "total_time_spent_seconds": user.total_time_spent_seconds,
+            "auth_provider": user.auth_provider,
+            "is_two_factor_enabled": user.is_two_factor_enabled
         }
     }
 
@@ -202,6 +228,7 @@ def google_auth(
                 email=email,
                 hashed_password=security.get_password_hash(secrets.token_urlsafe(32)),
                 full_name=name,
+                auth_provider="google"
             )
             db.add(user)
             db.commit()
@@ -209,6 +236,7 @@ def google_auth(
         else:
             # Existing user - wipe their password to prevent pre-account takeover
             user.hashed_password = security.get_password_hash(secrets.token_urlsafe(32))
+            user.auth_provider = "google"
             db.commit()
             db.refresh(user)
             

@@ -54,5 +54,5 @@ class QuestionSchema(BaseModel):
 class GroqCodingLessonSchema(BaseModel):
     topic: str
     learning_objective: str
-    concepts: List[ConceptSchema] = Field(..., min_length=4, max_length=4)
-    questions: List[QuestionSchema] = Field(..., min_length=5, max_length=5)
+    concepts: List[ConceptSchema] = Field(..., min_length=1, max_length=10)
+    questions: List[QuestionSchema] = Field(..., min_length=1, max_length=10)
